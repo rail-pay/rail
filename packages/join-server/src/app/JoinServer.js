@@ -63,7 +63,7 @@ class JoinServer {
 			const chains = config.Chains.load()
 			for (const chainName in chains) {
 				for (const contractName in chains[chainName].contracts) {
-					if (contractName === "DataUnionFactory") {
+					if (contractName === "VaultFactory") {
 						clients.set(chainName, this.newDataUnionClient(chains[chainName], privateKey))
 					}
 				}
@@ -155,7 +155,7 @@ class JoinServer {
 		this.authenticatedRoutes.use((req, res, next) => this.signedRequestValidator(req).then(next).catch((err) => next(err)))
 		this.authenticatedRoutes.post('/join', (req, res, next) => new rest.JoinHandler(this.logger, this.joinRequestService, this.customJoinRequestValidator).handle(req, res, next))
 		this.customRoutes(this.authenticatedRoutes, this.clients)
-		
+
 		this.expressApp.use(this.publicRoutes)
 		this.expressApp.use(this.authenticatedRoutes)
 

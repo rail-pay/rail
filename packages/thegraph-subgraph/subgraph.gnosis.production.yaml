@@ -7,11 +7,11 @@ schema:
 dataSources:
   # Old DU gnosis/xdai (Swash) >>
   - kind: ethereum/contract
-    name: DataUnionFactorySidechain
+    name: VaultFactorySidechain
     network: xdai
     source:
       address: '0xFCE1FBFAaE61861B011B379442c8eE1DC868ABd0'
-      abi: DataUnionFactorySidechain
+      abi: VaultFactorySidechain
       startBlock: 18589701
     mapping:
       kind: ethereum/events
@@ -21,8 +21,8 @@ dataSources:
       entities:
         - DataUnion
       abis:
-        - name: DataUnionFactorySidechain
-          file: ./abis/DataUnionFactorySidechain.json
+        - name: VaultFactorySidechain
+          file: ./abis/VaultFactorySidechain.json
       eventHandlers:
         - event: SidechainDUCreated(indexed address,indexed address,indexed address,address)
           handler: handleDU2Created
@@ -30,11 +30,11 @@ dataSources:
 
   # New DU gnosis/xdai >>
   - kind: ethereum/contract
-    name: DataUnionFactory
+    name: VaultFactory
     network: xdai
     source:
       address: '0xe4515702878931b45Dfe4D89d3Fb3208910C913C'
-      abi: DataUnionFactory
+      abi: VaultFactory
       startBlock: 24091573
     mapping:
       kind: ethereum/events
@@ -44,8 +44,8 @@ dataSources:
       entities:
         - DataUnion
       abis:
-        - name: DataUnionFactory
-          file: ./abis/DataUnionFactory.json
+        - name: VaultFactory
+          file: ./abis/VaultFactory.json
       eventHandlers:
         - event: DUCreated(indexed address,indexed address,address)
           handler: handleDUCreated

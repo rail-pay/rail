@@ -3,13 +3,13 @@ import { waffle, upgrades } from "hardhat"
 import { Contract, ContractFactory, utils, BigNumber } from "ethers"
 const { parseEther } = utils
 
-import DataUnionFactoryJson from "../../artifacts/contracts/DataUnionFactory.sol/DataUnionFactory.json"
+import VaultFactoryJson from "../../artifacts/contracts/VaultFactory.sol/VaultFactory.json"
 import DataUnionTemplateJson from "../../artifacts/contracts/DataUnionTemplate.sol/DataUnionTemplate.json"
 import FeeOracleJson from "../../artifacts/contracts/DefaultFeeOracle.sol/DefaultFeeOracle.json"
 
 import TestTokenJson from "../../artifacts/contracts/test/TestToken.sol/TestToken.json"
 
-import { DataUnionFactory, DefaultFeeOracle, TestToken } from "../../typechain"
+import { VaultFactory, DefaultFeeOracle, TestToken } from "../../typechain"
 
 import Debug from "debug"
 const log = Debug("Streamr:du:test:BinanceAdapter")
@@ -19,7 +19,7 @@ const { deployContract, provider } = waffle
 
 type EthereumAddress = string
 
-describe("DataUnionFactory", (): void => {
+describe("VaultFactory", (): void => {
     const accounts = provider.getWallets()
 
     const creator = accounts[0]
@@ -31,7 +31,7 @@ describe("DataUnionFactory", (): void => {
     const m = members.map(member => member.address)
     const o = others.map(outsider => outsider.address)
 
-    let factory: DataUnionFactory
+    let factory: VaultFactory
     let testToken: TestToken
 
     before(async () => {
@@ -42,12 +42,12 @@ describe("DataUnionFactory", (): void => {
             parseEther("0.01"),
             protocolBeneficiary.address
         ], { kind: "uups" }) as DefaultFeeOracle
-        const factoryFactory = new ContractFactory(DataUnionFactoryJson.abi, DataUnionFactoryJson.bytecode, creator)
+        const factoryFactory = new ContractFactory(VaultFactoryJson.abi, VaultFactoryJson.bytecode, creator)
         factory = await upgrades.deployProxy(factoryFactory, [
             dataUnionTemplate.address,
             testToken.address,
             feeOracle.address,
-        ], { kind: "uups" }) as DataUnionFactory
+        ], { kind: "uups" }) as VaultFactory
     })
 
     it("sidechain ETH flow", async () => {

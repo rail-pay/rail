@@ -12,7 +12,7 @@ export const ConfigTest = {
     restUrl: process.env.REST_URL || `http://${process.env.STREAMR_DOCKER_DEV_HOST || 'localhost'}/api/v2`,
     tokenAddress: process.env.TOKEN_ADDRESS || networks.dev1.contracts.DATA,
     dataUnion: {
-        factoryAddress: process.env.DU_FACTORY || networks.dev1.contracts.DataUnionFactory,
+        factoryAddress: process.env.DU_FACTORY || networks.dev1.contracts.VaultFactory,
         templateAddress: process.env.DU_TEMPLATE || networks.dev1.contracts.DataUnionTemplate,
         joinPartAgentAddress: networks.dev0.contracts["core-api"], // TODO: this should be the join server
     },

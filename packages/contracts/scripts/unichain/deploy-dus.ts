@@ -4,7 +4,7 @@ import { getAddress } from "@ethersproject/address"
 
 import { Chains } from "@streamr/config"
 
-import { DataUnionFactory, DefaultFeeOracle } from "../../typechain"
+import { VaultFactory, DefaultFeeOracle } from "../../typechain"
 import { parseEther } from "@ethersproject/units"
 
 const {
@@ -30,12 +30,12 @@ async function main() {
     await feeOracle.deployed()
     console.log("Fee oracle deployed at %s", feeOracle.address)
 
-    const factoryFactory = await ethers.getContractFactory("DataUnionFactory")
+    const factoryFactory = await ethers.getContractFactory("VaultFactory")
     const factory = await upgrades.deployProxy(factoryFactory, [
         dataUnionTemplate.address,
         tokenAddress,
         feeOracle.address,
-    ], { kind: "uups" }) as DataUnionFactory
+    ], { kind: "uups" }) as VaultFactory
     console.log("DU factory deployed at %s", factory.address)
 }
 

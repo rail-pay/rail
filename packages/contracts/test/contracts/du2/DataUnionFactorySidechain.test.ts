@@ -3,14 +3,14 @@ import { waffle } from "hardhat"
 import { Contract, utils, BigNumber } from "ethers"
 const { parseEther } = utils
 
-import DataUnionFactorySidechainJson from "../../../artifacts/contracts/du2/DataUnionFactorySidechain.sol/DataUnionFactorySidechain.json"
+import VaultFactorySidechainJson from "../../../artifacts/contracts/du2/VaultFactorySidechain.sol/VaultFactorySidechain.json"
 import DataUnionSidechainJson from "../../../artifacts/contracts/du2/DataUnionSidechain.sol/DataUnionSidechain.json"
 
 import TestTokenJson from "../../../artifacts/contracts/test/TestToken.sol/TestToken.json"
 import MockTokenMediatorJson from "../../../artifacts/contracts/du2/test/MockTokenMediator.sol/MockTokenMediator.json"
 import MockAMBJson from "../../../artifacts/contracts/du2/test/MockAMB.sol/MockAMB.json"
 
-import { DataUnionFactorySidechain, TestToken, MockAMB, MockTokenMediator } from "../../../typechain"
+import { VaultFactorySidechain, TestToken, MockAMB, MockTokenMediator } from "../../../typechain"
 
 import Debug from "debug"
 const log = Debug("Streamr:du:test:BinanceAdapter")
@@ -20,7 +20,7 @@ const { deployContract, provider } = waffle
 
 type EthereumAddress = string
 
-describe("DataUnionFactorySidechain", (): void => {
+describe("VaultFactorySidechain", (): void => {
     const accounts = provider.getWallets()
 
     const creator = accounts[0]
@@ -32,7 +32,7 @@ describe("DataUnionFactorySidechain", (): void => {
     // const a = agents.map(agent => agent.address)
     const o = others.map(outsider => outsider.address)
 
-    let factory: DataUnionFactorySidechain
+    let factory: VaultFactorySidechain
     let testToken: TestToken
     let mockAMB: MockAMB
     let mockTokenMediator: MockTokenMediator
@@ -42,7 +42,7 @@ describe("DataUnionFactorySidechain", (): void => {
         mockAMB = await deployContract(creator, MockAMBJson, []) as MockAMB
         mockTokenMediator = await deployContract(creator, MockTokenMediatorJson, [testToken.address, mockAMB.address]) as MockTokenMediator
         const dataUnionSidechainTemplate = await deployContract(creator, DataUnionSidechainJson, [])
-        factory = await deployContract(creator, DataUnionFactorySidechainJson, [dataUnionSidechainTemplate.address]) as DataUnionFactorySidechain
+        factory = await deployContract(creator, VaultFactorySidechainJson, [dataUnionSidechainTemplate.address]) as VaultFactorySidechain
     })
 
     it("sidechain ETH flow", async () => {

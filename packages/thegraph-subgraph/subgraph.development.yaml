@@ -7,11 +7,11 @@ schema:
 dataSources:
   # New DU streamr-docker-dev >>
   - kind: ethereum/contract
-    name: DataUnionFactory
+    name: VaultFactory
     network: xDai
     source:
       address: '0x50aAa135AeBAC61E8394F80fF2Df091fcb66b072'
-      abi: DataUnionFactory
+      abi: VaultFactory
       startBlock: 0
     mapping:
       kind: ethereum/events
@@ -21,8 +21,8 @@ dataSources:
       entities:
         - DataUnion
       abis:
-        - name: DataUnionFactory
-          file: ./abis/DataUnionFactory.json
+        - name: VaultFactory
+          file: ./abis/VaultFactory.json
       eventHandlers:
         - event: DUCreated(indexed address,indexed address,address)
           handler: handleDUCreated

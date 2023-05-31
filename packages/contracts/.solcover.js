@@ -4,6 +4,6 @@ module.exports = {
     // CompilerError: Stack too deep when compiling inline assembly: Variable headStart is 1 slot(s) too deep inside the stack.
     skipFiles: [
         "DataUnionMainnet.sol",
-        "DataUnionFactoryMainnet.sol",
+        "VaultFactoryMainnet.sol",
     ]
 }

@@ -10,8 +10,8 @@ import type { Signer } from '@ethersproject/abstract-signer'
 import type { Provider } from '@ethersproject/providers'
 
 import * as IERC677Json from '@dataunions/contracts/artifacts/contracts/IERC677.sol/IERC677.json'
-import { DataUnionFactory as DataUnionFactoryJson, DataUnionTemplate as DataUnionTemplateJson } from '@dataunions/contracts'
-import type { DataUnionFactory, DataUnionTemplate, IERC677 } from '@dataunions/contracts/typechain'
+import { VaultFactory as VaultFactoryJson, DataUnionTemplate as DataUnionTemplateJson } from '@dataunions/contracts'
+import type { VaultFactory, DataUnionTemplate, IERC677 } from '@dataunions/contracts/typechain'
 
 import { DATAUNION_CLIENT_DEFAULTS } from './Config'
 import { Rest } from './Rest'
@@ -105,7 +105,7 @@ export class DataUnionClient {
 
         // TODO: either tokenAddress -> defaultTokenAddress or delete completely; DUs can have different tokens
         this.tokenAddress = getAddress(options.tokenAddress ?? chain?.contracts.DATA ?? "Must include tokenAddress or chain in the config!")
-        this.factoryAddress = getAddress(options.dataUnion?.factoryAddress ?? chain?.contracts.DataUnionFactory
+        this.factoryAddress = getAddress(options.dataUnion?.factoryAddress ?? chain?.contracts.VaultFactory
                                             ?? "Must include dataUnion.factoryAddress or chain in the config!")
         this.joinPartAgentAddress = getAddress(options.dataUnion?.joinPartAgentAddress ?? chains.ethereum.contracts["core-api"])
 
@@ -160,11 +160,11 @@ export class DataUnionClient {
         }
     }
 
-    async getFactory(factoryAddress: EthereumAddress = this.factoryAddress, wallet: Signer = this.wallet): Promise<DataUnionFactory> {
+    async getFactory(factoryAddress: EthereumAddress = this.factoryAddress, wallet: Signer = this.wallet): Promise<VaultFactory> {
         if (await wallet.provider!.getCode(factoryAddress) === '0x') {
             throw new Error(`No Contract found at ${factoryAddress}, check DataUnionClient.options.dataUnion.factoryAddress!`)
         }
-        return new Contract(factoryAddress, DataUnionFactoryJson.abi, wallet) as unknown as DataUnionFactory
+        return new Contract(factoryAddress, VaultFactoryJson.abi, wallet) as unknown as VaultFactory
     }
 
     getTemplate(templateAddress: EthereumAddress, provider: Provider | Signer = this.wallet): DataUnionTemplate {
@@ -242,8 +242,8 @@ export class DataUnionClient {
         //     address[] memory agents,
         //     uint256 initialAdminFeeFraction
         // )
-        const duFactory = await this.getFactory()
-        const tx = await duFactory.deployNewDataUnionUsingToken(
+        const vaultFactory = await this.getFactory()
+        const tx = await vaultFactory.deployNewDataUnionUsingToken(
             tokenAddress,
             ownerAddress,
             agentAddressList,
@@ -266,7 +266,7 @@ export class DataUnionClient {
     }
 
     /**
-     * Create a new DataUnionTemplate contract to mainnet with DataUnionFactory
+     * Create a new DataUnionTemplate contract to mainnet with VaultFactory
      * This triggers DataUnionSidechain contract creation in sidechain, over the bridge (AMB)
      * @return Promise<DataUnion> that resolves when the new DU is deployed over the bridge to side-chain
      */
@@ -297,8 +297,8 @@ export class DataUnionClient {
         //     uint256 adminFeeFraction,
         //     address[] memory agents
         // )
-        const duFactory = await this.getFactory()
-        const tx = await duFactory.deployNewDataUnion(
+        const vaultFactory = await this.getFactory()
+        const tx = await vaultFactory.deployNewDataUnion(
             ownerAddress,
             adminFeeBN,
             agentAddressList,

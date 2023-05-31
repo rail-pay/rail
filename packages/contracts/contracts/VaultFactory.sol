@@ -13,7 +13,7 @@ import "@openzeppelin/contracts-upgradeable/proxy/utils/UUPSUpgradeable.sol";
 import "./DataUnionTemplate.sol";
 import "./Ownable.sol";
 
-contract DataUnionFactory is Initializable, OwnableUpgradeable, UUPSUpgradeable {
+contract VaultFactory is Initializable, OwnableUpgradeable, UUPSUpgradeable {
     event DUCreated(address indexed du, address indexed owner, address template);
 
     event NewDUInitialEthUpdated(uint amount);

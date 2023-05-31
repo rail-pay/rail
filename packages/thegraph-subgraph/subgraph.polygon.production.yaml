@@ -7,11 +7,11 @@ schema:
 dataSources:
   # New DU polygon/matic >>
   - kind: ethereum/contract
-    name: DataUnionFactory
+    name: VaultFactory
     network: matic
     source:
       address: '0xd0B3a09A6bCee8446d10e6E7e12c78F8725C9B18'
-      abi: DataUnionFactory
+      abi: VaultFactory
       startBlock: 32836939
     mapping:
       kind: ethereum/events
@@ -21,8 +21,8 @@ dataSources:
       entities:
         - DataUnion
       abis:
-        - name: DataUnionFactory
-          file: ./abis/DataUnionFactory.json
+        - name: VaultFactory
+          file: ./abis/VaultFactory.json
       eventHandlers:
         - event: DUCreated(indexed address,indexed address,address)
           handler: handleDUCreated

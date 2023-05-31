@@ -5,8 +5,8 @@ import { Wallet } from '@ethersproject/wallet'
 
 import { deployToken } from '@streamr/data-v2'
 
-import { DataUnionTemplate as templateJson, DataUnionFactory as factoryJson, DefaultFeeOracle as feeOracleJson } from '@dataunions/contracts'
-import type { DataUnionTemplate, DataUnionFactory, IFeeOracle } from '@dataunions/contracts/typechain'
+import { DataUnionTemplate as templateJson, VaultFactory as factoryJson, DefaultFeeOracle as feeOracleJson } from '@dataunions/contracts'
+import type { DataUnionTemplate, VaultFactory, IFeeOracle } from '@dataunions/contracts/typechain'
 
 // import debug from 'debug'
 // const log = debug('DataUnionClient:unit-tests:withdraw')
@@ -46,14 +46,14 @@ async function deployFeeOracle(deployer: Wallet, protocolBeneficiaryAddress: str
     return contract
 }
 
-async function deployDataUnionFactory(
+async function deployVaultFactory(
     deployer: Wallet,
     templateAddress: string,
     tokenAddress: string,
     protocolFeeOracleAddress: string,
-): Promise<DataUnionFactory> {
+): Promise<VaultFactory> {
     const factory = new ContractFactory(factoryJson.abi, factoryJson.bytecode, deployer)
-    const contract = await factory.deploy() as unknown as DataUnionFactory
+    const contract = await factory.deploy() as unknown as VaultFactory
     await contract.deployTransaction.wait()
     const tx = await contract.initialize(
         templateAddress,
@@ -78,7 +78,7 @@ export async function deployContracts(deployer: Wallet) {
     await (await token.grantRole(await token.MINTER_ROLE(), deployer.address)).wait()
     const dataUnionTemplate = await deployDataUnionTemplate(deployer)
     const feeOracle = await deployFeeOracle(deployer, deployer.address) // make deployer (the DAO) also protocol beneficiary
-    const dataUnionFactory = await deployDataUnionFactory(
+    const vaultFactory = await deployVaultFactory(
         deployer,
         dataUnionTemplate.address,
         token.address,
@@ -87,7 +87,7 @@ export async function deployContracts(deployer: Wallet) {
 
     return {
         token,
-        dataUnionFactory,
+        vaultFactory,
         dataUnionTemplate,
         ethereumUrl,
     }

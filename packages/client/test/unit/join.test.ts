@@ -36,7 +36,7 @@ describe('DataUnion joining using join-server', () => {
         ] = getWallets()
         const {
             token: tokenContract,
-            dataUnionFactory,
+            vaultFactory,
             dataUnionTemplate,
             ethereumUrl
         } = await deployContracts(admin)
@@ -50,7 +50,7 @@ describe('DataUnion joining using join-server', () => {
             chain: "testrpc",
             tokenAddress: token.address,
             dataUnion: {
-                factoryAddress: dataUnionFactory.address,
+                factoryAddress: vaultFactory.address,
                 templateAddress: dataUnionTemplate.address,
                 joinPartAgentAddress: joinPartAgent.address,
             },

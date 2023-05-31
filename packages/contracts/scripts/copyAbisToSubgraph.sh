@@ -12,5 +12,5 @@ esac
 
 # This should be done right after a deployment: update thegraph definitions, use the most current ABIs
 
-jq .abi artifacts/contracts/DataUnionFactory.sol/DataUnionFactory.json > ../thegraph-subgraph/abis/DataUnionFactory.json
+jq .abi artifacts/contracts/VaultFactory.sol/VaultFactory.json > ../thegraph-subgraph/abis/VaultFactory.json
 jq .abi artifacts/contracts/DataUnionTemplate.sol/DataUnionTemplate.json > ../thegraph-subgraph/abis/DataUnionTemplate.json

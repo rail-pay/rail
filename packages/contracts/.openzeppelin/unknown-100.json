@@ -187,56 +187,56 @@
             "offset": 0,
             "slot": "201",
             "type": "t_address",
-            "contract": "DataUnionFactory",
-            "src": "contracts/DataUnionFactory.sol:29"
+            "contract": "VaultFactory",
+            "src": "contracts/VaultFactory.sol:29"
           },
           {
             "label": "defaultToken",
             "offset": 0,
             "slot": "202",
             "type": "t_address",
-            "contract": "DataUnionFactory",
-            "src": "contracts/DataUnionFactory.sol:30"
+            "contract": "VaultFactory",
+            "src": "contracts/VaultFactory.sol:30"
           },
           {
             "label": "newDUInitialEth",
             "offset": 0,
             "slot": "203",
             "type": "t_uint256",
-            "contract": "DataUnionFactory",
-            "src": "contracts/DataUnionFactory.sol:33"
+            "contract": "VaultFactory",
+            "src": "contracts/VaultFactory.sol:33"
           },
           {
             "label": "newDUOwnerInitialEth",
             "offset": 0,
             "slot": "204",
             "type": "t_uint256",
-            "contract": "DataUnionFactory",
-            "src": "contracts/DataUnionFactory.sol:34"
+            "contract": "VaultFactory",
+            "src": "contracts/VaultFactory.sol:34"
           },
           {
             "label": "defaultNewMemberEth",
             "offset": 0,
             "slot": "205",
             "type": "t_uint256",
-            "contract": "DataUnionFactory",
-            "src": "contracts/DataUnionFactory.sol:35"
+            "contract": "VaultFactory",
+            "src": "contracts/VaultFactory.sol:35"
           },
           {
             "label": "protocolFeeOracle",
             "offset": 0,
             "slot": "206",
             "type": "t_address",
-            "contract": "DataUnionFactory",
-            "src": "contracts/DataUnionFactory.sol:36"
+            "contract": "VaultFactory",
+            "src": "contracts/VaultFactory.sol:36"
           },
           {
             "label": "pendingOwner",
             "offset": 0,
             "slot": "207",
             "type": "t_address",
-            "contract": "DataUnionFactory",
-            "src": "contracts/DataUnionFactory.sol:39"
+            "contract": "VaultFactory",
+            "src": "contracts/VaultFactory.sol:39"
           }
         ],
         "types": {

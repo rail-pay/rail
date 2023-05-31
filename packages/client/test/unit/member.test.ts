@@ -25,7 +25,7 @@ describe('DataUnion member', () => {
         ] = getWallets()
         const {
             token: tokenContract,
-            dataUnionFactory,
+            vaultFactory,
             dataUnionTemplate,
             ethereumUrl
         } = await deployContracts(dao)
@@ -35,7 +35,7 @@ describe('DataUnion member', () => {
             auth: { privateKey: member.privateKey },
             tokenAddress: token.address,
             dataUnion: {
-                factoryAddress: dataUnionFactory.address,
+                factoryAddress: vaultFactory.address,
                 templateAddress: dataUnionTemplate.address,
             },
             network: { rpcs: [{ url: ethereumUrl, timeout: 30 * 1000 }] }

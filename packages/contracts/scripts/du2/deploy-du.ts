@@ -42,8 +42,8 @@ if (!SKIP) {
     }
 }
 
-import DataUnionFactoryMainnetJson from "../artifacts/contracts/DataUnionFactoryMainnet.sol/DataUnionFactoryMainnet.json"
-import { DataUnionFactoryMainnet } from "../typechain"
+import VaultFactoryMainnetJson from "../artifacts/contracts/VaultFactoryMainnet.sol/VaultFactoryMainnet.json"
+import { VaultFactoryMainnet } from "../typechain"
 
 import Debug from "debug"
 const log = Debug("Streamr:du:script:deploy")
@@ -69,7 +69,7 @@ const mainnetWallet = new Wallet(key, mainnetProvider)
 
 async function deployDU() {
     const factoryAddress = getAddress(MAINNET_FACTORY_ADDRESS)
-    const factory = new Contract(factoryAddress, DataUnionFactoryMainnetJson.abi, mainnetWallet) as DataUnionFactoryMainnet
+    const factory = new Contract(factoryAddress, VaultFactoryMainnetJson.abi, mainnetWallet) as VaultFactoryMainnet
     console.log("Data Union factory mainnet: %s", factory.address)
     const duname = DU_NAME || "test" + Date.now()
 

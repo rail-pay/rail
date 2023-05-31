@@ -44,8 +44,8 @@ if (!SKIP) {
 
 import DataUnionSidechainJson from "../artifacts/contracts/DataUnionSidechain.sol/DataUnionSidechain.json"
 import DataUnionMainnetJson from "../artifacts/contracts/DataUnionMainnet.sol/DataUnionMainnet.json"
-import DataUnionFactorySidechainJson from "../artifacts/contracts/DataUnionFactorySidechain.sol/DataUnionFactorySidechain.json"
-import DataUnionFactoryMainnetJson from "../artifacts/contracts/DataUnionFactoryMainnet.sol/DataUnionFactoryMainnet.json"
+import VaultFactorySidechainJson from "../artifacts/contracts/VaultFactorySidechain.sol/VaultFactorySidechain.json"
+import VaultFactoryMainnetJson from "../artifacts/contracts/VaultFactoryMainnet.sol/VaultFactoryMainnet.json"
 // import { DataUnionSidechain, TestToken, BinanceAdapter, MockTokenMediator } from '../typechain'
 
 import Debug from "debug"
@@ -99,10 +99,10 @@ async function deployDUFactories() {
     console.log(`Data Union template mainnet: ${duTemplateMainnet.address}`)
 
     // constructor(address _dataUnionSidechainTemplate)
-    const duFactorySidechain = await deploy(DataUnionFactorySidechainJson, sidechainWallet, [
+    const vaultFactorySidechain = await deploy(VaultFactorySidechainJson, sidechainWallet, [
         duTemplateSidechain.address
     ])
-    console.log(`Data Union factory sidechain: ${duFactorySidechain.address}`)
+    console.log(`Data Union factory sidechain: ${vaultFactorySidechain.address}`)
 
     // constructor(
     //      address _dataUnionMainnetTemplate,
@@ -114,17 +114,17 @@ async function deployDUFactories() {
     //      address _defaultTokenMediatorSidechain,
     //      uint256 _sidechainMaxGas
     // )
-    const duFactoryMainnet = await deploy(DataUnionFactoryMainnetJson, mainnetWallet, [
+    const vaultFactoryMainnet = await deploy(VaultFactoryMainnetJson, mainnetWallet, [
         duTemplateMainnet.address,
         duTemplateSidechain.address,
-        duFactorySidechain.address,
+        vaultFactorySidechain.address,
         mainnet.token,
         mainnet.tokenMediator,
         xdai.token,
         xdai.tokenMediator,
         2000000,
     ])
-    console.log(`Data Union factory mainnet: ${duFactoryMainnet.address}`)
+    console.log(`Data Union factory mainnet: ${vaultFactoryMainnet.address}`)
     console.log("Don't forget to update the addresses in data-union/packages/config/index.js")
 }
 

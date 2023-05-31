@@ -3,7 +3,7 @@
 
 import { BigNumber, providers } from "ethers"
 import { parseEther } from "ethers/lib/utils"
-import { DataUnionFactory, DataUnionTemplate } from "../../typechain"
+import { VaultFactory, DataUnionTemplate } from "../../typechain"
 
 import hhat from "hardhat"
 
@@ -22,21 +22,21 @@ const SIDECHAINURL = "http://localhost:8546"
 const sideChainProvider = new providers.JsonRpcProvider(SIDECHAINURL)
 
 const walletSidechain = new ethers.Wallet(DEFAULTPRIVATEKEY, sideChainProvider)
-let duFactoryContract: DataUnionFactory
+let vaultFactoryContract: VaultFactory
 let tokenfromfac: EthereumAddress
 
 const connectToAllContracts = async () => {
-    const dataUnionFactoryFactory = await ethers.getContractFactory("DataUnionFactory", walletSidechain)
-    const dataUnionFactory = await dataUnionFactoryFactory.attach(DATAUNIONFACTORYADDRESS)
-    duFactoryContract = await dataUnionFactory.deployed() as DataUnionFactory
-    console.log("factory connected " + duFactoryContract.address)
-    tokenfromfac = await duFactoryContract.defaultToken()
+    const vaultFactoryFactory = await ethers.getContractFactory("VaultFactory", walletSidechain)
+    const vaultFactory = await vaultFactoryFactory.attach(DATAUNIONFACTORYADDRESS)
+    vaultFactoryContract = await vaultFactory.deployed() as VaultFactory
+    console.log("factory connected " + vaultFactoryContract.address)
+    tokenfromfac = await vaultFactoryContract.defaultToken()
     console.log("token from factory " + tokenfromfac)
 }
 
 const createDU = async () => {
     const sendtx = await walletSidechain.sendTransaction({
-        to: duFactoryContract.address,
+        to: vaultFactoryContract.address,
         value: parseEther("2"),
     })
     await sendtx.wait()
@@ -53,7 +53,7 @@ const createDU = async () => {
         [ walletSidechain.address ]
     ]
 
-    const tx = await duFactoryContract.deployNewDataUnion(...args)
+    const tx = await vaultFactoryContract.deployNewDataUnion(...args)
     const tr = await tx.wait()
     const [createdEvent] = tr?.events?.filter((evt: any) => evt?.event === "DUCreated") ?? []
     if (!createdEvent || !createdEvent.args || !createdEvent.args.length) {

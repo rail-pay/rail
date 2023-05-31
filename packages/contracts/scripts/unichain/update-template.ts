@@ -2,14 +2,14 @@ import { ContractFactory } from "ethers"
 import { ethers } from "hardhat"
 import { Chains } from "@streamr/config"
 
-import { DataUnionFactory, DataUnionTemplate } from "../../typechain"
+import { VaultFactory, DataUnionTemplate } from "../../typechain"
 
 const { CHAIN } = process.env
 if (!CHAIN) { throw new Error("Please specify CHAIN environment variable (dev0, dev1, gnosis, polygon, mainnet)") }
 
 const {
     contracts: {
-        DataUnionFactory: FACTORY_ADDRESS
+        VaultFactory: FACTORY_ADDRESS
     }
 } = Chains.load()[CHAIN]
 
@@ -19,8 +19,8 @@ async function main() {
     await dataUnionTemplate.deployed() as DataUnionTemplate
     console.log("DU template deployed at %s", dataUnionTemplate.address)
 
-    const factoryFactory = await ethers.getContractFactory("DataUnionFactory") as ContractFactory
-    const factory = factoryFactory.attach(FACTORY_ADDRESS) as DataUnionFactory
+    const factoryFactory = await ethers.getContractFactory("VaultFactory") as ContractFactory
+    const factory = factoryFactory.attach(FACTORY_ADDRESS) as VaultFactory
     console.log("DU factory deployed at %s", factory.address)
 
     const oldTemplateAddress = await factory.dataUnionTemplate()
