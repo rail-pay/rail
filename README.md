@@ -1,15 +1,12 @@
-[![Discord Chat](https://img.shields.io/discord/801574432350928907.svg?label=Streamr%20Discord&logo=Discord&colorB=7289da)](https://discord.gg/FVtAph9cvz)
-
-[![Discord Chat](https://img.shields.io/discord/853941437602070549.svg?label=Data%20Union%20Discord&logo=Discord&colorB=7289da)](https://discord.gg/FVtAph9cvz)
-
-# Data Union monorepo
+# Rail monorepo
 
 `/packages`:
-* `contracts`: Smart contracts for Data Unions 2.0 and 3.0
-* `client`: Data Union client
-* `thegraph-subgraph`: [TheGraph](https://thegraph.com/) subgraph for Data Union smart contracts
-* `join-server`: Base implementation of a HTTP server for requiring Data Union members to fulfil certain requirements in order to join a Data Union
-* `default-join-server`: Simple HTTP server that adds members who know a secret password, and gives them publish rights to the DU's streams. Hosted by the DU DAO at
+
+- `contracts`: Smart contracts for Rail
+- `client`: Rail client
+- `thegraph-subgraph`: [TheGraph](https://thegraph.com/) subgraph for Rail smart contracts
+- `join-server`: Base implementation of a HTTP server for requiring vault members to fulfil certain requirements in order to join a vault.
+- `default-join-server`: Simple HTTP server that adds members who know a secret password
 
 ## Development
 
@@ -18,11 +15,13 @@ Monorepo is managed using [npm workspaces](https://docs.npmjs.com/cli/v7/using-n
 **Important:** Do not use `npm ci` or `npm install` directly in the sub-package directories, only in the root directory.
 
 ### Load project Node and npm
+
 ```
 nvm use
 ```
 
 ### Bootstrap all sub-packages
+
 The go to command for most use cases.
 
 To install all required dependencies and build all sub-packages (linking sub-packages together as needed):
@@ -32,7 +31,7 @@ To install all required dependencies and build all sub-packages (linking sub-pac
 npm run bootstrap
 ```
 
-###  Bootstrap a single sub-package
+### Bootstrap a single sub-package
 
 To install the required dependencies and build a specific sub-package:
 
@@ -51,14 +50,18 @@ npm ci
 ```
 
 ### Build
+
 To build all sub-packages:
+
 ```bash
 # from top level
 npm run build
 ```
 
 ### Build a sub-package
+
 To build a specific sub-package:
+
 ```bash
 # from top level
 npm run build --workspace=$PACKAGE_NAME
@@ -89,6 +92,7 @@ Manually add the entry to the `package.json` of the sub-package and
 run `npm run bootstrap-pkg $PACKAGE_NAME`.
 
 Alternatively:
+
 ```bash
 npm install some-dependency --workspace=$PACKAGE_NAME
 ```
@@ -103,29 +107,29 @@ npm run versions
 ```
 
 This lists sub-packages & their versions on the left, linked
-sub-packages are columns.  If the package on the left links to the package
+sub-packages are columns. If the package on the left links to the package
 in the column, it shows a checkmark & the semver range, otherwise it
-shows the mismatched semver range and prints a warning at the end.  It
+shows the mismatched semver range and prints a warning at the end. It
 prints the version ranges so you can double-check that they're formatted
 as you expect e.g. `^X.Y.Z` vs `X.Y.Z`
 
 ![image](https://user-images.githubusercontent.com/43438/135347920-97d6e0e7-b86c-40ff-bfc9-91f160ae975c.png)
 
-
-
 Install dependencies:
+
 ```
 npm ci
 ```
 
 Build client:
+
 ```
 cd packages/client
 npm run build
 ```
 
 Run tests:
+
 ```
 npm run test
 ```
-
