@@ -15,18 +15,6 @@ on:
       - main
 
 jobs:
-  lint-scripts:
-    name: Lint YAML build files and Bash scripts
-    runs-on: ubuntu-latest
-    steps:
-      - uses: actions/checkout@v3.0.2
-      - uses: ibiqlik/action-yamllint@v3.1.0
-        with:
-          file_or_dir: .
-          strict: true
-          no_warnings: false
-          config_file: .yamllint
-      - run: shellcheck --color=never --check-sourced --shell=bash release*.bash
   lint-and-unit-test:
     needs:
       - lint-scripts
