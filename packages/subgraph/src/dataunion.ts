@@ -7,7 +7,7 @@ import {
     OwnershipTransferred,
     RevenueReceived,
     MemberWeightChanged,
-} from '../generated/templates/DataUnion/DataUnionTemplate'
+} from '../generated/templates/DataUnion/Vault'
 
 ///////////////////////////////////////////////////////////////
 // HANDLERS: see subgraph.*.yaml for the events that are handled

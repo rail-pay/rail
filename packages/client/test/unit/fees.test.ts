@@ -23,7 +23,7 @@ describe('DataUnion fees', () => {
         const {
             token: tokenContract,
             vaultFactory,
-            dataUnionTemplate,
+            vault,
             ethereumUrl
         } = await deployContracts(dao)
         token = tokenContract
@@ -32,7 +32,7 @@ describe('DataUnion fees', () => {
             tokenAddress: token.address,
             dataUnion: {
                 factoryAddress: vaultFactory.address,
-                templateAddress: dataUnionTemplate.address,
+                templateAddress: vault.address,
             },
             network: { rpcs: [{ url: ethereumUrl, timeout: 30 * 1000 }] }
         }

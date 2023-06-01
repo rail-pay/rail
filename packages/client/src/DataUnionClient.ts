@@ -9,9 +9,9 @@ import type { Overrides as EthersOverrides } from '@ethersproject/contracts'
 import type { Signer } from '@ethersproject/abstract-signer'
 import type { Provider } from '@ethersproject/providers'
 
-import * as IERC677Json from '@dataunions/contracts/artifacts/contracts/IERC677.sol/IERC677.json'
-import { VaultFactory as VaultFactoryJson, DataUnionTemplate as DataUnionTemplateJson } from '@dataunions/contracts'
-import type { VaultFactory, DataUnionTemplate, IERC677 } from '@dataunions/contracts/typechain'
+import * as IERC677Json from '@rail-protocol/contracts/artifacts/contracts/IERC677.sol/IERC677.json'
+import { VaultFactory as VaultFactoryJson, Vault as VaultJson } from '@rail-protocol/contracts'
+import type { VaultFactory, Vault, IERC677 } from '@rail-protocol/contracts/typechain'
 
 import { DATAUNION_CLIENT_DEFAULTS } from './Config'
 import { Rest } from './Rest'
@@ -167,8 +167,8 @@ export class DataUnionClient {
         return new Contract(factoryAddress, VaultFactoryJson.abi, wallet) as unknown as VaultFactory
     }
 
-    getTemplate(templateAddress: EthereumAddress, provider: Provider | Signer = this.wallet): DataUnionTemplate {
-        return new Contract(templateAddress, DataUnionTemplateJson.abi, provider) as unknown as DataUnionTemplate
+    getTemplate(templateAddress: EthereumAddress, provider: Provider | Signer = this.wallet): Vault {
+        return new Contract(templateAddress, VaultJson.abi, provider) as unknown as Vault
     }
 
     // TODO decide: use DATAv2 instead of IERC677 for "default token"?
@@ -266,7 +266,7 @@ export class DataUnionClient {
     }
 
     /**
-     * Create a new DataUnionTemplate contract to mainnet with VaultFactory
+     * Create a new Vault contract to mainnet with VaultFactory
      * This triggers DataUnionSidechain contract creation in sidechain, over the bridge (AMB)
      * @return Promise<DataUnion> that resolves when the new DU is deployed over the bridge to side-chain
      */

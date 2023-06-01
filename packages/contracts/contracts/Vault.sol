@@ -13,7 +13,11 @@ import "./modules/IJoinListener.sol";
 import "./modules/IPartListener.sol";
 import "./IPurchaseListener.sol";
 
-contract DataUnionTemplate is Ownable, IERC677Receiver, IPurchaseListener {
+/**
+ * Template contract that is instantiated (proxy clone) by VaultFactory
+ * Do NOT expect to find anything interesting in this contract address' state/storage!
+ **/
+contract Vault is Ownable, IERC677Receiver, IPurchaseListener {
     // Used to describe both members and join part agents
     enum ActiveStatus {NONE, ACTIVE, INACTIVE}
 

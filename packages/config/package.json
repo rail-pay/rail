@@ -1,0 +1,16 @@
+{
+    "name": "@rail-protocol/config",
+    "version": "0.0.1",
+    "author": "The Rail Protocol <contact@rail-protocol.org>",
+    "description": "Rail Protocol smart contract addresses and other chain configs",
+    "license": "Apache-2.0",
+    "main": "index.js",
+    "repository": {
+        "type": "git",
+        "url": "git+https://github.com/streamr-dev/network-contracts.git"
+    },
+    "bugs": {
+        "url": "https://github.com/streamr-dev/network-contracts/issues"
+    },
+    "homepage": "https://github.com/streamr-dev/network-contracts/tree/master/packages/config#readme"
+}

@@ -183,7 +183,7 @@
             "src": "@openzeppelin/contracts-upgradeable/proxy/utils/UUPSUpgradeable.sol:107"
           },
           {
-            "label": "dataUnionTemplate",
+            "label": "vault",
             "offset": 0,
             "slot": "201",
             "type": "t_address",

@@ -1,6 +1,6 @@
 {
-    "name": "@dataunions/thegraph-subgraph",
-    "version": "3.0.0-beta.1",
+    "name": "@rail-protocol/subgraph",
+    "version": "0.0.1",
     "description": "Subgraph definitions for sidechain data unions",
     "author": "Data Union DAO <contact@dataunions.org>",
     "license": "UNLICENSED",
@@ -26,10 +26,10 @@
         "doAll-inside-docker-dev": "npm run build && npm run create-docker-dev && npm run deploy-docker-dev"
     },
     "devDependencies": {
-        "@dataunions/client": "3.0.8",
+        "@rail-protocol/client": "0.0.1",
         "@graphprotocol/graph-cli": "0.33.1",
         "@humanwhocodes/gitignore-to-minimatch": "1.0.2",
-        "@streamr/config": "2.5.1",
+        "@streamr/config": "latest",
         "@streamr/data-v2": "1.0.2",
         "@typescript-eslint/eslint-plugin": "5.36.1",
         "@typescript-eslint/parser": "5.36.1",

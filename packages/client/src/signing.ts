@@ -2,7 +2,7 @@ import { verifyMessage } from "@ethersproject/wallet"
 import type { Signer } from "@ethersproject/abstract-signer"
 import type { EthereumAddress } from "./EthereumAddress"
 
-/** Request object ready to be sent to @dataunions/join-server */
+/** Request object ready to be sent to @rail-protocol/join-server */
 type SignedRequest = {
     /** The address that (claims to have) originated the request */
     address: EthereumAddress,

@@ -12,7 +12,7 @@ Start by obtaining a DataUnionClient object:
 
 This first option for browsers is to hand in the Metamask object. This means DU client will not ever see the private key, and can only send transactions and sign messages with the user's explicit consent (pops up a Metamask window). This would connect to the polygon chain using Metamask:
 ```js
-import { DataUnionClient } from '@dataunions/client'
+import { DataUnionClient } from '@rail-protocol/client'
 const { ethereum } = window
 const DU = new DataUnionClient({
   auth: { ethereum }
@@ -21,7 +21,7 @@ const DU = new DataUnionClient({
 
 The second option is to give the private key directly in cleartext. This is meant for the server side node.js scripts, but also can be used in the browser; especially in the case where you don't need to sign things at all but only use the "getters" or read-only functions, in which case you can give a bogus/0x000... private key (since it won't ever be used). On server, it's recommended to store the private key encrypted on disk and only decrypt it just before handing it to the DataUnionClient, so that it will be in cleartext only in memory, never on disk.
 ```js
-import { DataUnionClient } from '@dataunions/client'
+import { DataUnionClient } from '@rail-protocol/client'
 const { privateKey } = Wallet.fromEncryptedJsonSync(process.env.WALLET_FILE)
 const DU = new DataUnionClient({
   auth: { privateKey },
@@ -134,7 +134,7 @@ const receipt = await dataUnion.setMetadata(
 const metadata = await dataUnion.getMetadata();
 ```
 
-If the Data Union is set up to use the [default join server](https://github.com/dataunions/data-unions/tree/main/packages/default-join-server) then members can join the Data Union by giving a correct secret.
+If the Data Union is set up to use the [default join server](https://github.com/rail-protocol/rail/tree/main/packages/default-join-server) then members can join the Data Union by giving a correct secret.
 
 Admin can add secrets that allow anyone to join, as well as revoke those secrets, using the following functions:
 ```js

@@ -3,14 +3,14 @@ import { waffle } from "hardhat"
 import { BigNumber, Wallet, Contract, utils, BigNumberish } from "ethers"
 
 import Debug from "debug"
-const log = Debug("Streamr:du:test:DataUnionTemplate")
+const log = Debug("Streamr:du:test:Vault")
 //const log = console.log  // for debugging?
 
-import DataUnionTemplateJson from "../../artifacts/contracts/DataUnionTemplate.sol/DataUnionTemplate.json"
+import VaultJson from "../../artifacts/contracts/Vault.sol/Vault.json"
 import TestTokenJson from "../../artifacts/contracts/test/TestToken.sol/TestToken.json"
 import FeeOracleJson from "../../artifacts/contracts/DefaultFeeOracle.sol/DefaultFeeOracle.json"
 
-import type { DataUnionTemplate, TestToken, DefaultFeeOracle } from "../../typechain"
+import type { Vault, TestToken, DefaultFeeOracle } from "../../typechain"
 
 type EthereumAddress = string
 
@@ -29,7 +29,7 @@ const { hexZeroPad, parseEther, arrayify } = utils
  * @param {EthereumAddress} signer who authorizes withdraw
  * @param {EthereumAddress} to who gets the tokens
  * @param {number} amountTokenWei tokens multiplied by 10^18, or zero for unlimited (withdrawAllToSigned)
- * @param {Contract} duContract DataUnionTemplate contract object
+ * @param {Contract} duContract Vault contract object
  * @param {number} previouslyWithdrawn (optional) amount of token-wei withdrawn at the moment this signature is used
  */
 async function getWithdrawSignature(
@@ -46,7 +46,7 @@ async function getWithdrawSignature(
     return signer.signMessage(arrayify(message))
 }
 
-describe("DataUnionTemplate", () => {
+describe("Vault", () => {
     const accounts = provider.getWallets()
     const dao = accounts[0]
     const admin = accounts[1]
@@ -60,9 +60,9 @@ describe("DataUnionTemplate", () => {
 
     let testToken: TestToken
     let feeOracle: DefaultFeeOracle
-    let dataUnion: DataUnionTemplate
-    let dataUnionFromAgent: DataUnionTemplate
-    let dataUnionFromMember0: DataUnionTemplate
+    let dataUnion: Vault
+    let dataUnionFromAgent: Vault
+    let dataUnionFromMember0: Vault
 
     before(async () => {
         testToken = await deployContract(dao, TestTokenJson, ["name", "symbol"]) as TestToken
@@ -80,7 +80,7 @@ describe("DataUnionTemplate", () => {
     })
 
     beforeEach(async () => {
-        dataUnion = await deployContract(admin, DataUnionTemplateJson, []) as DataUnionTemplate
+        dataUnion = await deployContract(admin, VaultJson, []) as Vault
         dataUnionFromAgent = dataUnion.connect(agents[1])
         dataUnionFromMember0 = dataUnion.connect(members[0])
 
@@ -104,7 +104,7 @@ describe("DataUnionTemplate", () => {
         )
         await dataUnionFromAgent.addMembers(m)
 
-        log(`DataUnionTemplate initialized at ${dataUnion.address}`)
+        log(`Vault initialized at ${dataUnion.address}`)
     })
 
     it("distributes earnings correctly", async () => {

@@ -1,0 +1,61 @@
+---
+specVersion: 0.0.4
+description: Subgraph definitions for sidechain data unions
+repository: ""
+schema:
+  file: ./schema.graphql
+dataSources:
+  # New DU streamr-docker-dev >>
+  - kind: ethereum/contract
+    name: VaultFactory
+    network: xDai
+    source:
+      address: '0x50aAa135AeBAC61E8394F80fF2Df091fcb66b072'
+      abi: VaultFactory
+      startBlock: 0
+    mapping:
+      kind: ethereum/events
+      apiVersion: 0.0.6
+      language: wasm/assemblyscript
+      file: ./src/factory.ts
+      entities:
+        - DataUnion
+      abis:
+        - name: VaultFactory
+          file: ./abis/VaultFactory.json
+      eventHandlers:
+        - event: DUCreated(indexed address,indexed address,address)
+          handler: handleDUCreated
+  # New DU streamr-docker-dev <<
+
+templates:
+  # New DU streamr-docker-dev >>
+  - name: DataUnion
+    kind: ethereum/contract
+    network: xDai
+    source:
+      abi: Vault
+    mapping:
+      kind: ethereum/events
+      apiVersion: 0.0.6
+      language: wasm/assemblyscript
+      file: ./src/dataunion.ts
+      entities:
+        - Member
+        - DataUnionStatsBucket
+        - RevenueEvent
+      abis:
+        - name: Vault
+          file: ./abis/Vault.json
+      eventHandlers:
+        - event: MemberJoined(indexed address)
+          handler: handleMemberJoined
+        - event: MemberParted(indexed address,indexed uint8)
+          handler: handleMemberParted
+        - event: RevenueReceived(uint256)
+          handler: handleRevenueReceived
+        - event: OwnershipTransferred(indexed address,indexed address)
+          handler: handleOwnershipTransferred
+        - event: MemberWeightChanged(indexed address,uint256,uint256)
+          handler: handleMemberWeightChanged
+  # New DU streamr-docker-dev <<

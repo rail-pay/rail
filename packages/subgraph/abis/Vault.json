@@ -747,7 +747,7 @@
     "name": "joinPartAgents",
     "outputs": [
       {
-        "internalType": "enum DataUnionTemplate.ActiveStatus",
+        "internalType": "enum Vault.ActiveStatus",
         "name": "",
         "type": "uint8"
       }
@@ -786,7 +786,7 @@
     "name": "memberData",
     "outputs": [
       {
-        "internalType": "enum DataUnionTemplate.ActiveStatus",
+        "internalType": "enum Vault.ActiveStatus",
         "name": "status",
         "type": "uint8"
       },

@@ -5,12 +5,12 @@ import { Wallet, providers, utils } from 'ethers'
 const { parseEther, formatEther } = utils
 
 import { DATAv2, deployToken } from '@streamr/data-v2'
-import { DataUnion, DataUnionClient } from '@dataunions/client'
+import { DataUnion, DataUnionClient } from '@rail-protocol/client'
 
 import { until } from '../../client/test/until'
 
 import debug from 'debug'
-const log = debug('dataunions/thegraph-subgraph:test')
+const log = debug('dataunions/subgraph:test')
 
 import { Chains } from '@streamr/config'
 const config = Chains.load().dev1

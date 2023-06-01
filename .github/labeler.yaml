@@ -26,7 +26,7 @@ build:
   - "package-lock.json"
   - "packages/client/package.js"
   - "packages/default-join-server/package.json"
-  - "packages/thegraph-subgraph/package.json"
+  - "packages/subgraph/package.json"
   - "packages/contracts/package.json"
 #
 # Tags per npm package and conventional commit scope.
@@ -43,6 +43,6 @@ join-server:
 default-join-server:
   - "packages/default-join-server/*"
   - "packages/default-join-server/**"
-thegraph-subgraph:
-  - "packages/thegraph-subgraph/*"
-  - "packages/thegraph-subgraph/**"
+subgraph:
+  - "packages/subgraph/*"
+  - "packages/subgraph/**"

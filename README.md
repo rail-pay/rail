@@ -3,7 +3,7 @@
 `/packages`:
 * `contracts`: Smart contracts for Data Unions 2.0 and 3.0
 * `client`: Data Union client
-* `thegraph-subgraph`: [TheGraph](https://thegraph.com/) subgraph for Data Union smart contracts
+* `subgraph`: [TheGraph](https://thegraph.com/) subgraph for Data Union smart contracts
 * `join-server`: Base implementation of a HTTP server for requiring Data Union members to fulfil certain requirements in order to join a Data Union
 * `default-join-server`: Simple HTTP server that adds members who know a secret password, and gives them publish rights to the DU's streams. Hosted by the DU DAO at
 

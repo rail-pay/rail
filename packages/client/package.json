@@ -1,6 +1,6 @@
 {
-    "name": "@dataunions/client",
-    "version": "3.0.11",
+    "name": "@rail-protocol/client",
+    "version": "0.0.1",
     "description": "JavaScript/TypeScript client library for DataUnions",
     "author": "Data Union DAO <contact@dataunions.org>",
     "license": "Apache-2.0",
@@ -14,9 +14,9 @@
         "directory": "packages/client"
     },
     "bugs": {
-        "url": "https://github.com/dataunions/data-unions/issues"
+        "url": "https://github.com/rail-protocol/rail/issues"
     },
-    "homepage": "https://github.com/dataunions/data-unions/tree/main/packages/client#readme",
+    "homepage": "https://github.com/rail-protocol/rail/tree/main/packages/client#readme",
     "types": "./dist/types/src/index.d.ts",
     "main": "./dist/src/index.js",
     "browser": "./dist/web/index.js",
@@ -84,7 +84,7 @@
         "util": "0.12.4"
     },
     "dependencies": {
-        "@dataunions/contracts": "3.0.8",
+        "@rail-protocol/contracts": "0.0.1",
         "@ethersproject/abi": "5.7.0",
         "@ethersproject/abstract-signer": "5.7.0",
         "@ethersproject/address": "5.7.0",
@@ -95,7 +95,7 @@
         "@ethersproject/units": "5.7.0",
         "@ethersproject/wallet": "5.7.0",
         "@ethersproject/web": "5.7.0",
-        "@streamr/config": "2.5.1",
+        "@streamr/config": "latest",
         "debug": "4.3.4",
         "node-fetch": "2.6.7",
         "readable-stream": "4.1.0",

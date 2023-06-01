@@ -10,7 +10,7 @@ import "@openzeppelin/contracts-upgradeable/proxy/utils/Initializable.sol";
 import "@openzeppelin/contracts-upgradeable/access/OwnableUpgradeable.sol";
 import "@openzeppelin/contracts-upgradeable/proxy/utils/UUPSUpgradeable.sol";
 
-import "./DataUnionTemplate.sol";
+import "./Vault.sol";
 import "./Ownable.sol";
 
 contract VaultFactory is Initializable, OwnableUpgradeable, UUPSUpgradeable {
@@ -24,7 +24,7 @@ contract VaultFactory is Initializable, OwnableUpgradeable, UUPSUpgradeable {
     event DUInitialEthSent(uint amountWei);
     event OwnerInitialEthSent(uint amountWei);
 
-    address public dataUnionTemplate;
+    address public vault;
     address public defaultToken;
 
     // when sidechain DU is created, the factory sends a bit of sETH to the DU and the owner
@@ -37,19 +37,19 @@ contract VaultFactory is Initializable, OwnableUpgradeable, UUPSUpgradeable {
     address public pendingOwner;
 
     function initialize(
-        address _dataUnionTemplate,
+        address _vault,
         address _defaultToken,
         address _protocolFeeOracle
     ) public initializer {
         __Ownable_init();
         __UUPSUpgradeable_init();
-        setTemplate(_dataUnionTemplate);
+        setTemplate(_vault);
         defaultToken = _defaultToken;
         protocolFeeOracle = _protocolFeeOracle;
     }
 
-    function setTemplate(address _dataUnionTemplate) public onlyOwner {
-        dataUnionTemplate = _dataUnionTemplate;
+    function setTemplate(address _vault) public onlyOwner {
+        vault = _vault;
     }
 
     // contract is payable so it can receive and hold the new member eth stipends
@@ -100,8 +100,8 @@ contract VaultFactory is Initializable, OwnableUpgradeable, UUPSUpgradeable {
         uint256 initialAdminFeeFraction,
         string calldata metadataJsonString
     ) public returns (address) {
-        address payable du = payable(Clones.clone(dataUnionTemplate));
-        DataUnionTemplate(du).initialize(
+        address payable du = payable(Clones.clone(vault));
+        Vault(du).initialize(
             owner,
             token,
             agents,
@@ -111,7 +111,7 @@ contract VaultFactory is Initializable, OwnableUpgradeable, UUPSUpgradeable {
             metadataJsonString
         );
 
-        emit DUCreated(du, owner, dataUnionTemplate);
+        emit DUCreated(du, owner, vault);
 
         // continue whether or not send succeeds
         if (newDUInitialEth != 0 && address(this).balance >= newDUInitialEth) {

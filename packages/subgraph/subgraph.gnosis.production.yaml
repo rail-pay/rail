@@ -1,21 +1,20 @@
 ---
-specVersion: 0.0.2
+specVersion: 0.0.4
 description: Subgraph definitions for data unions
 repository: ""
 schema:
   file: ./schema.graphql
 dataSources:
-  # New DU polygon/matic >>
   - kind: ethereum/contract
     name: VaultFactory
-    network: matic
+    network: xdai
     source:
-      address: '0xd0B3a09A6bCee8446d10e6E7e12c78F8725C9B18'
+      address: '0xe4515702878931b45Dfe4D89d3Fb3208910C913C'
       abi: VaultFactory
-      startBlock: 32836939
+      startBlock: 24091573
     mapping:
       kind: ethereum/events
-      apiVersion: 0.0.5
+      apiVersion: 0.0.6
       language: wasm/assemblyscript
       file: ./src/factory.ts
       entities:
@@ -26,18 +25,16 @@ dataSources:
       eventHandlers:
         - event: DUCreated(indexed address,indexed address,address)
           handler: handleDUCreated
-  # New DU polygon/matic <<
 
 templates:
-  # New DU polygon/matic >>
   - name: DataUnion
     kind: ethereum/contract
-    network: matic
+    network: xdai
     source:
-      abi: DataUnionTemplate
+      abi: Vault
     mapping:
       kind: ethereum/events
-      apiVersion: 0.0.5
+      apiVersion: 0.0.6
       language: wasm/assemblyscript
       file: ./src/dataunion.ts
       entities:
@@ -45,8 +42,8 @@ templates:
         - DataUnionStatsBucket
         - RevenueEvent
       abis:
-        - name: DataUnionTemplate
-          file: ./abis/DataUnionTemplate.json
+        - name: Vault
+          file: ./abis/Vault.json
       eventHandlers:
         - event: MemberJoined(indexed address)
           handler: handleMemberJoined
@@ -58,4 +55,3 @@ templates:
           handler: handleOwnershipTransferred
         - event: MemberWeightChanged(indexed address,uint256,uint256)
           handler: handleMemberWeightChanged
-  # New DU polygon/matic <<

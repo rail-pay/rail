@@ -7,12 +7,12 @@ const log = Debug("Streamr:du:test:BanModule")
 // const log = console.log  // for debugging
 
 import BanModuleJson from "../../artifacts/contracts/modules/BanModule.sol/BanModule.json"
-import DataUnionJson from "../../artifacts/contracts/DataUnionTemplate.sol/DataUnionTemplate.json"
+import DataUnionJson from "../../artifacts/contracts/Vault.sol/Vault.json"
 import DefaultFeeOracleJson from "../../artifacts/contracts/DefaultFeeOracle.sol/DefaultFeeOracle.json"
 
 import TestTokenJson from "../../artifacts/contracts/test/TestToken.sol/TestToken.json"
 
-import type { BanModule, DefaultFeeOracle, DataUnionTemplate as DataUnion, TestToken } from "../../typechain"
+import type { BanModule, DefaultFeeOracle, Vault as DataUnion, TestToken } from "../../typechain"
 
 type EthereumAddress = string
 

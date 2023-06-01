@@ -4,7 +4,7 @@ describe('DataUnion joining using join-server', () => {
 /* TODO
 import type { Wallet } from '@ethersproject/wallet'
 
-import { JoinServer } from '@dataunions/join-server'
+import { JoinServer } from '@rail-protocol/join-server'
 import type { DATAv2 } from '@streamr/data-v2'
 
 import { until } from '../until'
@@ -37,7 +37,7 @@ describe('DataUnion joining using join-server', () => {
         const {
             token: tokenContract,
             vaultFactory,
-            dataUnionTemplate,
+            vault,
             ethereumUrl
         } = await deployContracts(admin)
         token = tokenContract
@@ -51,7 +51,7 @@ describe('DataUnion joining using join-server', () => {
             tokenAddress: token.address,
             dataUnion: {
                 factoryAddress: vaultFactory.address,
-                templateAddress: dataUnionTemplate.address,
+                templateAddress: vault.address,
                 joinPartAgentAddress: joinPartAgent.address,
             },
             network: {

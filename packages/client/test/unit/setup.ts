@@ -5,8 +5,8 @@ import { Wallet } from '@ethersproject/wallet'
 
 import { deployToken } from '@streamr/data-v2'
 
-import { DataUnionTemplate as templateJson, VaultFactory as factoryJson, DefaultFeeOracle as feeOracleJson } from '@dataunions/contracts'
-import type { DataUnionTemplate, VaultFactory, IFeeOracle } from '@dataunions/contracts/typechain'
+import { Vault as templateJson, VaultFactory as factoryJson, DefaultFeeOracle as feeOracleJson } from '@rail-protocol/contracts'
+import type { Vault, VaultFactory, IFeeOracle } from '@rail-protocol/contracts/typechain'
 
 // import debug from 'debug'
 // const log = debug('DataUnionClient:unit-tests:withdraw')
@@ -28,9 +28,9 @@ const privateKeys = [
     "0x2cd9855d17e01ce041953829398af7e48b24ece04ff9d0e183414de54dc52285",
 ]
 
-async function deployDataUnionTemplate(deployer: Wallet): Promise<DataUnionTemplate> {
+async function deployVault(deployer: Wallet): Promise<Vault> {
     const factory = new ContractFactory(templateJson.abi, templateJson.bytecode, deployer)
-    const contract = await factory.deploy() as unknown as DataUnionTemplate
+    const contract = await factory.deploy() as unknown as Vault
     return contract.deployed()
 }
 
@@ -76,11 +76,11 @@ export async function deployContracts(deployer: Wallet) {
 
     const token = await deployToken(deployer)
     await (await token.grantRole(await token.MINTER_ROLE(), deployer.address)).wait()
-    const dataUnionTemplate = await deployDataUnionTemplate(deployer)
+    const vault = await deployVault(deployer)
     const feeOracle = await deployFeeOracle(deployer, deployer.address) // make deployer (the DAO) also protocol beneficiary
     const vaultFactory = await deployVaultFactory(
         deployer,
-        dataUnionTemplate.address,
+        vault.address,
         token.address,
         feeOracle.address
     )
@@ -88,7 +88,7 @@ export async function deployContracts(deployer: Wallet) {
     return {
         token,
         vaultFactory,
-        dataUnionTemplate,
+        vault,
         ethereumUrl,
     }
 }

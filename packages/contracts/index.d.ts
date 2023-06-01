@@ -1,1 +1,1 @@
-declare module "@dataunions/contracts";
+declare module "@rail-protocol/contracts";

@@ -1,6 +1,6 @@
 // checks that require works
 const { Wallet } = require('@ethersproject/wallet')
-const DataUnionClient = require('@dataunions/client')
+const DataUnionClient = require('@rail-protocol/client')
 const assert = require('node:assert')
 
 assert(!!DataUnionClient.DATAUNION_CLIENT_DEFAULTS, 'DataUnionClient should have DATAUNION_CLIENT_DEFAULTS')

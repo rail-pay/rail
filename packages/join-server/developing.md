@@ -46,7 +46,7 @@ make help
 
 ### API
 - [NodeJS 16.x](https://nodejs.org/dist/latest-v16.x/docs/api/)
-- [@dataunions/client 3.x](https://github.com/dataunions/data-unions/tree/master/packages/client)
+- [@rail-protocol/client 3.x](https://github.com/rail-protocol/rail/tree/master/packages/client)
 - [@streamr/config 2.x](https://github.com/streamr-dev/network-contracts/tree/master/packages/config)
 - [Express 5.x](https://expressjs.com/en/5x/api.html)
 - [Commander.js](https://www.npmjs.com/package/commander)

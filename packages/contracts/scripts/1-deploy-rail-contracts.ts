@@ -4,7 +4,7 @@ import { getAddress } from "@ethersproject/address"
 
 import { Chains } from "@streamr/config"
 
-import { VaultFactory, DefaultFeeOracle } from "../../typechain"
+import { VaultFactory, DefaultFeeOracle } from "../typechain"
 import { parseEther } from "@ethersproject/units"
 
 const {
@@ -17,12 +17,14 @@ if (!PROTOCOL_BENEFICIARY_ADDRESS) { throw new Error("Environment variable PROTO
 const protocolBeneficiaryAddress = getAddress(PROTOCOL_BENEFICIARY_ADDRESS)
 
 async function main() {
-    const dataUnionTemplateFactory = await ethers.getContractFactory("DataUnionTemplate")
-    const dataUnionTemplate = await dataUnionTemplateFactory.deploy()
-    await dataUnionTemplate.deployed()
-    console.log("DU template deployed at %s", dataUnionTemplate.address)
+    const signer = (await ethers.getSigners())[0]
 
-    const feeOracleFactory = await ethers.getContractFactory("DefaultFeeOracle")
+    const vaultFactory = await ethers.getContractFactory("Vault", { signer })
+    const vault = await vaultFactory.deploy()
+    await vault.deployed()
+    console.log("DU template deployed at %s", vault.address)
+
+    const feeOracleFactory = await ethers.getContractFactory("DefaultFeeOracle", { signer })
     const feeOracle = await upgrades.deployProxy(feeOracleFactory, [
         parseEther("0.01"),
         protocolBeneficiaryAddress
@@ -30,9 +32,9 @@ async function main() {
     await feeOracle.deployed()
     console.log("Fee oracle deployed at %s", feeOracle.address)
 
-    const factoryFactory = await ethers.getContractFactory("VaultFactory")
+    const factoryFactory = await ethers.getContractFactory("VaultFactory", { signer })
     const factory = await upgrades.deployProxy(factoryFactory, [
-        dataUnionTemplate.address,
+        vault.address,
         tokenAddress,
         feeOracle.address,
     ], { kind: "uups" }) as VaultFactory

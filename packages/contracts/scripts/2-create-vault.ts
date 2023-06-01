@@ -1,40 +1,29 @@
-// first register ens domain on mainnet
-// scripts/deploy.js
+import { ethers } from "hardhat"
 
 import { BigNumber, providers } from "ethers"
 import { parseEther } from "ethers/lib/utils"
-import { VaultFactory, DataUnionTemplate } from "../../typechain"
+import { VaultFactory, Vault } from "../typechain"
 
-import hhat from "hardhat"
+const { CHAIN } = process.env
+if (!CHAIN) { throw new Error("Please specify CHAIN environment variable (dev0, dev1, gnosis, polygon, mainnet)") }
+const { contracts, rpc } = Chains.load()[CHAIN]
 
-const { ethers } = hhat
-
-const DEFAULTPRIVATEKEY = "0x5e98cce00cff5dea6b454889f359a4ec06b9fa6b88e9d69b86de8e1c81887da0"
-// const DEFAULTPRIVATEKEY = "0x47e179ec197488593b187f80a00eb0da91f1b9d0b13f8733639f19c30a34926a"
-type EthereumAddress = string
-
-// addresses localsidechain
-const DATAUNIONFACTORYADDRESS = "0xd1FA6C06E1D838Bb989640A2C4b8a499FD0ab187"
-
-// const SIDECHAINURL = "http://localhost:8545"
-const SIDECHAINURL = "http://localhost:8546"
-
-const sideChainProvider = new providers.JsonRpcProvider(SIDECHAINURL)
+const sideChainProvider = new providers.JsonRpcProvider(rpc)
 
 const walletSidechain = new ethers.Wallet(DEFAULTPRIVATEKEY, sideChainProvider)
 let vaultFactoryContract: VaultFactory
 let tokenfromfac: EthereumAddress
 
 const connectToAllContracts = async () => {
-    const vaultFactoryFactory = await ethers.getContractFactory("VaultFactory", walletSidechain)
-    const vaultFactory = await vaultFactoryFactory.attach(DATAUNIONFACTORYADDRESS)
+    const vaultFactoryCF = await ethers.getContractFactory("VaultFactory", walletSidechain)
+    const vaultFactory = await vaultFactoryCF.attach(contracts.VaultFactory)
     vaultFactoryContract = await vaultFactory.deployed() as VaultFactory
     console.log("factory connected " + vaultFactoryContract.address)
     tokenfromfac = await vaultFactoryContract.defaultToken()
     console.log("token from factory " + tokenfromfac)
 }
 
-const createDU = async () => {
+const createVault = async () => {
     const sendtx = await walletSidechain.sendTransaction({
         to: vaultFactoryContract.address,
         value: parseEther("2"),
@@ -63,9 +52,9 @@ const createDU = async () => {
     console.log(newDuAddress)
     // const bytecode = await sideChainProvider.getCode(newDuAddress)
     // console.log("bytecode " + bytecode)
-    const dataUnionF = await ethers.getContractFactory("DataUnionTemplate", walletSidechain)
+    const dataUnionF = await ethers.getContractFactory("Vault", walletSidechain)
     const dataUnion = await dataUnionF.attach(newDuAddress)
-    const du = await dataUnion.deployed() as DataUnionTemplate
+    const du = await dataUnion.deployed() as Vault
     console.log("du connected " + du.address)
     // const inittx = await du.initialize(args[0], tokenfromfac, args[4], args[1], args[1], args[1], args[0])
     // await inittx.wait()
@@ -75,7 +64,7 @@ const createDU = async () => {
 
 async function main() {
     await connectToAllContracts()
-    await createDU()
+    await createVault()
 }
 
 main()

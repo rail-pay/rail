@@ -21,7 +21,7 @@ describe('Simple DataUnion object getters', () => {
         const {
             token: tokenContract,
             vaultFactory,
-            dataUnionTemplate,
+            vault,
             ethereumUrl
         } = await deployContracts(dao)
         token = tokenContract
@@ -30,7 +30,7 @@ describe('Simple DataUnion object getters', () => {
             tokenAddress: token.address,
             dataUnion: {
                 factoryAddress: vaultFactory.address,
-                templateAddress: dataUnionTemplate.address,
+                templateAddress: vault.address,
             },
             network: { rpcs: [{ url: ethereumUrl, timeout: 30 * 1000 }] }
         }

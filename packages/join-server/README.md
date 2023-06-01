@@ -22,13 +22,13 @@ The most typical use case for this package is to extend the functionality of the
 - Install this base package as a dependency:
 
 ```
-npm install --save @dataunions/join-server
+npm install --save @rail-protocol/join-server
 ```
 
 - Then you can use the server in your application:
 
 ```
-const { JoinServer } = require('@dataunions/JoinServer')
+const { JoinServer } = require('@rail-protocol/JoinServer')
 
 const srv = new JoinServer({
     // Always pass in the private key for the wallet you set as the joinPartAgent
@@ -42,7 +42,7 @@ srv.listen()
 
 That's exactly what's happening in the [default join server](https://github.com/dataunions/default-join-server). Forking that may be a faster starting point for your own customizations, or you can study this readme to start your customizations from scratch.
 
-Note that this base join server does not grant the joining member permissions to any data backend, it just adds the member to the smart contract. In your join server, you should grant the joining member the ability to share their data via whatever data backend/protocol your Data Union is using via using the `onMemberJoin` hook (see [Options](#options)). 
+Note that this base join server does not grant the joining member permissions to any data backend, it just adds the member to the smart contract. In your join server, you should grant the joining member the ability to share their data via whatever data backend/protocol your Data Union is using via using the `onMemberJoin` hook (see [Options](#options)).
 
 The [default join server](https://github.com/dataunions/default-join-server) hosted by the Data Union DAO is [Streamr](https://streamr.network)-aware, meaning that it grants new members publish permission to Streamr streams associated with that Data Union. If you're using a different data protocol/backend, you need to grant access to your data backend to your new DU members (unless of course your backend accepts data from anyone, not just DU members).
 
@@ -53,7 +53,7 @@ See below for the various constructor options and their default values. At a min
 ```
 new JoinServer({
     // Hex-encoded private key for your joinPartAgent address
-    privateKey: '...', 
+    privateKey: '...',
 
     // HTTP port the server listens on
     port: 5555,
@@ -83,7 +83,7 @@ new JoinServer({
 You can also run the "base" join server without any customizations. This may be useful for development and testing. Note that the base join server only does the signature validation, meaning that anyone (including bots etc.) can join your data unions.
 
 ```
-npm install -g @dataunions/join-server
+npm install -g @rail-protocol/join-server
 join-server -k <private key>
 ```
 
@@ -157,7 +157,7 @@ In the context of the signed message wrapper, the full request to this endpoint 
 
 ## Authentication
 
-All endpoints exposed by the join server expect requests to be signed with the requesting Ethereum wallet using a simple signature scheme. The details are below, however most users shouldn't need to implement the authentication from scratch, but instead simply use the [Data Union client](https://www.npmjs.com/package/@dataunions/client).
+All endpoints exposed by the join server expect requests to be signed with the requesting Ethereum wallet using a simple signature scheme. The details are below, however most users shouldn't need to implement the authentication from scratch, but instead simply use the [Data Union client](https://www.npmjs.com/package/@rail-protocol/client).
 
 Requests to the join server look like this:
 

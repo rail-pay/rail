@@ -4,7 +4,7 @@ import { Contract, ContractFactory, utils, BigNumber } from "ethers"
 const { parseEther } = utils
 
 import VaultFactoryJson from "../../artifacts/contracts/VaultFactory.sol/VaultFactory.json"
-import DataUnionTemplateJson from "../../artifacts/contracts/DataUnionTemplate.sol/DataUnionTemplate.json"
+import VaultJson from "../../artifacts/contracts/Vault.sol/Vault.json"
 import FeeOracleJson from "../../artifacts/contracts/DefaultFeeOracle.sol/DefaultFeeOracle.json"
 
 import TestTokenJson from "../../artifacts/contracts/test/TestToken.sol/TestToken.json"
@@ -36,7 +36,7 @@ describe("VaultFactory", (): void => {
 
     before(async () => {
         testToken = await deployContract(creator, TestTokenJson, ["name", "symbol"]) as TestToken
-        const dataUnionTemplate = await deployContract(creator, DataUnionTemplateJson, [])
+        const vault = await deployContract(creator, VaultJson, [])
         const feeOracleFactory = new ContractFactory(FeeOracleJson.abi, FeeOracleJson.bytecode, creator)
         const feeOracle = await upgrades.deployProxy(feeOracleFactory, [
             parseEther("0.01"),
@@ -44,7 +44,7 @@ describe("VaultFactory", (): void => {
         ], { kind: "uups" }) as DefaultFeeOracle
         const factoryFactory = new ContractFactory(VaultFactoryJson.abi, VaultFactoryJson.bytecode, creator)
         factory = await upgrades.deployProxy(factoryFactory, [
-            dataUnionTemplate.address,
+            vault.address,
             testToken.address,
             feeOracle.address,
         ], { kind: "uups" }) as VaultFactory
@@ -96,9 +96,9 @@ describe("VaultFactory", (): void => {
         log("%s code: %s", newDuAddress, await provider.getCode(newDuAddress))
         expect(await provider.getCode(newDuAddress)).not.equal("0x")
 
-        const newDuCreator = new Contract(newDuAddress, DataUnionTemplateJson.abi, creator)
-        const newDuAgent = new Contract(newDuAddress, DataUnionTemplateJson.abi, agents[0])
-        const newDuOutsider = new Contract(newDuAddress, DataUnionTemplateJson.abi, others[0])
+        const newDuCreator = new Contract(newDuAddress, VaultJson.abi, creator)
+        const newDuAgent = new Contract(newDuAddress, VaultJson.abi, agents[0])
+        const newDuOutsider = new Contract(newDuAddress, VaultJson.abi, others[0])
         const newDuBalance = await provider.getBalance(newDuAddress)
         log("newdu_address: %s, balance %s", newDuAddress, newDuBalance)
 

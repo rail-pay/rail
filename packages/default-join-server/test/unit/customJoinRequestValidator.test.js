@@ -3,7 +3,7 @@ const { expect } = chai
 chai.use(require('chai-as-promised'))
 
 const sinon = require('sinon')
-const { InvalidRequestError } = require('@dataunions/join-server')
+const { InvalidRequestError } = require('@rail-protocol/join-server')
 const createCustomJoinRequestValidator = require('../../src/CustomJoinRequestValidator')
 
 describe('customJoinRequestValidator', async () => {
@@ -29,7 +29,7 @@ describe('customJoinRequestValidator', async () => {
 	})
 
 	afterEach(() => {
-		
+
 	})
 
 	it('succeeds if the secret is correct', async () => {

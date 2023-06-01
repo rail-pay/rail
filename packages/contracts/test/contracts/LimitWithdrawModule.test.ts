@@ -3,16 +3,16 @@ import { waffle } from "hardhat"
 import { BigNumber, utils } from "ethers"
 
 import Debug from "debug"
-const log = Debug("Streamr:du:test:DataUnionSidechain")
+const log = Debug("rail:test:LimitWithdrawModule")
 // const log = console.log  // for debugging?
 
 import LimitWithdrawModuleJson from "../../artifacts/contracts/modules/LimitWithdrawModule.sol/LimitWithdrawModule.json"
-import DataUnionJson from "../../artifacts/contracts/DataUnionTemplate.sol/DataUnionTemplate.json"
+import DataUnionJson from "../../artifacts/contracts/Vault.sol/Vault.json"
 import DefaultFeeOracleJson from "../../artifacts/contracts/DefaultFeeOracle.sol/DefaultFeeOracle.json"
 
 import TestTokenJson from "../../artifacts/contracts/test/TestToken.sol/TestToken.json"
 
-import type { LimitWithdrawModule, DefaultFeeOracle, DataUnionTemplate as DataUnion, TestToken } from "../../typechain"
+import type { LimitWithdrawModule, DefaultFeeOracle, Vault as DataUnion, TestToken } from "../../typechain"
 
 // type EthereumAddress = string
 

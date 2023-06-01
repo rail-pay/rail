@@ -7,7 +7,7 @@ import type { BigNumberish } from '@ethersproject/bignumber'
 import type { ContractReceipt, ContractTransaction } from '@ethersproject/contracts'
 import type { Signer } from '@ethersproject/abstract-signer'
 
-import type { DataUnionTemplate as DataUnionContract } from '@dataunions/contracts/typechain'
+import type { Vault } from '@rail-protocol/contracts/typechain'
 
 import { sleep } from './sleep'
 import { sign } from './signing'
@@ -109,10 +109,10 @@ export class DataUnion {
     // TODO: remove DataUnionClient from here. This coupling makes all of this code a ball of mud, completely inter-connected
     private client: DataUnionClient
     private joinServer: Rest
-    public readonly contract: DataUnionContract
+    public readonly contract: Vault
 
     /** @internal */
-    constructor(contract: DataUnionContract, joinServerConnection: Rest, client: DataUnionClient) {
+    constructor(contract: Vault, joinServerConnection: Rest, client: DataUnionClient) {
         // validate and convert to checksum case
         this.client = client
         this.joinServer = joinServerConnection

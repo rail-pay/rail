@@ -111,7 +111,7 @@ jobs:
         run: |
           mysql --user=${{env.SECRET_DB_USER}} --password=${{env.SECRET_DB_PASSWORD}} --host=127.0.0.1 --port=${{env.SECRET_DB_PORT}} < packages/default-join-server/create_tables.sql
           npm run -w packages/default-join-server integration-test
-  thegraph-subgraph-integration-test:
+  subgraph-integration-test:
     needs:
       - lint-and-unit-test
     runs-on: ubuntu-20.04
@@ -143,9 +143,9 @@ jobs:
         with:
           services-to-start: 'graph-deploy-dataunion-subgraph'
       - name: Deploy the DU subgraph
-        run: npm run -w packages/thegraph-subgraph deploy-local
+        run: npm run -w packages/subgraph deploy-local
       - name: Integration Test (with dev-docker environment)
         env:
           TEST_TIMEOUT: '600000'
           DEBUG: "*,-mocha:*"
-        run: npm run -w packages/thegraph-subgraph integration-test
+        run: npm run -w packages/subgraph integration-test
