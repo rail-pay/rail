@@ -8,8 +8,6 @@ on:
 
 jobs:
   lint-and-unit-test:
-    needs:
-      - lint-scripts
     name: Lint and unit test packages
     runs-on: ubuntu-20.04
     steps:
