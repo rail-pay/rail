@@ -1,22 +1,22 @@
 import { log, Address, BigInt, BigDecimal } from '@graphprotocol/graph-ts'
 
-import { DataUnion, VaultBucket, Member, RevenueEvent } from '../generated/schema'
+import { Vault, VaultBucket, Member, RevenueEvent } from '../generated/schema'
 import {
     MemberJoined,
     MemberParted,
     OwnershipTransferred,
     RevenueReceived,
     MemberWeightChanged,
-} from '../generated/templates/DataUnion/Vault'
+} from '../generated/templates/Vault/Vault'
 
 ///////////////////////////////////////////////////////////////
 // HANDLERS: see subgraph.*.yaml for the events that are handled
 ///////////////////////////////////////////////////////////////
 
 export function handleOwnershipTransferred(event: OwnershipTransferred): void {
-    let dataUnion = getVault(event.address)
-    dataUnion.owner = event.params.newOwner.toHexString()
-    dataUnion.save()
+    let vault = getVault(event.address)
+    vault.owner = event.params.newOwner.toHexString()
+    vault.save()
 }
 
 export function handleMemberJoined(event: MemberJoined): void {
@@ -26,13 +26,13 @@ export function handleMemberJoined(event: MemberJoined): void {
 
     let member = getMember(memberAddress, vaultAddress)
     member.address = memberAddress.toHexString()
-    member.dataUnion = vaultAddress.toHexString()
+    member.vault = vaultAddress.toHexString()
     member.joinDate = event.block.timestamp
     member.status = 'ACTIVE'
     member.weight = BigDecimal.fromString('1')
     member.save()
 
-    updateDataUnion(vaultAddress, event.block.timestamp, 1)
+    updateVault(vaultAddress, event.block.timestamp, 1)
 }
 
 export function handleMemberParted(event: MemberParted): void {
@@ -44,7 +44,7 @@ export function handleMemberParted(event: MemberParted): void {
     member.status = 'INACTIVE'
     member.save()
 
-    updateDataUnion(vaultAddress, event.block.timestamp, -1)
+    updateVault(vaultAddress, event.block.timestamp, -1)
 }
 
 export function handleRevenueReceived(event: RevenueReceived): void {
@@ -52,7 +52,7 @@ export function handleRevenueReceived(event: RevenueReceived): void {
     let amount = event.params.amount
     log.warning('handleRevenueReceived: vaultAddress={} amount={}', [vaultAddress.toHexString(), amount.toString()])
 
-    updateDataUnion(vaultAddress, event.block.timestamp, 0, BigDecimal.zero(), amount)
+    updateVault(vaultAddress, event.block.timestamp, 0, BigDecimal.zero(), amount)
 
     // additionally save the individual events for later querying
     let revenueEvent = new RevenueEvent(
@@ -61,7 +61,7 @@ export function handleRevenueReceived(event: RevenueReceived): void {
         event.transaction.index.toHexString() + '-' +
         event.transactionLogIndex.toString()
     )
-    revenueEvent.dataUnion = vaultAddress.toHexString()
+    revenueEvent.vault = vaultAddress.toHexString()
     revenueEvent.amountWei = amount
     revenueEvent.date = event.block.timestamp
     revenueEvent.save()
@@ -82,17 +82,17 @@ export function handleMemberWeightChanged(event: MemberWeightChanged): void {
     member.weight = weight
     member.save()
 
-    updateDataUnion(vaultAddress, event.block.timestamp, 0, weightChange)
+    updateVault(vaultAddress, event.block.timestamp, 0, weightChange)
 }
 
-function updateDataUnion(
+function updateVault(
     vaultAddress: Address,
     timestamp: BigInt,
     memberCountChange: i32,
     totalWeightChange: BigDecimal = BigDecimal.zero(),
     revenueChangeWei: BigInt = BigInt.zero()
 ): void {
-    log.warning('updateDataUnion: vaultAddress={} timestamp={}', [vaultAddress.toHexString(), timestamp.toString()])
+    log.warning('updateVault: vaultAddress={} timestamp={}', [vaultAddress.toHexString(), timestamp.toString()])
 
     // buckets must be done first so that *AtStart values are correct for newly created buckets
     let hourBucket = getBucket('HOUR', timestamp, vaultAddress)
@@ -107,27 +107,27 @@ function updateDataUnion(
     dayBucket.totalWeightChange += totalWeightChange
     dayBucket.save()
 
-    let dataUnion = getVault(vaultAddress)
-    dataUnion.memberCount += memberCountChange
-    dataUnion.revenueWei += revenueChangeWei
-    dataUnion.totalWeight += totalWeightChange
-    dataUnion.save()
+    let vault = getVault(vaultAddress)
+    vault.memberCount += memberCountChange
+    vault.revenueWei += revenueChangeWei
+    vault.totalWeight += totalWeightChange
+    vault.save()
 }
 
 ///////////////////////////////////////////////////////////////
 // GETTERS: load an existing object or create a new one
 ///////////////////////////////////////////////////////////////
 
-function getVault(vaultAddress: Address): DataUnion {
-    let dataUnion = DataUnion.load(vaultAddress.toHexString())
-    if (dataUnion == null) {
-        // this should never happen because in factory.ts we create a DataUnion object for every new DataUnion template instantiation
+function getVault(vaultAddress: Address): Vault {
+    let vault = Vault.load(vaultAddress.toHexString())
+    if (vault == null) {
+        // this should never happen because in factory.ts we create a Vault object for every new Vault template instantiation
         //   the functions in this file can only be called after the template is instantiated
         // if you get this error, it means either that the DB is in bad state, or code has been changed to instantiate
-        //   DataUnion templates without creating the corresponding DataUnion DB objects
-        throw new Error('getVault: DataUnion database object was not found, address=' + vaultAddress.toHexString())
+        //   Vault templates without creating the corresponding Vault DB objects
+        throw new Error('getVault: Vault database object was not found, address=' + vaultAddress.toHexString())
     }
-    return dataUnion
+    return vault
 }
 
 function getMember(memberAddress: Address, vaultAddress: Address): Member {
@@ -155,18 +155,18 @@ function getBucket(length: string, timestamp: BigInt, vaultAddress: Address): Va
     let bucketId = vaultAddress.toHexString() + '-' + length + '-' + bucketStartDate.toString()
     let bucket = VaultBucket.load(bucketId)
 
-    // Create a new bucket, get starting values from DataUnion
+    // Create a new bucket, get starting values from Vault
     if (bucket == null) {
         bucket = new VaultBucket(bucketId)
         bucket.type = length
-        bucket.dataUnion = vaultAddress.toHexString()
+        bucket.vault = vaultAddress.toHexString()
         bucket.startDate = bucketStartDate
         bucket.endDate = bucketStartDate.plus(bucketSeconds)
 
-        let dataUnion = getVault(vaultAddress)
-        bucket.memberCountAtStart = dataUnion.memberCount
-        bucket.revenueAtStartWei = dataUnion.revenueWei
-        bucket.totalWeightAtStart = dataUnion.totalWeight
+        let vault = getVault(vaultAddress)
+        bucket.memberCountAtStart = vault.memberCount
+        bucket.revenueAtStartWei = vault.revenueWei
+        bucket.totalWeightAtStart = vault.totalWeight
 
         bucket.memberCountChange = 0
         bucket.revenueChangeWei = BigInt.zero()

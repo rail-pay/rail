@@ -35,7 +35,7 @@ class JoinServer {
 		customRoutes = (/*expressApp*/) => {},
 
 		// Gets called after a member is successfully joined to the Data Union smart contract. The default function does nothing.
-		onMemberJoin = async (/* member, dataUnion, chain */) => {},
+		onMemberJoin = async (/* member, vault, chain */) => {},
 
 		/**
 		 * These options are primarily intended for advanced use or passing in test mocks

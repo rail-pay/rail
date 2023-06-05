@@ -6,7 +6,7 @@ import type { Response } from 'node-fetch'
 import fetch from 'node-fetch'
 
 import { debug } from 'debug'
-const log = debug('dataunions:authFetch')
+const log = debug('vaults:authFetch')
 
 /**
  * Generates counter-based ids.

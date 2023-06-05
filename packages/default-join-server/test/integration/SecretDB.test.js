@@ -37,7 +37,7 @@ describe('DB', () => {
 	// These tests must run sequentially!
 	it('creates app secrets', async () => {
 		secret = await db.createAppSecret(DATA_UNION_ADDRESS, CHAIN, SECRET_NAME)
-		assert.equal(secret.dataUnion, DATA_UNION_ADDRESS)
+		assert.equal(secret.vault, DATA_UNION_ADDRESS)
 		assert.equal(secret.chain, CHAIN)
 		assert.equal(secret.name, SECRET_NAME)
 	})

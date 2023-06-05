@@ -12,15 +12,15 @@ module.exports = (db) => {
 				})
 			}
 
-			const dataUnion = await client.getVault(req.validatedRequest.dataUnion)
-			if (!dataUnion) {
+			const vault = await client.getVault(req.validatedRequest.vault)
+			if (!vault) {
 				res.status(404)
 				res.set('content-type', 'application/json')
 				res.send({
-					error: `Data Union ${req.validatedRequest.dataUnion} on chain ${req.validatedRequest.chain} does not exist!`
+					error: `Data Union ${req.validatedRequest.vault} on chain ${req.validatedRequest.chain} does not exist!`
 				})
 			} else {
-				const admin = await dataUnion.getAdminAddress()
+				const admin = await vault.getAdminAddress()
 				if (admin.toLowerCase() === req.body.address.toLowerCase()) {
 					next()
 				} else {
@@ -35,7 +35,7 @@ module.exports = (db) => {
 
 		expressApp.post('/secrets/list', async (req, res) => {
 			// Get secrets from DB
-			const secrets = await db.listSecrets(req.validatedRequest.dataUnion, req.validatedRequest.chain)
+			const secrets = await db.listSecrets(req.validatedRequest.vault, req.validatedRequest.chain)
 
 			res.status(200)
 			res.set('content-type', 'application/json')
@@ -44,7 +44,7 @@ module.exports = (db) => {
 
 		expressApp.post('/secrets/create', async (req, res) => {
 			// Insert new secret to DB
-			const secret = await db.createAppSecret(req.validatedRequest.dataUnion, req.validatedRequest.chain, req.validatedRequest.name)
+			const secret = await db.createAppSecret(req.validatedRequest.vault, req.validatedRequest.chain, req.validatedRequest.name)
 
 			res.status(200)
 			res.set('content-type', 'application/json')

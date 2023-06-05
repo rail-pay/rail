@@ -2,27 +2,27 @@ const chai = require('chai')
 const { assert, expect } = chai
 chai.use(require('chai-as-promised'))
 const sinon = require('sinon')
-const { JoinRequestService, DataUnionJoinError, DataUnionRetrievalError } = require('../../src/app/JoinRequestService')
+const { JoinRequestService, VaultJoinError, VaultRetrievalError } = require('../../src/app/JoinRequestService')
 const { unitTestLogger } = require('../rest/unitTestLogger')
 
 describe('JoinRequestService', () => {
 	const MEMBER_ADDRESS = '0x0123456789012345678901234567890123456789'
-	const DATAUNION_ADDRESS = '0x1234567890123456789012345678901234567890'
+	const VAULT_ADDRESS = '0x1234567890123456789012345678901234567890'
 	const CHAIN = 'polygon'
 
 	let joinRequestService
 	let railClient
-	let dataUnionObject
+	let vaultObject
 	let onMemberJoin
 
 	beforeEach(() => {
-		dataUnionObject = {
+		vaultObject = {
 			isMember: sinon.stub().resolves(false),
 			addMembers: sinon.stub().resolves(true),
 		}
 
 		railClient = {
-			getVault: sinon.stub().resolves(dataUnionObject),
+			getVault: sinon.stub().resolves(vaultObject),
 		}
 
 		const clients = new Map()
@@ -37,31 +37,31 @@ describe('JoinRequestService', () => {
 
 	describe('create', () => {
 		it('adds members using the DU client', async () => {
-			const response = await joinRequestService.create(MEMBER_ADDRESS, DATAUNION_ADDRESS, CHAIN)
-			assert.isTrue(dataUnionObject.addMembers.calledWith([MEMBER_ADDRESS]))
+			const response = await joinRequestService.create(MEMBER_ADDRESS, VAULT_ADDRESS, CHAIN)
+			assert.isTrue(vaultObject.addMembers.calledWith([MEMBER_ADDRESS]))
 			assert.equal(response.member, MEMBER_ADDRESS)
-			assert.equal(response.dataUnion, DATAUNION_ADDRESS)
+			assert.equal(response.vault, VAULT_ADDRESS)
 			assert.equal(response.chain, CHAIN)
 		})
 
 		it('rejects when data union is not found', async () => {
 			railClient.getVault = sinon.stub().rejects()
-			await expect(joinRequestService.create(MEMBER_ADDRESS, DATAUNION_ADDRESS, CHAIN)).to.be.rejectedWith(DataUnionRetrievalError)
+			await expect(joinRequestService.create(MEMBER_ADDRESS, VAULT_ADDRESS, CHAIN)).to.be.rejectedWith(VaultRetrievalError)
 		})
 
 		it('rejects if the member is already a member', async () => {
-			dataUnionObject.isMember = sinon.stub().resolves(true),
-			await expect(joinRequestService.create(MEMBER_ADDRESS, DATAUNION_ADDRESS, CHAIN)).to.be.rejectedWith(DataUnionJoinError)
+			vaultObject.isMember = sinon.stub().resolves(true),
+			await expect(joinRequestService.create(MEMBER_ADDRESS, VAULT_ADDRESS, CHAIN)).to.be.rejectedWith(VaultJoinError)
 		})
 
 		it('rejects when joining data union fails', async () => {
-			dataUnionObject.addMembers = sinon.stub().rejects()
-			await expect(joinRequestService.create(MEMBER_ADDRESS, DATAUNION_ADDRESS, CHAIN)).to.be.rejectedWith(DataUnionJoinError)
+			vaultObject.addMembers = sinon.stub().rejects()
+			await expect(joinRequestService.create(MEMBER_ADDRESS, VAULT_ADDRESS, CHAIN)).to.be.rejectedWith(VaultJoinError)
 		})
 
 		it('calls the onMemberJoin function on join', async() => {
-			await joinRequestService.create(MEMBER_ADDRESS, DATAUNION_ADDRESS, CHAIN)
-			assert.isTrue(onMemberJoin.calledWith(MEMBER_ADDRESS, DATAUNION_ADDRESS, CHAIN))
+			await joinRequestService.create(MEMBER_ADDRESS, VAULT_ADDRESS, CHAIN)
+			assert.isTrue(onMemberJoin.calledWith(MEMBER_ADDRESS, VAULT_ADDRESS, CHAIN))
 		})
 	})
 })

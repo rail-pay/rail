@@ -5,7 +5,7 @@ import type { RailClientConfig } from '../../src/Config'
 
 import { deployContracts, getWallets } from './setup'
 
-describe('DataUnion deploy', () => {
+describe('Vault deploy', () => {
 
     let dao: Wallet
     let user: Wallet
@@ -21,7 +21,7 @@ describe('DataUnion deploy', () => {
         clientOptions = {
             auth: { privateKey: user.privateKey },
             tokenAddress: token.address,
-            dataUnion: {
+            vault: {
                 factoryAddress: vaultFactory.address,
                 templateAddress: vault.address,
             },
@@ -32,15 +32,15 @@ describe('DataUnion deploy', () => {
     describe('owner', () => {
         it('not specified: defaults to deployer', async () => {
             const client = new RailClient(clientOptions)
-            const dataUnion = await client.deployVault()
-            expect(await dataUnion.getAdminAddress()).toBe(await client.getAddress())
+            const vault = await client.deployVault()
+            expect(await vault.getAdminAddress()).toBe(await client.getAddress())
         })
 
         it('specified', async () => {
             const adminAddress = "0x0000000000000000000000000000000000000123"
             const client = new RailClient(clientOptions)
-            const dataUnion = await client.deployVault({ adminAddress })
-            expect(await dataUnion.getAdminAddress()).toBe(adminAddress)
+            const vault = await client.deployVault({ adminAddress })
+            expect(await vault.getAdminAddress()).toBe(adminAddress)
         })
 
         it('invalid', async () => {

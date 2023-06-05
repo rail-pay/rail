@@ -7,15 +7,15 @@ import { deployContracts, getWallets } from './setup'
 import type { DATAv2 } from '@streamr/data-v2'
 import type { Vault } from '../../src/Vault'
 
-describe('DataUnion member', () => {
+describe('Vault member', () => {
 
     let dao: Wallet
     let admin: Wallet
     let member: Wallet
     let otherMember: Wallet
     let token: DATAv2
-    let dataUnion: Vault
-    let adminDataUnion: Vault
+    let vault: Vault
+    let adminVault: Vault
     beforeAll(async () => {
         [
             dao,
@@ -34,7 +34,7 @@ describe('DataUnion member', () => {
         const clientOptions = {
             auth: { privateKey: member.privateKey },
             tokenAddress: token.address,
-            dataUnion: {
+            vault: {
                 factoryAddress: vaultFactory.address,
                 templateAddress: vault.address,
             },
@@ -42,24 +42,24 @@ describe('DataUnion member', () => {
         }
 
         const adminClient = new RailClient({ ...clientOptions, auth: { privateKey: admin.privateKey } })
-        adminDataUnion = await adminClient.deployVault()
-        await adminDataUnion.addMembers([member.address, otherMember.address])
+        adminVault = await adminClient.deployVault()
+        await adminVault.addMembers([member.address, otherMember.address])
 
         const client = new RailClient(clientOptions)
-        dataUnion = await client.getVault(adminDataUnion.getAddress())
+        vault = await client.getVault(adminVault.getAddress())
     })
 
     it('cannot be just any random address', async () => {
-        expect(await dataUnion.isMember(Wallet.createRandom().address)).toBe(false)
-        expect(await dataUnion.isMember("0x0000000000000000000000000000000000000000")).toBe(false)
+        expect(await vault.isMember(Wallet.createRandom().address)).toBe(false)
+        expect(await vault.isMember("0x0000000000000000000000000000000000000000")).toBe(false)
     })
 
     it('can part from the data union', async () => {
-        const memberCountBefore = await dataUnion.getActiveMemberCount()
-        const isMemberBefore = await dataUnion.isMember()
-        await dataUnion.part()
-        const isMemberAfter = await dataUnion.isMember()
-        const memberCountAfter = await dataUnion.getActiveMemberCount()
+        const memberCountBefore = await vault.getActiveMemberCount()
+        const isMemberBefore = await vault.isMember()
+        await vault.part()
+        const isMemberAfter = await vault.isMember()
+        const memberCountAfter = await vault.getActiveMemberCount()
 
         expect(isMemberBefore).toBe(true)
         expect(isMemberAfter).toBe(false)
@@ -68,11 +68,11 @@ describe('DataUnion member', () => {
 
     it('can be added by admin', async () => {
         const userAddress = Wallet.createRandom().address
-        const memberCountBefore = await dataUnion.getActiveMemberCount()
-        const isMemberBefore = await dataUnion.isMember(userAddress)
-        await adminDataUnion.addMembers([userAddress])
-        const isMemberAfter = await dataUnion.isMember(userAddress)
-        const memberCountAfter = await dataUnion.getActiveMemberCount()
+        const memberCountBefore = await vault.getActiveMemberCount()
+        const isMemberBefore = await vault.isMember(userAddress)
+        await adminVault.addMembers([userAddress])
+        const isMemberAfter = await vault.isMember(userAddress)
+        const memberCountAfter = await vault.getActiveMemberCount()
 
         expect(isMemberBefore).toBe(false)
         expect(isMemberAfter).toBe(true)
@@ -80,27 +80,27 @@ describe('DataUnion member', () => {
     })
 
     it('can be removed by admin', async () => {
-        await adminDataUnion.removeMembers([otherMember.address])
-        const isMember = await dataUnion.isMember(otherMember.address)
+        await adminVault.removeMembers([otherMember.address])
+        const isMember = await vault.isMember(otherMember.address)
         expect(isMember).toBe(false)
     })
 
     it('can be added with weights', async () => {
         const userAddress = Wallet.createRandom().address
         const user2Address = Wallet.createRandom().address
-        const memberCountBefore = await dataUnion.getActiveMemberCount()
-        const { totalWeight: totalWeightBefore } = await dataUnion.getStats()
-        const isMemberBefore = await dataUnion.isMember(userAddress)
+        const memberCountBefore = await vault.getActiveMemberCount()
+        const { totalWeight: totalWeightBefore } = await vault.getStats()
+        const isMemberBefore = await vault.isMember(userAddress)
 
-        await adminDataUnion.addMembersWithWeights([userAddress], [2])
-        const isMemberAfter1 = await dataUnion.isMember(userAddress)
-        const memberCountAfter1 = await dataUnion.getActiveMemberCount()
-        const { totalWeight: totalWeightAfter1 } = await dataUnion.getStats()
+        await adminVault.addMembersWithWeights([userAddress], [2])
+        const isMemberAfter1 = await vault.isMember(userAddress)
+        const memberCountAfter1 = await vault.getActiveMemberCount()
+        const { totalWeight: totalWeightAfter1 } = await vault.getStats()
 
-        await adminDataUnion.setMemberWeights([userAddress, user2Address], [0, 3])
-        const isMemberAfter2 = await dataUnion.isMember(userAddress)
-        const memberCountAfter2 = await dataUnion.getActiveMemberCount()
-        const { totalWeight: totalWeightAfter2 } = await dataUnion.getStats()
+        await adminVault.setMemberWeights([userAddress, user2Address], [0, 3])
+        const isMemberAfter2 = await vault.isMember(userAddress)
+        const memberCountAfter2 = await vault.getActiveMemberCount()
+        const { totalWeight: totalWeightAfter2 } = await vault.getStats()
 
         expect(isMemberBefore).toBe(false)
         expect(isMemberAfter1).toBe(true)
@@ -113,9 +113,9 @@ describe('DataUnion member', () => {
 
     it('functions fail for invalid address', async () => {
         return Promise.all([
-            expect(() => dataUnion.addMembers(['invalid-address'])).rejects.toThrow(/invalid address/),
-            expect(() => dataUnion.removeMembers(['invalid-address'])).rejects.toThrow(/invalid address/),
-            expect(() => dataUnion.isMember('invalid-address')).rejects.toThrow(/invalid address/),
+            expect(() => vault.addMembers(['invalid-address'])).rejects.toThrow(/invalid address/),
+            expect(() => vault.removeMembers(['invalid-address'])).rejects.toThrow(/invalid address/),
+            expect(() => vault.isMember('invalid-address')).rejects.toThrow(/invalid address/),
         ])
     })
 })

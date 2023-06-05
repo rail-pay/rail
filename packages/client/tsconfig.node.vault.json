@@ -1,6 +1,6 @@
 {
   "$schema": "https://json.schemastore.org/tsconfig",
-  "display": "Node 16 – DataUnions",
+  "display": "Node 16 – Vaults",
   "extends": "@tsconfig/node16/tsconfig.json",
     "compilerOptions": {
       "allowJs": true,

@@ -50,9 +50,9 @@ async function createVault() {
     console.log(newVaultAddress)
     const bytecode = await provider.getCode(newVaultAddress)
     console.log("bytecode " + bytecode)
-    const dataUnionF = await ethers.getContractFactory("Vault", wallet)
-    const dataUnion = await dataUnionF.attach(newVaultAddress)
-    const du = await dataUnion.deployed() as Vault
+    const vaultF = await ethers.getContractFactory("Vault", wallet)
+    const vault = await vaultF.attach(newVaultAddress)
+    const du = await vault.deployed() as Vault
     console.log("vault connected " + du.address)
     // const inittx = await du.initialize(args[0], tokenfromfac, args[4], args[1], args[1], args[1], args[0])
     // await inittx.wait()

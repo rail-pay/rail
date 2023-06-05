@@ -11,7 +11,7 @@ describe('JoinRequestService', () => {
 			args: {
 				logger: undefined,
 				clients: new Map(),
-				onMemberJoin: function(_member, _dataUnion, _chain) {},
+				onMemberJoin: function(_member, _vault, _chain) {},
 			},
 			expectedErrorMessage: 'Variable logger is required',
 		},
@@ -20,7 +20,7 @@ describe('JoinRequestService', () => {
 			args: {
 				logger: unitTestLogger,
 				clients: undefined,
-				onMemberJoin: function(_member, _dataUnion, _chain) {},
+				onMemberJoin: function(_member, _vault, _chain) {},
 			},
 			expectedErrorMessage: 'Variable clients is required',
 		},
@@ -40,7 +40,7 @@ describe('JoinRequestService', () => {
 			args: {
 				logger: unitTestLogger,
 				clients: new Map(),
-				onMemberJoin: function(_member, _dataUnion, _chain) {},
+				onMemberJoin: function(_member, _vault, _chain) {},
 			},
 		},
 	]

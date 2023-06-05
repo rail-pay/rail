@@ -19,7 +19,7 @@ dataSources:
       language: wasm/assemblyscript
       file: ./src/factory.ts
       entities:
-        - DataUnion
+        - Vault
       abis:
         - name: VaultFactory
           file: ./abis/VaultFactory.json
@@ -30,7 +30,7 @@ dataSources:
 
 templates:
   # New DU streamr-docker-dev >>
-  - name: DataUnion
+  - name: Vault
     kind: ethereum/contract
     network: xDai
     source:
@@ -39,7 +39,7 @@ templates:
       kind: ethereum/events
       apiVersion: 0.0.6
       language: wasm/assemblyscript
-      file: ./src/dataunion.ts
+      file: ./src/vault.ts
       entities:
         - Member
         - VaultBucket

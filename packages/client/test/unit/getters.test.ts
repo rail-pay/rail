@@ -7,7 +7,7 @@ import type { RailClientConfig } from '../../src/Config'
 import { deployContracts, getWallets } from './setup'
 import type { DATAv2 } from '@streamr/data-v2'
 
-describe('Simple DataUnion object getters', () => {
+describe('Simple Vault object getters', () => {
 
     let dao: Wallet
     let user: Wallet
@@ -28,7 +28,7 @@ describe('Simple DataUnion object getters', () => {
         clientOptions = {
             auth: { privateKey: user.privateKey },
             tokenAddress: token.address,
-            dataUnion: {
+            vault: {
                 factoryAddress: vaultFactory.address,
                 templateAddress: vault.address,
             },

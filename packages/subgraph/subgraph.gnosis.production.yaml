@@ -18,7 +18,7 @@ dataSources:
       language: wasm/assemblyscript
       file: ./src/factory.ts
       entities:
-        - DataUnion
+        - Vault
       abis:
         - name: VaultFactory
           file: ./abis/VaultFactory.json
@@ -27,7 +27,7 @@ dataSources:
           handler: handleDUCreated
 
 templates:
-  - name: DataUnion
+  - name: Vault
     kind: ethereum/contract
     network: xdai
     source:
@@ -36,7 +36,7 @@ templates:
       kind: ethereum/events
       apiVersion: 0.0.6
       language: wasm/assemblyscript
-      file: ./src/dataunion.ts
+      file: ./src/vault.ts
       entities:
         - Member
         - VaultBucket

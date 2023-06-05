@@ -3,21 +3,21 @@
 
 pragma solidity 0.8.6;
 
-import "./DataUnionModule.sol";
+import "./VaultModule.sol";
 import "./IJoinListener.sol";
 
 /**
  * @title Data Union module that limits per-user withdraws to given amount per period
- * @dev Setup: dataUnion.setJoinListener(this); dataUnion.addJoinPartAgent(this);
+ * @dev Setup: vault.setJoinListener(this); vault.addJoinPartAgent(this);
  */
-contract BanModule is DataUnionModule, IJoinListener {
+contract BanModule is VaultModule, IJoinListener {
     mapping (address => uint) public bannedUntilTimestamp;
 
     event MemberBanned(address indexed member);
     event BanWillEnd(address indexed member, uint banEndTimestamp);
     event BanRemoved(address indexed member);
 
-    constructor(address dataUnionAddress) DataUnionModule(dataUnionAddress) {}
+    constructor(address vaultAddress) VaultModule(vaultAddress) {}
 
     function isBanned(address member) public view returns (bool) {
         return block.timestamp < bannedUntilTimestamp[member];
@@ -52,8 +52,8 @@ contract BanModule is DataUnionModule, IJoinListener {
     /** Ban a member indefinitely */
     function ban(address member) public onlyJoinPartAgent {
         bannedUntilTimestamp[member] = type(uint).max;
-        if (IDataUnion(dataUnion).isMember(member)) {
-            IDataUnion(dataUnion).removeMember(member, LeaveConditionCode.BANNED);
+        if (IVault(vault).isMember(member)) {
+            IVault(vault).removeMember(member, LeaveConditionCode.BANNED);
         }
         emit MemberBanned(member);
     }
@@ -90,7 +90,7 @@ contract BanModule is DataUnionModule, IJoinListener {
     function restore(address member) public onlyJoinPartAgent {
         require(isBanned(member), "error_memberNotBanned");
         removeBan(member);
-        IDataUnion(dataUnion).addMember(member);
+        IVault(vault).addMember(member);
     }
 
     /** Reverse ban and re-join the members to the data union */
@@ -114,7 +114,7 @@ contract BanModule is DataUnionModule, IJoinListener {
     }
 
     /** Callback that gets called when a member wants to join */
-    function onJoin(address newMember) override view external onlyDataUnion {
+    function onJoin(address newMember) override view external onlyVault {
         require(!isBanned(newMember), "error_memberBanned");
     }
 }

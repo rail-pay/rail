@@ -5,7 +5,7 @@ pragma solidity 0.8.6;
 import "../IERC677.sol";
 import "../LeaveConditionCode.sol";
 
-interface IDataUnion {
+interface IVault {
     function owner() external returns (address);
     function removeMember(address member, LeaveConditionCode leaveCondition) external;
     function addMember(address newMember) external;
@@ -13,25 +13,25 @@ interface IDataUnion {
     function isJoinPartAgent(address agent) external view returns (bool) ;
 }
 
-contract DataUnionModule {
-    address public dataUnion;
+contract VaultModule {
+    address public vault;
 
     modifier onlyOwner() {
-        require(msg.sender == IDataUnion(dataUnion).owner(), "error_onlyOwner");
+        require(msg.sender == IVault(vault).owner(), "error_onlyOwner");
         _;
     }
 
     modifier onlyJoinPartAgent() {
-        require(IDataUnion(dataUnion).isJoinPartAgent(msg.sender), "error_onlyJoinPartAgent");
+        require(IVault(vault).isJoinPartAgent(msg.sender), "error_onlyJoinPartAgent");
         _;
     }
 
-    modifier onlyDataUnion() {
-        require(msg.sender == dataUnion, "error_onlyDataUnionContract");
+    modifier onlyVault() {
+        require(msg.sender == vault, "error_onlyVaultContract");
         _;
     }
 
-    constructor(address dataUnionAddress) {
-        dataUnion = dataUnionAddress;
+    constructor(address vaultAddress) {
+        vault = vaultAddress;
     }
 }

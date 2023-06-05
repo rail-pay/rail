@@ -5,7 +5,7 @@ import type { RailClientConfig } from '../../src/Config'
 
 import { deployContracts, getWallets } from './setup'
 
-describe('DataUnion metadata', () => {
+describe('Vault metadata', () => {
 
     let dao: Wallet
     let admin: Wallet
@@ -27,7 +27,7 @@ describe('DataUnion metadata', () => {
         clientOptions = {
             auth: { privateKey: member.privateKey },
             tokenAddress: token.address,
-            dataUnion: {
+            vault: {
                 factoryAddress: vaultFactory.address,
                 templateAddress: vault.address,
             },
@@ -37,20 +37,20 @@ describe('DataUnion metadata', () => {
 
     async function deployVault() {
         const adminClient = new RailClient({ ...clientOptions, auth: { privateKey: admin.privateKey } })
-        const adminDataUnion = await adminClient.deployVault()
-        await adminDataUnion.addMembers([member.address])
+        const adminVault = await adminClient.deployVault()
+        await adminVault.addMembers([member.address])
         const client = new RailClient(clientOptions)
-        const dataUnion = await client.getVault(adminDataUnion.getAddress())
-        return { adminDataUnion, dataUnion }
+        const vault = await client.getVault(adminVault.getAddress())
+        return { adminVault, vault }
     }
 
     it('can be set by admin only', async () => {
-        const { adminDataUnion, dataUnion } = await deployVault()
-        const metadataBefore = await dataUnion.getMetadata()
-        await expect(dataUnion.setMetadata({ testing: 123 })).rejects.toThrow(/not the DataUnion admin/)
-        const metadataBefore2 = await dataUnion.getMetadata()
-        await adminDataUnion.setMetadata({ testing: 123 })
-        const metadataAfter = await dataUnion.getMetadata()
+        const { adminVault, vault } = await deployVault()
+        const metadataBefore = await vault.getMetadata()
+        await expect(vault.setMetadata({ testing: 123 })).rejects.toThrow(/not the Vault admin/)
+        const metadataBefore2 = await vault.getMetadata()
+        await adminVault.setMetadata({ testing: 123 })
+        const metadataAfter = await vault.getMetadata()
         expect(metadataBefore).toEqual({})
         expect(metadataBefore2).toEqual({})
         expect(metadataAfter).toEqual({ testing: 123 })

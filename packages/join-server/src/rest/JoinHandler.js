@@ -28,9 +28,9 @@ class JoinHandler {
 			return
 		}
 
-		let dataUnion
+		let vault
 		try {
-			dataUnion = new domain.Address(req.validatedRequest.dataUnion)
+			vault = new domain.Address(req.validatedRequest.vault)
 		} catch (err) {
 			this.sendJsonError(res, 400, `Invalid Vault contract address: '${err.address}'`)
 			return
@@ -52,7 +52,7 @@ class JoinHandler {
 		}
 
 		try {
-			const joinResponse = await this.joinRequestService.create(member.toString(), dataUnion.toString(), chain.toString())
+			const joinResponse = await this.joinRequestService.create(member.toString(), vault.toString(), chain.toString())
 			this.logger.info(joinResponse)
 			this.sendJsonResponse(res, 200, joinResponse)
 		} catch (err) {

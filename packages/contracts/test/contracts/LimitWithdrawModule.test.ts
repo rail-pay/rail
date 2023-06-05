@@ -7,12 +7,12 @@ const log = Debug("rail:test:LimitWithdrawModule")
 // const log = console.log  // for debugging?
 
 import LimitWithdrawModuleJson from "../../artifacts/contracts/modules/LimitWithdrawModule.sol/LimitWithdrawModule.json"
-import DataUnionJson from "../../artifacts/contracts/Vault.sol/Vault.json"
+import VaultJson from "../../artifacts/contracts/Vault.sol/Vault.json"
 import DefaultFeeOracleJson from "../../artifacts/contracts/DefaultFeeOracle.sol/DefaultFeeOracle.json"
 
 import TestTokenJson from "../../artifacts/contracts/test/TestToken.sol/TestToken.json"
 
-import type { LimitWithdrawModule, DefaultFeeOracle, Vault as DataUnion, TestToken } from "../../typechain"
+import type { LimitWithdrawModule, DefaultFeeOracle, Vault as Vault, TestToken } from "../../typechain"
 
 // type EthereumAddress = string
 
@@ -24,7 +24,7 @@ describe("LimitWithdrawModule", () => {
     const [creator, member0, dao, ...others] = provider.getWallets()
 
     let testToken: TestToken
-    let dataUnion: DataUnion
+    let vault: Vault
 
     let limitWithdrawModule: LimitWithdrawModule
     let limitWithdrawModuleArgs: [string, number, number, BigNumber, BigNumber]
@@ -36,7 +36,7 @@ describe("LimitWithdrawModule", () => {
         const feeOracle = await deployContract(dao, DefaultFeeOracleJson, []) as DefaultFeeOracle
         await feeOracle.initialize(parseEther("0.01"), dao.address)
 
-        dataUnion = await deployContract(creator, DataUnionJson, []) as DataUnion
+        vault = await deployContract(creator, VaultJson, []) as Vault
 
         // function initialize(
         //     address initialOwner,
@@ -47,7 +47,7 @@ describe("LimitWithdrawModule", () => {
         //     address protocolFeeOracleAddress,
         //     string calldata initialMetadataJsonString
         // )
-        await dataUnion.initialize(
+        await vault.initialize(
             creator.address,
             testToken.address,
             [],
@@ -56,30 +56,30 @@ describe("LimitWithdrawModule", () => {
             feeOracle.address,
             "{}",
         )
-        log("DataUnion %s initialized", dataUnion.address)
+        log("Vault %s initialized", vault.address)
 
         // constructor(
-        //     DataUnionSidechain dataUnionAddress,
+        //     VaultSidechain vaultAddress,
         //     uint newRequiredMemberAgeSeconds,
         //     uint newWithdrawLimitPeriodSeconds,
         //     uint newWithdrawLimitDuringPeriod,
         //     uint newMinimumWithdrawTokenWei
         // )
         limitWithdrawModuleArgs = [
-            dataUnion.address,
+            vault.address,
             60 * 60 * 24,
             60 * 60,
             parseEther("100"),
             parseEther("1")
         ]
         limitWithdrawModule = await deployContract(creator, LimitWithdrawModuleJson, limitWithdrawModuleArgs) as LimitWithdrawModule
-        await dataUnion.setWithdrawModule(limitWithdrawModule.address)
-        await dataUnion.addJoinListener(limitWithdrawModule.address)
-        await dataUnion.addPartListener(limitWithdrawModule.address)
+        await vault.setWithdrawModule(limitWithdrawModule.address)
+        await vault.addJoinListener(limitWithdrawModule.address)
+        await vault.addPartListener(limitWithdrawModule.address)
         log("LimitWithdrawModule %s set up successfully", limitWithdrawModule.address)
 
-        await dataUnion.addJoinPartAgent(creator.address)
-        await dataUnion.addMember(member0.address)
+        await vault.addJoinPartAgent(creator.address)
+        await vault.addMember(member0.address)
         await provider.send("evm_increaseTime", [+await limitWithdrawModule.requiredMemberAgeSeconds()])
         await provider.send("evm_mine", [])
         log("Member %s was added to data union and is now 'old' enough to withdraw", member0.address)
@@ -87,25 +87,25 @@ describe("LimitWithdrawModule", () => {
 
     it("only lets members withdraw after they've been in the DU long enough", async () => {
         const newMembers = others.slice(0, 2).map(w => w.address)
-        await expect(dataUnion.addMembers(newMembers)).to.emit(dataUnion, "MemberJoined")
-        await expect(testToken.transferAndCall(dataUnion.address, parseEther("10"), "0x")).to.emit(dataUnion, "RevenueReceived")
+        await expect(vault.addMembers(newMembers)).to.emit(vault, "MemberJoined")
+        await expect(testToken.transferAndCall(vault.address, parseEther("10"), "0x")).to.emit(vault, "RevenueReceived")
 
-        await expect(dataUnion.withdrawAll(newMembers[0], false)).to.be.revertedWith("error_memberTooNew")
-        await expect(dataUnion.connect(others[1]).withdrawAllTo(others[2].address, false)).to.be.revertedWith("error_memberTooNew")
+        await expect(vault.withdrawAll(newMembers[0], false)).to.be.revertedWith("error_memberTooNew")
+        await expect(vault.connect(others[1]).withdrawAllTo(others[2].address, false)).to.be.revertedWith("error_memberTooNew")
 
         await provider.send("evm_increaseTime", [+await limitWithdrawModule.requiredMemberAgeSeconds()])
         await provider.send("evm_mine", [])
-        await expect(dataUnion.withdrawAll(newMembers[0], false)).to.emit(dataUnion, "EarningsWithdrawn")
-        await expect(dataUnion.connect(others[1]).withdrawAllTo(others[2].address, false)).to.emit(dataUnion, "EarningsWithdrawn")
+        await expect(vault.withdrawAll(newMembers[0], false)).to.emit(vault, "EarningsWithdrawn")
+        await expect(vault.connect(others[1]).withdrawAllTo(others[2].address, false)).to.emit(vault, "EarningsWithdrawn")
 
         // cleanup, TODO: not necessary after hardhat-deploy unit test fixtures are in place
-        await dataUnion.partMembers(newMembers)
+        await vault.partMembers(newMembers)
     })
 
     it("only lets vault contract call the methods", async () => {
-        await expect(limitWithdrawModule.onJoin(others[0].address)).to.be.revertedWith("error_onlyDataUnionContract")
-        await expect(limitWithdrawModule.onPart(others[0].address, "0")).to.be.revertedWith("error_onlyDataUnionContract")
-        await expect(limitWithdrawModule.onWithdraw(member0.address, others[0].address, testToken.address, "0")).to.be.revertedWith("error_onlyDataUnionContract")
+        await expect(limitWithdrawModule.onJoin(others[0].address)).to.be.revertedWith("error_onlyVaultContract")
+        await expect(limitWithdrawModule.onPart(others[0].address, "0")).to.be.revertedWith("error_onlyVaultContract")
+        await expect(limitWithdrawModule.onWithdraw(member0.address, others[0].address, testToken.address, "0")).to.be.revertedWith("error_onlyVaultContract")
     })
 
     it("only lets admin reset the module", async () => {
@@ -114,64 +114,64 @@ describe("LimitWithdrawModule", () => {
     })
 
     it("only accepts withdraws > minimumWithdrawTokenWei", async () => {
-        await expect(testToken.transferAndCall(dataUnion.address, parseEther("10"), "0x")).to.emit(dataUnion, "RevenueReceived")
-        await expect(dataUnion.withdraw(member0.address, parseEther("0.1"), false)).to.be.revertedWith("error_withdrawAmountBelowMinimum")
-        await expect(dataUnion.connect(member0).withdraw(member0.address, parseEther("0.1"), false)).to.be.revertedWith("error_withdrawAmountBelowMinimum")
+        await expect(testToken.transferAndCall(vault.address, parseEther("10"), "0x")).to.emit(vault, "RevenueReceived")
+        await expect(vault.withdraw(member0.address, parseEther("0.1"), false)).to.be.revertedWith("error_withdrawAmountBelowMinimum")
+        await expect(vault.connect(member0).withdraw(member0.address, parseEther("0.1"), false)).to.be.revertedWith("error_withdrawAmountBelowMinimum")
     })
 
     it("limits the amount of withdraws within withdrawLimitPeriodSeconds", async () => {
-        await expect(testToken.transferAndCall(dataUnion.address, parseEther("1000"), "0x")).to.emit(dataUnion, "RevenueReceived")
-        await expect(dataUnion.withdraw(member0.address, parseEther("200"), false)).to.be.revertedWith("error_withdrawLimit")
+        await expect(testToken.transferAndCall(vault.address, parseEther("1000"), "0x")).to.emit(vault, "RevenueReceived")
+        await expect(vault.withdraw(member0.address, parseEther("200"), false)).to.be.revertedWith("error_withdrawLimit")
 
-        await expect(dataUnion.withdraw(member0.address, parseEther("50"), false)).to.emit(dataUnion, "EarningsWithdrawn")
-        await expect(dataUnion.connect(member0).withdrawTo(others[2].address, parseEther("50"), false)).to.emit(dataUnion, "EarningsWithdrawn")
-        await expect(dataUnion.withdraw(member0.address, parseEther("1"), false)).to.be.revertedWith("error_withdrawLimit")
+        await expect(vault.withdraw(member0.address, parseEther("50"), false)).to.emit(vault, "EarningsWithdrawn")
+        await expect(vault.connect(member0).withdrawTo(others[2].address, parseEther("50"), false)).to.emit(vault, "EarningsWithdrawn")
+        await expect(vault.withdraw(member0.address, parseEther("1"), false)).to.be.revertedWith("error_withdrawLimit")
 
         // can not yet withdraw again
         await provider.send("evm_increaseTime", [60])
         await provider.send("evm_mine", [])
-        await expect(dataUnion.withdraw(member0.address, parseEther("1"), false)).to.be.revertedWith("error_withdrawLimit")
+        await expect(vault.withdraw(member0.address, parseEther("1"), false)).to.be.revertedWith("error_withdrawLimit")
 
         // can withdraw again after withdrawLimitPeriodSeconds
         await provider.send("evm_increaseTime", [+await limitWithdrawModule.withdrawLimitPeriodSeconds()])
         await provider.send("evm_mine", [])
-        await expect(dataUnion.withdraw(member0.address, parseEther("100"), false)).to.emit(dataUnion, "EarningsWithdrawn")
+        await expect(vault.withdraw(member0.address, parseEther("100"), false)).to.emit(vault, "EarningsWithdrawn")
     })
 
     it("denies withdraw from those members withdraw who have been banned", async () => {
-        await dataUnion.addMember(others[3].address)
-        await expect(testToken.transferAndCall(dataUnion.address, parseEther("10"), "0x")).to.emit(dataUnion, "RevenueReceived")
+        await vault.addMember(others[3].address)
+        await expect(testToken.transferAndCall(vault.address, parseEther("10"), "0x")).to.emit(vault, "RevenueReceived")
         await provider.send("evm_increaseTime", [+await limitWithdrawModule.requiredMemberAgeSeconds()])
         await provider.send("evm_mine", [])
 
         // 2 = LeaveConditionCode.BANNED
-        await expect(dataUnion.removeMember(others[3].address, "2")).to.emit(dataUnion, "MemberParted")
+        await expect(vault.removeMember(others[3].address, "2")).to.emit(vault, "MemberParted")
         const balanceBefore = await testToken.balanceOf(others[3].address)
-        await expect(dataUnion.withdrawAll(others[3].address, false)).to.not.emit(dataUnion, "EarningsWithdrawn")
+        await expect(vault.withdrawAll(others[3].address, false)).to.not.emit(vault, "EarningsWithdrawn")
         const balanceIncrease = (await testToken.balanceOf(others[3].address)).sub(balanceBefore)
         expect(+balanceIncrease).to.eq(0)
     })
 
     it("lets those members withdraw who have left (without getting banned)", async () => {
-        await dataUnion.addMember(others[4].address)
-        await expect(testToken.transferAndCall(dataUnion.address, parseEther("10"), "0x")).to.emit(dataUnion, "RevenueReceived")
+        await vault.addMember(others[4].address)
+        await expect(testToken.transferAndCall(vault.address, parseEther("10"), "0x")).to.emit(vault, "RevenueReceived")
         await provider.send("evm_increaseTime", [+await limitWithdrawModule.requiredMemberAgeSeconds()])
         await provider.send("evm_mine", [])
 
-        await expect(dataUnion.partMember(others[4].address)).to.emit(dataUnion, "MemberParted")
-        await expect(dataUnion.withdrawAll(others[4].address, false)).to.emit(dataUnion, "EarningsWithdrawn")
+        await expect(vault.partMember(others[4].address)).to.emit(vault, "MemberParted")
+        await expect(vault.withdrawAll(others[4].address, false)).to.emit(vault, "EarningsWithdrawn")
     })
 
     it("lets those members withdraw who have been restored after getting banned", async () => {
-        await dataUnion.addMember(others[5].address)
-        await expect(testToken.transferAndCall(dataUnion.address, parseEther("10"), "0x")).to.emit(dataUnion, "RevenueReceived")
+        await vault.addMember(others[5].address)
+        await expect(testToken.transferAndCall(vault.address, parseEther("10"), "0x")).to.emit(vault, "RevenueReceived")
 
-        await expect(dataUnion.removeMember(others[5].address, "2")).to.emit(dataUnion, "MemberParted")
+        await expect(vault.removeMember(others[5].address, "2")).to.emit(vault, "MemberParted")
 
         // "restoring" means removing the ban and re-adding the member. See what BanModule does.
-        await dataUnion.addMember(others[5].address)
+        await vault.addMember(others[5].address)
         await provider.send("evm_increaseTime", [+await limitWithdrawModule.requiredMemberAgeSeconds()])
         await provider.send("evm_mine", [])
-        await expect(dataUnion.withdrawAll(others[5].address, false)).to.emit(dataUnion, "EarningsWithdrawn")
+        await expect(vault.withdrawAll(others[5].address, false)).to.emit(vault, "EarningsWithdrawn")
     })
 })

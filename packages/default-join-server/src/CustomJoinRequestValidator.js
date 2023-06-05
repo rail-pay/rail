@@ -8,7 +8,7 @@ module.exports = (db) => {
 
 		const secret = await db.getAppSecret(joinRequest.secret)
 		if (!secret
-            || secret.dataUnion.toLowerCase() !== joinRequest.dataUnion.toLowerCase()
+            || secret.vault.toLowerCase() !== joinRequest.vault.toLowerCase()
             || secret.chain !== joinRequest.chain) {
 			throw new InvalidRequestError(`Invalid app secret provided by ${address}`)
 		}

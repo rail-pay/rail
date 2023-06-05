@@ -5,19 +5,19 @@ import { Wallet, providers, utils } from 'ethers'
 const { parseEther, formatEther } = utils
 
 import { DATAv2, deployToken } from '@streamr/data-v2'
-import { DataUnion, RailClient } from '@rail-protocol/client'
+import { Vault, RailClient } from '@rail-protocol/client'
 
 import { until } from '../../client/test/until'
 
 import debug from 'debug'
-const log = debug('dataunions/subgraph:test')
+const log = debug('vaults/subgraph:test')
 
 import { Chains } from '@streamr/config'
 const config = Chains.load().dev1
 
 async function query(query: string) {
     log('Sending query "%s"', query)
-    const res = await fetch('http://localhost:8000/subgraphs/name/streamr-dev/dataunion', {
+    const res = await fetch('http://localhost:8000/subgraphs/name/streamr-dev/vault', {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify({ query }),
@@ -32,7 +32,7 @@ describe('DU subgraph', () => {
     const tokenAdminWallet = new Wallet('0xfe1d528b7e204a5bdfb7668a1ed3adfee45b4b96960a175c9ef0ad16dd58d728', provider) // testrpc 5
     const wallet = new Wallet('0x957a8212980a9a39bf7c03dcbeea3c722d66f2b359c669feceb0e3ba8209a297', provider) // testrpc 4
     const wallet2 = new Wallet('0xd7609ae3a29375768fac8bc0f8c2f6ac81c5f2ffca2b981e6cf15460f01efe14', provider) // testrpc 6
-    let dataUnion: DataUnion
+    let vault: Vault
     let token: DATAv2
     it('detects DU deployments (DUCreated)', async function () {
         // this.timeout(100000)
@@ -49,23 +49,23 @@ describe('DU subgraph', () => {
             tokenAddress: token.address,
         })
         log('Deploying DU from %s...', wallet.address)
-        dataUnion = await client.deployVaultUsingToken(token.address, {})
-        const vaultAddress = dataUnion.getAddress()
+        vault = await client.deployVaultUsingToken(token.address, {})
+        const vaultAddress = vault.getAddress()
         log('DU deployed at %s, waiting for thegraph confirmation...', vaultAddress)
-        await until(async () => (await query(`{ dataUnion(id: "${vaultAddress.toLowerCase()}") { id } }`)).dataUnion != null, 10000, 2000)
+        await until(async () => (await query(`{ vault(id: "${vaultAddress.toLowerCase()}") { id } }`)).vault != null, 10000, 2000)
     })
 
     it('detects member joins and parts (MemberJoined, MemberParted)', async function () {
         // this.timeout(100000)
-        const dataUnionId = dataUnion.getAddress().toLowerCase()
+        const vaultId = vault.getAddress().toLowerCase()
         async function getMemberCount(): Promise<number> {
-            const res = await query(`{ dataUnion(id: "${dataUnionId}") { memberCount } }`)
-            return res.dataUnion.memberCount
+            const res = await query(`{ vault(id: "${vaultId}") { memberCount } }`)
+            return res.vault.memberCount
         }
 
         async function getMemberBuckets(): Promise<Array<any>> {
             const res = await query(`{
-                vaultBuckets(where: {dataUnion: "${dataUnionId}"}) {
+                vaultBuckets(where: {vault: "${vaultId}"}) {
                     memberCountAtStart
                     memberCountChange
                     type
@@ -77,21 +77,21 @@ describe('DU subgraph', () => {
         const memberCountAtStart = await getMemberCount()
         expect(await getMemberBuckets()).to.deep.equal([])
 
-        await dataUnion.addMembers(['0x1234567890123456789012345678901234567890', '0x1234567890123456789012345678901234567891'])
+        await vault.addMembers(['0x1234567890123456789012345678901234567890', '0x1234567890123456789012345678901234567891'])
         await until(async () => await getMemberCount() == memberCountAtStart + 2, 10000, 2000)
         expect(await getMemberBuckets()).to.deep.equal([
             { type: 'DAY', memberCountAtStart, memberCountChange: 2 },
             { type: 'HOUR', memberCountAtStart, memberCountChange: 2 },
         ])
 
-        await dataUnion.removeMembers(['0x1234567890123456789012345678901234567890'])
+        await vault.removeMembers(['0x1234567890123456789012345678901234567890'])
         await until(async () => await getMemberCount() == memberCountAtStart + 1, 10000, 2000)
         expect(await getMemberBuckets()).to.deep.equal([
             { type: 'DAY', memberCountAtStart, memberCountChange: 1 },
             { type: 'HOUR', memberCountAtStart, memberCountChange: 1 },
         ])
 
-        await dataUnion.removeMembers(['0x1234567890123456789012345678901234567891'])
+        await vault.removeMembers(['0x1234567890123456789012345678901234567891'])
         await until(async () => await getMemberCount() == memberCountAtStart, 10000, 2000)
         expect(await getMemberBuckets()).to.deep.equal([
             { type: 'DAY', memberCountAtStart, memberCountChange: 0 },
@@ -102,22 +102,22 @@ describe('DU subgraph', () => {
     it('detects RevenueReceived events', async function () {
         // this.timeout(100000)
         // revenue won't show up unless there are members in the DU
-        await dataUnion.addMembers(['0x1234567890123456789012345678901234567892', '0x1234567890123456789012345678901234567893'])
+        await vault.addMembers(['0x1234567890123456789012345678901234567892', '0x1234567890123456789012345678901234567893'])
 
-        const dataUnionId = dataUnion.getAddress().toLowerCase()
+        const vaultId = vault.getAddress().toLowerCase()
         async function getRevenueEvents(): Promise<any[]> {
-            const res = await query(`{ revenueEvents(where: {dataUnion: "${dataUnionId}"}) { amountWei } }`)
+            const res = await query(`{ revenueEvents(where: {vault: "${vaultId}"}) { amountWei } }`)
             return res.revenueEvents
         }
 
         async function getRevenue(): Promise<string> {
-            const res = await query(`{ dataUnion(id: "${dataUnionId}") { revenueWei } }`)
-            return formatEther(res.dataUnion.revenueWei)
+            const res = await query(`{ vault(id: "${vaultId}") { revenueWei } }`)
+            return formatEther(res.vault.revenueWei)
         }
 
         async function getRevenueBuckets(): Promise<Array<any>> {
             const res = await query(`{
-                vaultBuckets(where: {dataUnion: "${dataUnionId}", type: "DAY"}) {
+                vaultBuckets(where: {vault: "${vaultId}", type: "DAY"}) {
                     revenueAtStartWei
                     revenueChangeWei
                 }
@@ -128,14 +128,14 @@ describe('DU subgraph', () => {
         const revenueEventsBefore = await getRevenueEvents()
         const revenueBefore = await getRevenue()
         const revenueBucketsBefore = await getRevenueBuckets()
-        await (await token.mint(dataUnion.getAddress(), parseEther('100'))).wait()
-        await dataUnion.refreshRevenue()
+        await (await token.mint(vault.getAddress(), parseEther('100'))).wait()
+        await vault.refreshRevenue()
         let revenueEventsAfter1
         await until(async () => (revenueEventsAfter1 = await getRevenueEvents()).length > revenueEventsBefore.length, 10000, 2000)
         const revenueAfter1 = await getRevenue()
         const revenueBucketsAfter1 = await getRevenueBuckets()
-        await (await token.mint(dataUnion.getAddress(), parseEther('200'))).wait()
-        await dataUnion.refreshRevenue()
+        await (await token.mint(vault.getAddress(), parseEther('200'))).wait()
+        await vault.refreshRevenue()
         let revenueEventsAfter2
         await until(async () => (revenueEventsAfter2 = await getRevenueEvents()).length > revenueEventsAfter1.length, 10000, 2000)
         const revenueAfter2 = await getRevenue()
@@ -164,15 +164,15 @@ describe('DU subgraph', () => {
 
     it('detects OwnershipTransferred events', async function () {
         // this.timeout(100000)
-        const dataUnionId = dataUnion.getAddress().toLowerCase()
+        const vaultId = vault.getAddress().toLowerCase()
         async function getOwner(): Promise<string> {
-            const res = await query(`{ dataUnion(id: "${dataUnionId}") { owner } }`)
-            return res.dataUnion.owner
+            const res = await query(`{ vault(id: "${vaultId}") { owner } }`)
+            return res.vault.owner
         }
 
         const ownerBefore = await getOwner()
-        await (await dataUnion.contract.transferOwnership(wallet2.address)).wait()
-        await (await dataUnion.contract.connect(wallet2).claimOwnership()).wait()
+        await (await vault.contract.transferOwnership(wallet2.address)).wait()
+        await (await vault.contract.connect(wallet2).claimOwnership()).wait()
         await until(async () => await getOwner() !== wallet.address, 10000, 2000)
         const ownerAfter = await getOwner()
 
@@ -182,15 +182,15 @@ describe('DU subgraph', () => {
 
     it('detects MemberWeightChanged events', async function () {
         // this.timeout(100000)
-        const dataUnionId = dataUnion.getAddress().toLowerCase()
+        const vaultId = vault.getAddress().toLowerCase()
         async function getTotalWeight(): Promise<string> {
-            const res = await query(`{ dataUnion(id: "${dataUnionId}") { totalWeight } }`)
-            return res.dataUnion.totalWeight
+            const res = await query(`{ vault(id: "${vaultId}") { totalWeight } }`)
+            return res.vault.totalWeight
         }
 
         async function getWeightBuckets(): Promise<Array<any>> {
             const res = await query(`{
-                vaultBuckets(where: {dataUnion: "${dataUnionId}"}) {
+                vaultBuckets(where: {vault: "${vaultId}"}) {
                     totalWeightAtStart
                     totalWeightChange
                     type
@@ -203,7 +203,7 @@ describe('DU subgraph', () => {
         const totalWeightAtStart = '0' // at start of the bucketing period (i.e. before the test)
         let totalWeightChange: string  // change since before the test, i.e. including the previous cases
 
-        await dataUnion.addMembers(['0x1234567890123456789012345678901234560001', '0x1234567890123456789012345678901234560002'])
+        await vault.addMembers(['0x1234567890123456789012345678901234560001', '0x1234567890123456789012345678901234560002'])
         totalWeightChange = (+totalWeightBefore + 2).toString()
         await until(async () => await getTotalWeight() == totalWeightChange, 10000, 2000)
         expect(await getWeightBuckets()).to.deep.equal([
@@ -211,7 +211,7 @@ describe('DU subgraph', () => {
             { type: 'HOUR', totalWeightAtStart, totalWeightChange },
         ])
 
-        await dataUnion.addMembersWithWeights(['0x1234567890123456789012345678901234560003'], [3.5])
+        await vault.addMembersWithWeights(['0x1234567890123456789012345678901234560003'], [3.5])
         totalWeightChange = (+totalWeightBefore + 5.5).toString() // eslint-disable-line require-atomic-updates
         await until(async () => await getTotalWeight() == totalWeightChange, 10000, 2000)
         expect(await getWeightBuckets()).to.deep.equal([
@@ -219,7 +219,7 @@ describe('DU subgraph', () => {
             { type: 'HOUR', totalWeightAtStart, totalWeightChange },
         ])
 
-        await dataUnion.setMemberWeights(['0x1234567890123456789012345678901234560001'], [4.5])
+        await vault.setMemberWeights(['0x1234567890123456789012345678901234560001'], [4.5])
         totalWeightChange = (+totalWeightBefore + 9).toString() // eslint-disable-line require-atomic-updates
         await until(async () => await getTotalWeight() == totalWeightChange, 10000, 2000)
         expect(await getWeightBuckets()).to.deep.equal([

@@ -8,7 +8,7 @@ describe('CustomRoutes', () => {
 	let expressApp
 	let client
 	let db
-	let dataUnion
+	let vault
 
 	beforeEach(() => {
 		expressApp = express()
@@ -18,14 +18,14 @@ describe('CustomRoutes', () => {
 			next()
 		})
 
-		dataUnion = {
+		vault = {
 			getAdminAddress: sinon.stub().resolves('0xabcdef')
 		}
 
 		client = {
-			getVault: sinon.spy(async (dataUnionAddress) => {
-				if (dataUnionAddress === '0x12345') {
-					return dataUnion
+			getVault: sinon.spy(async (vaultAddress) => {
+				if (vaultAddress === '0x12345') {
+					return vault
 				}
 			})
 		}
@@ -58,12 +58,12 @@ describe('CustomRoutes', () => {
 			await runTest('/secrets/list', 403, {
 				address: 'not-admin',
 				request: JSON.stringify({
-					dataUnion: '0x12345',
+					vault: '0x12345',
 					chain: 'test-chain',
 				})
 			})
 
-			expect(dataUnion.getAdminAddress.calledOnce).to.be.true
+			expect(vault.getAdminAddress.calledOnce).to.be.true
 			expect(db.listSecrets.called).to.be.false
 		})
 
@@ -73,13 +73,13 @@ describe('CustomRoutes', () => {
 			await runTest('/secrets/list', 404, {
 				address: '0xabcdef',
 				request: JSON.stringify({
-					dataUnion: 'not-found',
+					vault: 'not-found',
 					chain: 'test-chain',
 				})
 			})
 
 			expect(client.getVault.calledOnceWith('not-found'))
-			expect(dataUnion.getAdminAddress.calledOnce).to.be.false
+			expect(vault.getAdminAddress.calledOnce).to.be.false
 			expect(db.listSecrets.called).to.be.false
 		})
 
@@ -92,7 +92,7 @@ describe('CustomRoutes', () => {
 			const res = await runTest('/secrets/list', 200, {
 				address: '0xabcdef',
 				request: JSON.stringify({
-					dataUnion: '0x12345',
+					vault: '0x12345',
 					chain: 'test-chain',
 				})
 			})
@@ -110,13 +110,13 @@ describe('CustomRoutes', () => {
 			await runTest('/secrets/create', 403, {
 				address: 'not-admin',
 				request: JSON.stringify({
-					dataUnion: '0x12345',
+					vault: '0x12345',
 					chain: 'test-chain',
 					name: 'Test secret',
 				})
 			})
 
-			expect(dataUnion.getAdminAddress.calledOnce).to.be.true
+			expect(vault.getAdminAddress.calledOnce).to.be.true
 			expect(db.createAppSecret.called).to.be.false
 		})
 
@@ -126,13 +126,13 @@ describe('CustomRoutes', () => {
 			await runTest('/secrets/create', 404, {
 				address: '0xabcdef',
 				request: JSON.stringify({
-					dataUnion: 'not-found',
+					vault: 'not-found',
 					chain: 'test-chain',
 				})
 			})
 
 			expect(client.getVault.calledOnceWith('not-found'))
-			expect(dataUnion.getAdminAddress.calledOnce).to.be.false
+			expect(vault.getAdminAddress.calledOnce).to.be.false
 			expect(db.createAppSecret.called).to.be.false
 		})
 
@@ -145,7 +145,7 @@ describe('CustomRoutes', () => {
 			const res = await runTest('/secrets/create', 200, {
 				address: '0xabcdef',
 				request: JSON.stringify({
-					dataUnion: '0x12345',
+					vault: '0x12345',
 					chain: 'test-chain',
 					name: 'test-secret',
 				})
@@ -165,13 +165,13 @@ describe('CustomRoutes', () => {
 			await runTest('/secrets/delete', 403, {
 				address: 'not-admin',
 				request: JSON.stringify({
-					dataUnion: '0x12345',
+					vault: '0x12345',
 					chain: 'test-chain',
 					secret: 'test-secret'
 				})
 			})
 
-			expect(dataUnion.getAdminAddress.calledOnce).to.be.true
+			expect(vault.getAdminAddress.calledOnce).to.be.true
 			expect(db.getAppSecret.called).to.be.false
 			expect(db.deleteAppSecret.called).to.be.false
 		})
@@ -183,13 +183,13 @@ describe('CustomRoutes', () => {
 			await runTest('/secrets/create', 404, {
 				address: '0xabcdef',
 				request: JSON.stringify({
-					dataUnion: 'not-found',
+					vault: 'not-found',
 					chain: 'test-chain',
 				})
 			})
 
 			expect(client.getVault.calledOnceWith('not-found'))
-			expect(dataUnion.getAdminAddress.calledOnce).to.be.false
+			expect(vault.getAdminAddress.calledOnce).to.be.false
 			expect(db.deleteAppSecret.called).to.be.false
 		})
 
@@ -204,7 +204,7 @@ describe('CustomRoutes', () => {
 			const res = await runTest('/secrets/delete', 200, {
 				address: '0xabcdef',
 				request: JSON.stringify({
-					dataUnion: '0x12345',
+					vault: '0x12345',
 					chain: 'test-chain',
 					secret: 'test-secret',
 				})

@@ -12,7 +12,7 @@ import type { DATAv2 } from '@streamr/data-v2'
 import debug from 'debug'
 const log = debug('RailClient:unit-tests:adminFee')
 
-describe('DataUnion fees', () => {
+describe('Vault fees', () => {
 
     let dao: Wallet
     let user: Wallet
@@ -30,7 +30,7 @@ describe('DataUnion fees', () => {
         clientOptions = {
             auth: { privateKey: user.privateKey },
             tokenAddress: token.address,
-            dataUnion: {
+            vault: {
                 factoryAddress: vaultFactory.address,
                 templateAddress: vault.address,
             },
@@ -38,51 +38,51 @@ describe('DataUnion fees', () => {
         }
     })
 
-    async function fundDataUnion(vaultAddress: string, amountWei: BigNumberish) {
+    async function fundVault(vaultAddress: string, amountWei: BigNumberish) {
         await (await token.mint(await token.signer.getAddress(), amountWei)).wait()
         await (await token.transferAndCall(vaultAddress, amountWei, '0x')).wait()
     }
 
     it('admin can set admin fee', async () => {
         const client = new RailClient(clientOptions)
-        const dataUnion = await client.deployVault()
-        const oldFee = await dataUnion.getAdminFee()
-        log(`DU admin: ${await dataUnion.getAdminAddress()}`)
+        const vault = await client.deployVault()
+        const oldFee = await vault.getAdminFee()
+        log(`DU admin: ${await vault.getAdminAddress()}`)
         log(`Sending tx from ${await client.getAddress()}`)
-        const tr = await dataUnion.setAdminFee(0.1)
+        const tr = await vault.setAdminFee(0.1)
         log(`Transaction events: ${JSON.stringify(tr.events!.map((e) => e.event))}`)
-        const newFee = await dataUnion.getAdminFee()
+        const newFee = await vault.getAdminFee()
         expect(oldFee).toEqual(0)
         expect(newFee).toEqual(0.1)
     })
 
     it('admin receives admin fees', async () => {
         const client = new RailClient(clientOptions)
-        const dataUnion = await client.deployVault()
-        await dataUnion.addMembers(["0x0000000000000000000000000000000000000001"])
-        await dataUnion.setAdminFee(0.1)
-        await fundDataUnion(dataUnion.getAddress(), parseEther('1'))
-        expect(formatEther(await dataUnion.getWithdrawableEarnings(user.address))).toEqual('0.1')
+        const vault = await client.deployVault()
+        await vault.addMembers(["0x0000000000000000000000000000000000000001"])
+        await vault.setAdminFee(0.1)
+        await fundVault(vault.getAddress(), parseEther('1'))
+        expect(formatEther(await vault.getWithdrawableEarnings(user.address))).toEqual('0.1')
     })
 
     // it('admin can set DU fee', async () => {
     //     const client = new RailClient(clientOptions)
-    //     const dataUnion = await client.deployVault()
-    //     const oldFee = await dataUnion.getAdminFee()
-    //     log(`DU admin: ${await dataUnion.getAdminAddress()}`)
+    //     const vault = await client.deployVault()
+    //     const oldFee = await vault.getAdminFee()
+    //     log(`DU admin: ${await vault.getAdminAddress()}`)
     //     log(`Sending tx from ${await client.getAddress()}`)
-    //     const tr = await dataUnion.setAdminFee(0.1)
+    //     const tr = await vault.setAdminFee(0.1)
     //     log(`Transaction events: ${JSON.stringify(tr.events!.map((e) => e.event))}`)
-    //     const newFee = await dataUnion.getAdminFee()
+    //     const newFee = await vault.getAdminFee()
     //     expect(oldFee).toEqual(0)
     //     expect(newFee).toEqual(0.1)
     // })
 
     it('DU DAO receives DU fees', async () => {
         const client = new RailClient(clientOptions)
-        const dataUnion = await client.deployVault()
-        await dataUnion.addMembers(["0x0000000000000000000000000000000000000001"])
-        await fundDataUnion(dataUnion.getAddress(), parseEther('1'))
-        expect(formatEther(await dataUnion.getWithdrawableEarnings(dao.address))).toEqual('0.01')
+        const vault = await client.deployVault()
+        await vault.addMembers(["0x0000000000000000000000000000000000000001"])
+        await fundVault(vault.getAddress(), parseEther('1'))
+        expect(formatEther(await vault.getWithdrawableEarnings(dao.address))).toEqual('0.01')
     })
 })

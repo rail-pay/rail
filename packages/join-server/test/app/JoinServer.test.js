@@ -18,12 +18,12 @@ describe('JoinServer', async () => {
 		joinRequestService = new app.JoinRequestService(
 			unitTestLogger,
 			new Map(), // clients
-			function(_member, _dataUnion, _chain) {}, // onMemberJoin
+			function(_member, _vault, _chain) {}, // onMemberJoin
 		)
-		joinRequestService.create = sinon.spy((member, dataUnion, chain) => {
+		joinRequestService.create = sinon.spy((member, vault, chain) => {
 			return {
 				member,
-				dataUnion,
+				vault,
 				chain,
 			}
 		})
@@ -65,7 +65,7 @@ describe('JoinServer', async () => {
 			.send({
 				address: '0x766760C748bcEcf5876a6469a6aed3C642CdA261',
 				request: JSON.stringify({
-					dataUnion: '0x81ed645D344cB2096aBA56B94d336E6dcF80f6C6',
+					vault: '0x81ed645D344cB2096aBA56B94d336E6dcF80f6C6',
 					chain: 'polygon',
 				}),
 			})

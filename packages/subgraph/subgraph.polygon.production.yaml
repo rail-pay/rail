@@ -19,7 +19,7 @@ dataSources:
       language: wasm/assemblyscript
       file: ./src/factory.ts
       entities:
-        - DataUnion
+        - Vault
       abis:
         - name: VaultFactory
           file: ./abis/VaultFactory.json
@@ -30,7 +30,7 @@ dataSources:
 
 templates:
   # New DU polygon/matic >>
-  - name: DataUnion
+  - name: Vault
     kind: ethereum/contract
     network: matic
     source:
@@ -39,7 +39,7 @@ templates:
       kind: ethereum/events
       apiVersion: 0.0.5
       language: wasm/assemblyscript
-      file: ./src/dataunion.ts
+      file: ./src/vault.ts
       entities:
         - Member
         - VaultBucket

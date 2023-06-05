@@ -4,9 +4,9 @@
 #  dates are in epoch seconds, so Int is good until https://en.wikipedia.org/wiki/Year_2038_problem
 # In graph-ts objects (such as Block) all numbers are BigInt, including dates, so that should be a good choice for schema types, too
 
-type DataUnion @entity {
+type Vault @entity {
   id: ID! # this will be the DU contract address as all-lowercase string
-  members: [Member!]! @derivedFrom(field: "dataUnion")
+  members: [Member!]! @derivedFrom(field: "vault")
   memberCount: Int!
   revenueWei: BigInt!
   creationDate: BigInt!
@@ -23,7 +23,7 @@ enum MemberStatus {
 type Member @entity {
   id: ID! # this will be the string "0xduaddress-0xmemberaddress"
   address: String! # We need this to be String to enable partial match search
-  dataUnion: DataUnion!
+  vault: Vault!
   status: MemberStatus!
   joinDate: BigInt!
   weight: BigDecimal!
@@ -37,7 +37,7 @@ enum BucketType {
 type VaultBucket @entity {
   id: ID!
   type: BucketType!
-  dataUnion: DataUnion!
+  vault: Vault!
   startDate: BigInt!
   endDate: BigInt!
   memberCountAtStart: Int!
@@ -50,7 +50,7 @@ type VaultBucket @entity {
 
 type RevenueEvent @entity {
   id: ID! # this will be 0xduaddress-blocknumber-txindex-logindex
-  dataUnion: DataUnion!
+  vault: Vault!
   date: BigInt!
   amountWei: BigInt!
 }

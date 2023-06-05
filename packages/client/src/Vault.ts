@@ -16,12 +16,12 @@ import type { RailClient } from './RailClient'
 import type { Rest } from './Rest'
 
 import { debug } from 'debug'
-const log = debug('DataUnion')
+const log = debug('Vault')
 
 export interface VaultDeployOptions {
     adminAddress?: EthereumAddress,
     joinPartAgents?: EthereumAddress[],
-    dataUnionName?: string,
+    vaultName?: string,
     adminFee?: number,
     // sidechainPollingIntervalMs?: number,
     // sidechainRetryTimeoutMs?: number
@@ -32,7 +32,7 @@ export interface VaultDeployOptions {
 
 export interface JoinResponse {
     member: string
-    dataUnion: EthereumAddress
+    vault: EthereumAddress
     chain: string
 }
 
@@ -69,7 +69,7 @@ export interface MemberStats {
 
 export interface SecretsResponse {
     secret: string
-    dataUnion: EthereumAddress
+    vault: EthereumAddress
     chain: string
     name: string
 }
@@ -187,7 +187,7 @@ export class Vault {
     private async post<T extends object>(endpointPath: string[], params?: object): Promise<T> {
         const request = {
             chain: this.getChainName(),
-            dataUnion: this.getAddress(),
+            vault: this.getAddress(),
             ...params
         }
         const signedRequest = await sign(request, this.client.wallet)
@@ -269,7 +269,7 @@ export class Vault {
     async getWithdrawableEarnings(memberAddress: EthereumAddress): Promise<BigNumber> {
         return this.contract.getWithdrawableEarnings(getAddress(memberAddress)).catch((error) => {
             if (error.message.includes('error_notMember')) {
-                throw new Error(`${memberAddress} is not a member of this DataUnion`)
+                throw new Error(`${memberAddress} is not a member of this Vault`)
             }
             throw error
         })
@@ -361,7 +361,7 @@ export class Vault {
         const signer = this.client.wallet
         const address = await signer.getAddress()
         const [activeStatus, , , withdrawn] = await this.contract.memberData(address)
-        if (activeStatus == 0) { throw new Error(`${address} is not a member in DataUnion (${this.contract.address})`) }
+        if (activeStatus == 0) { throw new Error(`${address} is not a member in Vault (${this.contract.address})`) }
         return this._createWithdrawSignature(amountTokenWei, to, withdrawn, signer)
     }
 
@@ -382,7 +382,7 @@ export class Vault {
 
     /**
      * Transfer an amount of earnings to another member in Vault
-     * @param memberAddress - the other member who gets their tokens out of the DataUnion
+     * @param memberAddress - the other member who gets their tokens out of the Vault
      * @param amountTokenWei - the amount that want to add to the member
      * @returns receipt once transfer transaction is confirmed
      */
@@ -475,7 +475,7 @@ export class Vault {
 
     /**
      * Admin: withdraw earnings (pay gas) on behalf of a member
-     * @param memberAddress - the other member who gets their tokens out of the DataUnion
+     * @param memberAddress - the other member who gets their tokens out of the Vault
      */
     async withdrawAllToMember(
         memberAddress: EthereumAddress,
@@ -535,7 +535,7 @@ export class Vault {
         } catch(error) {
             if ((error as Error).message.includes('error_onlyOwner')) {
                 const myAddress = await this.contract.signer.getAddress()
-                throw new Error(`Call to data union ${this.contract.address} failed: ${myAddress} is not the DataUnion admin!`)
+                throw new Error(`Call to data union ${this.contract.address} failed: ${myAddress} is not the Vault admin!`)
             }
             throw error
         }
@@ -572,7 +572,7 @@ export class Vault {
 
     /**
      * Transfer amount to specific other beneficiary in Vault
-     * @param memberAddress - target member who gets the tokens added to their earnings in the the DataUnion
+     * @param memberAddress - target member who gets the tokens added to their earnings in the the Vault
      * @param amountTokenWei - the amount that want to add to the member
      * @returns receipt once transfer transaction is confirmed
      */

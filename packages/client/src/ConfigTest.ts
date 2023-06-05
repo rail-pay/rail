@@ -22,7 +22,7 @@ export const ConfigTest = {
     // theGraphUrl: `http://${STREAMR_DOCKER_DEV_HOST || '10.200.10.1'}:8000/subgraphs/name/streamr-dev/network-contracts`,
     restUrl: REST_URL || `http://${STREAMR_DOCKER_DEV_HOST || 'localhost'}/api/v2`,
     tokenAddress: TOKEN_ADDRESS,
-    dataUnion: {
+    vault: {
         factoryAddress: FACTORY_ADDRESS,
         templateAddress: TEMPLATE_ADDRESS,
         joinPartAgentAddress: JOIN_PART_AGENT_ADDRESS,

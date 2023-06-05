@@ -152,7 +152,7 @@ export class RailClient {
 
     async getFactory(factoryAddress: EthereumAddress = this.factoryAddress, wallet: Signer = this.wallet): Promise<VaultFactory> {
         if (await wallet.provider!.getCode(factoryAddress) === '0x') {
-            throw new Error(`No Contract found at ${factoryAddress}, check RailClient.options.dataUnion.factoryAddress!`)
+            throw new Error(`No Contract found at ${factoryAddress}, check RailClient.options.vault.factoryAddress!`)
         }
         return new Contract(factoryAddress, vaultFactoryAbi, wallet) as unknown as VaultFactory
     }
@@ -180,14 +180,14 @@ export class RailClient {
      */
     async getVault(contractAddress: EthereumAddress): Promise<Vault> {
         if (!isAddress(contractAddress)) {
-            throw new Error(`Can't get DataUnion, invalid Ethereum address: ${contractAddress}`)
+            throw new Error(`Can't get Vault, invalid Ethereum address: ${contractAddress}`)
         }
 
         if (await this.wallet.provider!.getCode(contractAddress) === '0x') {
             throw new Error(`${contractAddress} is not an Ethereum contract!`)
         }
 
-        // giving the wallet instead of just a provider to DataUnion wouldn't really be required for most operations (reading)
+        // giving the wallet instead of just a provider to Vault wouldn't really be required for most operations (reading)
         //   but some operations (withdrawing) won't work without.
         // if this getSigner does nasty things (like Metamask popup?) then it could be replaced by separating
         //   getVaultReadonly for the cases where reading isn't required, OR
@@ -195,8 +195,8 @@ export class RailClient {
         const contract = this.getTemplate(contractAddress, this.wallet)
 
         // memberData throws an error <=> not a Vault contract (probably...)
-        const looksLikeDataUnion = await contract.memberData("0x0000000000000000000000000000000000000000").then(() => true).catch(() => false)
-        if (!looksLikeDataUnion) {
+        const looksLikeVault = await contract.memberData("0x0000000000000000000000000000000000000000").then(() => true).catch(() => false)
+        if (!looksLikeVault) {
             throw new Error(`${contractAddress} is not a Vault!`)
         }
 
@@ -207,14 +207,14 @@ export class RailClient {
         const {
             adminAddress = await this.wallet.getAddress(),
             joinPartAgents = [adminAddress, this.joinPartAgentAddress],
-            dataUnionName = `DataUnion-${Date.now()}`, // TODO: use uuid
+            vaultName = `Vault-${Date.now()}`, // TODO: use uuid
             adminFee = 0,
             confirmations = 1,
             gasPrice,
             metadata = {},
         } = options
 
-        log(`Going to deploy DataUnion with name: ${dataUnionName}`)
+        log(`Going to deploy Vault with name: ${vaultName}`)
 
         const tokenAddress = getAddress(token)
         const ownerAddress = getAddress(adminAddress)
@@ -249,7 +249,7 @@ export class RailClient {
         }
 
         const contractAddress = createdEvent.args!.du as string
-        log(`DataUnion deployed ${contractAddress}`)
+        log(`Vault deployed ${contractAddress}`)
 
         const contract = this.getTemplate(contractAddress, this.wallet)
         return new Vault(contract, this, this.restPlugin)
@@ -257,20 +257,20 @@ export class RailClient {
 
     /**
      * Create a new Vault contract using the Ethereum provider given in the constructor
-     * @return Promise<DataUnion> that resolves when the new DU is deployed over the bridge to side-chain
+     * @return Promise<Vault> that resolves when the new DU is deployed over the bridge to side-chain
      */
     async deployVault(options: VaultDeployOptions = {}): Promise<Vault> {
         const {
             adminAddress = await this.wallet.getAddress(),
             joinPartAgents = [adminAddress, this.joinPartAgentAddress],
-            dataUnionName = `DataUnion-${Date.now()}`, // TODO: use uuid
+            vaultName = `Vault-${Date.now()}`, // TODO: use uuid
             adminFee = 0,
             confirmations = 1,
             gasPrice,
             metadata = {},
         } = options
 
-        log(`Going to deploy DataUnion with name: ${dataUnionName}`)
+        log(`Going to deploy Vault with name: ${vaultName}`)
 
         const ownerAddress = getAddress(adminAddress)
         const agentAddressList = joinPartAgents.map(getAddress)
@@ -302,7 +302,7 @@ export class RailClient {
         }
 
         const contractAddress = createdEvent.args!.du as string
-        log(`DataUnion deployed ${contractAddress}`)
+        log(`Vault deployed ${contractAddress}`)
 
         const contract = this.getTemplate(contractAddress, this.wallet)
         return new Vault(contract, this, this.restPlugin)

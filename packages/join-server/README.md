@@ -10,7 +10,7 @@ The process of joining a Data Union is generally as follows:
 
 Data Union builder teams can easily [extend](#extending) the validation logic and run their own join server. Implementing any kind of join request validation logic is possible.
 
-As an alternative to running your own customized join server, the Rail Protocol hosts a [default join server](https://github.com/dataunions/default-join-server), which also extends this base package and implements a validation logic based on application secrets stored in a database. Forking that as a starting point may be an easier way to get started on your own customizations, or you can follow the instructions in this readme to start the customizations from scratch.
+As an alternative to running your own customized join server, the Rail Protocol hosts a [default join server](https://github.com/vaults/default-join-server), which also extends this base package and implements a validation logic based on application secrets stored in a database. Forking that as a starting point may be an easier way to get started on your own customizations, or you can follow the instructions in this readme to start the customizations from scratch.
 
 This package can also be [run as-is](#running-as-is), in which case the join server performs only signature validation and therefore allows anyone to join a Data Union.
 
@@ -40,11 +40,11 @@ const srv = new JoinServer({
 srv.listen()
 ```
 
-That's exactly what's happening in the [default join server](https://github.com/dataunions/default-join-server). Forking that may be a faster starting point for your own customizations, or you can study this readme to start your customizations from scratch.
+That's exactly what's happening in the [default join server](https://github.com/vaults/default-join-server). Forking that may be a faster starting point for your own customizations, or you can study this readme to start your customizations from scratch.
 
 Note that this base join server does not grant the joining member permissions to any data backend, it just adds the member to the smart contract. In your join server, you should grant the joining member the ability to share their data via whatever data backend/protocol your Data Union is using via using the `onMemberJoin` hook (see [Options](#options)).
 
-The [default join server](https://github.com/dataunions/default-join-server) hosted by the Rail Protocol is [Streamr](https://streamr.network)-aware, meaning that it grants new members publish permission to Streamr streams associated with that Data Union. If you're using a different data protocol/backend, you need to grant access to your data backend to your new DU members (unless of course your backend accepts data from anyone, not just DU members).
+The [default join server](https://github.com/vaults/default-join-server) hosted by the Rail Protocol is [Streamr](https://streamr.network)-aware, meaning that it grants new members publish permission to Streamr streams associated with that Data Union. If you're using a different data protocol/backend, you need to grant access to your data backend to your new DU members (unless of course your backend accepts data from anyone, not just DU members).
 
 ### Options
 
@@ -68,7 +68,7 @@ new JoinServer({
     customRoutes: (expressApp) => {},
 
 	// Gets called after a member is successfully joined to the Data Union smart contract. The default function does nothing.
-	onMemberJoin = async (/* member, dataUnion, chain */) => {},
+	onMemberJoin = async (/* member, vault, chain */) => {},
 
     // By default public RPCs are used for each chain, but you can pass this option to override
     customRPCs: {
@@ -95,11 +95,11 @@ The functionality of the join server can be extended by data union teams in two 
 
 ### Adding custom fields to join requests
 
-In many cases, you'll want to pass some additional information from the end-user app to the join server, such as CAPTCHA responses or other information used to accept the new member. In that case, the join request will have the `dataUnion` and `chain` keys plus your custom ones for which you can choose any names you want:
+In many cases, you'll want to pass some additional information from the end-user app to the join server, such as CAPTCHA responses or other information used to accept the new member. In that case, the join request will have the `vault` and `chain` keys plus your custom ones for which you can choose any names you want:
 
 ```
 {
-    "dataUnion": "0x12345",
+    "vault": "0x12345",
     "chain": "polygon",
     "myCustomSecret": "foo"
 }
@@ -185,7 +185,7 @@ Expects the `request` in the wrapper object to be of form:
 
 ```
 {
-    "dataUnion": "0x12345",
+    "vault": "0x12345",
     "chain": "polygon"
 }
 ```
@@ -195,7 +195,7 @@ or in other words, the full signed HTTP request body would be:
 ```
 {
    "address": "0xabcdef",
-   "request": "{\"dataUnion\":\"0x12345\",\"chain\":\"polygon\",}",
+   "request": "{\"vault\":\"0x12345\",\"chain\":\"polygon\",}",
    "timestamp": "...",
    "signature": "..."
 }
@@ -210,7 +210,7 @@ The response sent by the server has the form:
 ```
 {
     "member": "0xabcdef",
-    "dataUnion": "0x12345",
+    "vault": "0x12345",
 	"chain": "polygon"
 }
 ```

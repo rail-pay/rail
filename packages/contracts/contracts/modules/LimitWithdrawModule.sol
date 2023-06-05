@@ -4,16 +4,16 @@
 pragma solidity 0.8.6;
 
 import "../IERC677.sol";
-import "./DataUnionModule.sol";
+import "./VaultModule.sol";
 import "./IWithdrawModule.sol";
 import "./IJoinListener.sol";
 import "./IPartListener.sol";
 
 /**
  * @title Data Union module that limits per-user withdraws to given amount per period
- * @dev Setup: dataUnion.setWithdrawModule(this); dataUnion.addJoinListener(this); dataUnion.addPartListener(this)
+ * @dev Setup: vault.setWithdrawModule(this); vault.addJoinListener(this); vault.addPartListener(this)
  */
-contract LimitWithdrawModule is DataUnionModule, IWithdrawModule, IJoinListener, IPartListener {
+contract LimitWithdrawModule is VaultModule, IWithdrawModule, IJoinListener, IPartListener {
     uint public requiredMemberAgeSeconds;
     uint public withdrawLimitPeriodSeconds;
     uint public withdrawLimitDuringPeriod;
@@ -24,15 +24,15 @@ contract LimitWithdrawModule is DataUnionModule, IWithdrawModule, IJoinListener,
     mapping (address => uint) public withdrawnDuringPeriod;
     mapping (address => bool) public blackListed;
 
-    event ModuleReset(address newDataUnion, uint newRequiredMemberAgeSeconds, uint newWithdrawLimitPeriodSeconds, uint newWithdrawLimitDuringPeriod, uint newMinimumWithdrawTokenWei);
+    event ModuleReset(address newVault, uint newRequiredMemberAgeSeconds, uint newWithdrawLimitPeriodSeconds, uint newWithdrawLimitDuringPeriod, uint newMinimumWithdrawTokenWei);
 
     constructor(
-        address dataUnionAddress,
+        address vaultAddress,
         uint newRequiredMemberAgeSeconds,
         uint newWithdrawLimitPeriodSeconds,
         uint newWithdrawLimitDuringPeriod,
         uint newMinimumWithdrawTokenWei
-    ) DataUnionModule(dataUnionAddress) {
+    ) VaultModule(vaultAddress) {
         requiredMemberAgeSeconds = newRequiredMemberAgeSeconds;
         withdrawLimitPeriodSeconds = newWithdrawLimitPeriodSeconds;
         withdrawLimitDuringPeriod = newWithdrawLimitDuringPeriod;
@@ -40,18 +40,18 @@ contract LimitWithdrawModule is DataUnionModule, IWithdrawModule, IJoinListener,
     }
 
     function setParameters(
-        address dataUnionAddress,
+        address vaultAddress,
         uint newRequiredMemberAgeSeconds,
         uint newWithdrawLimitPeriodSeconds,
         uint newWithdrawLimitDuringPeriod,
         uint newMinimumWithdrawTokenWei
     ) external onlyOwner {
-        dataUnion = dataUnionAddress;
+        vault = vaultAddress;
         requiredMemberAgeSeconds = newRequiredMemberAgeSeconds;
         withdrawLimitPeriodSeconds = newWithdrawLimitPeriodSeconds;
         withdrawLimitDuringPeriod = newWithdrawLimitDuringPeriod;
         minimumWithdrawTokenWei = newMinimumWithdrawTokenWei;
-        emit ModuleReset(dataUnion, requiredMemberAgeSeconds, withdrawLimitPeriodSeconds, withdrawLimitDuringPeriod, minimumWithdrawTokenWei);
+        emit ModuleReset(vault, requiredMemberAgeSeconds, withdrawLimitPeriodSeconds, withdrawLimitDuringPeriod, minimumWithdrawTokenWei);
     }
 
     /**
@@ -60,7 +60,7 @@ contract LimitWithdrawModule is DataUnionModule, IWithdrawModule, IJoinListener,
      * Reasoning: after re-joining, the member has accumulated new earnings, and those new earnings should have the limitation period.
      *   Anyway, the member has the chance to withdraw BEFORE joining again, so restarting the "age counter" doesn't prevent withdrawing the old earnings (before re-join).
      */
-    function onJoin(address newMember) override external onlyDataUnion {
+    function onJoin(address newMember) override external onlyVault {
         memberJoinTimestamp[newMember] = block.timestamp;
 
         // undo a previously banned member's withdraw limitation, see onPart
@@ -72,7 +72,7 @@ contract LimitWithdrawModule is DataUnionModule, IWithdrawModule, IJoinListener,
      *   Just removing the ban isn't enough because this module won't know about it.
      *   However, BanModule.restore causes a re-join, so it works fine.
      */
-    function onPart(address leavingMember, LeaveConditionCode leaveConditionCode) override external onlyDataUnion {
+    function onPart(address leavingMember, LeaveConditionCode leaveConditionCode) override external onlyVault {
         if (leaveConditionCode == LeaveConditionCode.BANNED) {
             blackListed[leavingMember] = true;
         }
@@ -91,7 +91,7 @@ contract LimitWithdrawModule is DataUnionModule, IWithdrawModule, IJoinListener,
      * When a withdraw happens in the DU, tokens are transferred to the withdrawModule, then this function is called.
      * When we revert here, the whole withdraw transaction is reverted.
      */
-    function onWithdraw(address member, address to, IERC677 token, uint amountWei) override external onlyDataUnion {
+    function onWithdraw(address member, address to, IERC677 token, uint amountWei) override external onlyVault {
         require(amountWei >= minimumWithdrawTokenWei, "error_withdrawAmountBelowMinimum");
         require(memberJoinTimestamp[member] > 0, "error_mustJoinBeforeWithdraw");
         require(block.timestamp >= memberJoinTimestamp[member] + requiredMemberAgeSeconds, "error_memberTooNew");

@@ -1,6 +1,6 @@
 # default-join-server
 
-A Data Union join server that imports the [base join server](https://github.com/dataunions/data-union-join-server) and extends it by adding app join request validation based on app secrets stored in MySQL. The join server also supports granting access to [Streamr](https://streamr.network) streams when a member joins a Data Union that uses Streamr on the data transport layer.
+A Data Union join server that imports the [base join server](https://github.com/vaults/data-union-join-server) and extends it by adding app join request validation based on app secrets stored in MySQL. The join server also supports granting access to [Streamr](https://streamr.network) streams when a member joins a Data Union that uses Streamr on the data transport layer.
 
 An instance of this join server is run by the Rail Protocol to make it easier for Data Union builders to get started and control access to the Data Unions. Note that you can fork this join server and customize it to your needs, for example to implement additional validation for join requests or take some different action when after members join.
 
@@ -18,7 +18,7 @@ An example join request:
 
 ```
 {
-	dataUnion: '0x12345',
+	vault: '0x12345',
 	chain: 'polygon',
 	secret: 'the-random-secret',
 }
@@ -29,13 +29,13 @@ Note that as with the base server, the join request is expected to be wrapped in
 ```
 {
    "address": "0xabcdef",
-   "request": "{\"dataUnion\":\"0x12345\",\"chain\":\"polygon\",\"secret\":\"the-random-secret\"}",
+   "request": "{\"vault\":\"0x12345\",\"chain\":\"polygon\",\"secret\":\"the-random-secret\"}",
    "timestamp": "...",
    "signature": "..."
 }
 ```
 
-For more information about the signature authentication, refer to the readme in the [base join server](https://github.com/dataunions/data-union-join-server).
+For more information about the signature authentication, refer to the readme in the [base join server](https://github.com/vaults/data-union-join-server).
 
 ## Secret management
 
@@ -47,7 +47,7 @@ Creates a new secret for a given Data Union. Example `request` payload:
 
 ```
 {
-	"dataUnion": "0x12345",
+	"vault": "0x12345",
 	"chain": "polygon",
 	"name": "A human-readable label for the new secret"
 }
@@ -58,7 +58,7 @@ The response contains the generated `secret`:
 ```
 {
 	"secret": "0fc6b4d6-6558-4c04-b42e-49a8ae5b5ebf",
-	"dataUnion": "0x12345",
+	"vault": "0x12345",
 	"chain": "polygon",
 	"name": "A human-readable label for the new secret"
 }
@@ -70,7 +70,7 @@ Lists the secrets attached to the given Data Union. Example `request` payload:
 
 ```
 {
-	"dataUnion": "0x12345",
+	"vault": "0x12345",
 	"chain": "polygon"
 }
 ```
@@ -80,7 +80,7 @@ The response contains an array of secrets:
 ```
 [{
 	"secret": "0fc6b4d6-6558-4c04-b42e-49a8ae5b5ebf",
-	"dataUnion": "0x12345",
+	"vault": "0x12345",
 	"chain": "polygon",
 	"name": "A human-readable label for the new secret"
 }]
@@ -92,7 +92,7 @@ Deletes a secret attached to the given Data Union. Example `request` payload:
 
 ```
 {
-	"dataUnion": "0x12345",
+	"vault": "0x12345",
 	"chain": "polygon",
 	"secret": "0fc6b4d6-6558-4c04-b42e-49a8ae5b5ebf"
 }
@@ -103,7 +103,7 @@ The response returns the deleted secret:
 ```
 {
 	"secret": "0fc6b4d6-6558-4c04-b42e-49a8ae5b5ebf",
-	"dataUnion": "0x12345",
+	"vault": "0x12345",
 	"chain": "polygon",
 	"name": "A human-readable label for the deleted secret"
 }

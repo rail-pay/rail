@@ -12,12 +12,12 @@ describe('POST /join', async () => {
 		// JoinRequestService with mocked create()
 		const logger = unitTestLogger
 		const clients = new Map()
-		const onMemberJoin = function(_member, _dataUnion, _chain) {}
+		const onMemberJoin = function(_member, _vault, _chain) {}
 		const joinRequestService = new app.JoinRequestService(logger, clients, onMemberJoin)
-		joinRequestService.create = sinon.spy((member, dataUnion, chain) => {
+		joinRequestService.create = sinon.spy((member, vault, chain) => {
 			return {
 				member,
-				dataUnion,
+				vault,
 				chain,
 			}
 		})
@@ -43,7 +43,7 @@ describe('POST /join', async () => {
 			body: {
 				address: '0x766760C748bcEcf5876a6469a6aed3C642CdA261',
 				request: JSON.stringify({
-					dataUnion: '0x81ed645D344cB2096aBA56B94d336E6dcF80f6C6',
+					vault: '0x81ed645D344cB2096aBA56B94d336E6dcF80f6C6',
 					chain: 'polygon',
 				}),
 			},
@@ -67,7 +67,7 @@ describe('POST /join', async () => {
 			const joinRequest = JSON.parse(tc.body.request)
 			const expectedBody = {
 				member: tc.body.address,
-				dataUnion: joinRequest.dataUnion,
+				vault: joinRequest.vault,
 			}
 			if (joinRequest.chain) {
 				expectedBody.chain = joinRequest.chain
@@ -82,7 +82,7 @@ describe('POST /join', async () => {
 			body: {
 				address: '0x00000',
 				request: JSON.stringify({
-					dataUnion: '0x81ed645D344cB2096aBA56B94d336E6dcF80f6C6',
+					vault: '0x81ed645D344cB2096aBA56B94d336E6dcF80f6C6',
 					chain: 'polygon',
 				}),
 			},
@@ -93,7 +93,7 @@ describe('POST /join', async () => {
 			body: {
 				address: '0x766760C748bcEcf5876a6469a6aed3C642CdA261',
 				request: JSON.stringify({
-					dataUnion: '0x01234',
+					vault: '0x01234',
 					chain: 'polygon',
 				}),
 			},
@@ -104,7 +104,7 @@ describe('POST /join', async () => {
 			body: {
 				address: '0x766760C748bcEcf5876a6469a6aed3C642CdA261',
 				request: JSON.stringify({
-					dataUnion: '0x81ed645D344cB2096aBA56B94d336E6dcF80f6C6',
+					vault: '0x81ed645D344cB2096aBA56B94d336E6dcF80f6C6',
 					chain: 'foobar',
 				}),
 			},
@@ -115,7 +115,7 @@ describe('POST /join', async () => {
 			body: {
 				address: '0x766760C748bcEcf5876a6469a6aed3C642CdA261',
 				request: JSON.stringify({
-					dataUnion: '0x81ed645D344cB2096aBA56B94d336E6dcF80f6C6',
+					vault: '0x81ed645D344cB2096aBA56B94d336E6dcF80f6C6',
 				}),
 			},
 			expectedErrorMessage: `Invalid chain name: 'undefined'`,

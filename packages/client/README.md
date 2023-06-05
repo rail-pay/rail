@@ -31,14 +31,14 @@ const DU = new RailClient({
 
 The RailClient object can be used to either deploy a new Vault contract, or manipulate/query an existing one.
 
-The address that deploys the contract will become the admin of the data union. To deploy a new DataUnion with default [deployment options](#deployment-options):
+The address that deploys the contract will become the admin of the data union. To deploy a new Vault with default [deployment options](#deployment-options):
 ```js
-const dataUnion = await DU.deployVault()
+const vault = await DU.deployVault()
 ```
 
-To get an existing (previously deployed) `DataUnion` instance:
+To get an existing (previously deployed) `Vault` instance:
 ```js
-const dataUnion = await DU.getVault('0x12345...')
+const vault = await DU.getVault('0x12345...')
 ```
 
 
@@ -50,7 +50,7 @@ Adding members using admin functions is not at feature parity with the member fu
 
 Adding members (joinPart agent only, [read here more about the roles](https://docs.rail.dev/main-concepts/roles-and-responsibilities/joinpart-agents)):
 ```js
-const receipt = await dataUnion.addMembers([
+const receipt = await vault.addMembers([
     '0x11111...',
     '0x22222...',
     '0x33333...',
@@ -58,7 +58,7 @@ const receipt = await dataUnion.addMembers([
 ```
 Removing members (joinPart agent only (usually the admin is also a joinPart agent) read more [here](https://docs.rail.dev/main-concepts/roles-and-responsibilities/joinpart-agents)):
 ```js
-const receipt = await dataUnion.removeMembers([
+const receipt = await vault.removeMembers([
     '0x11111...',
     '0x22222...',
     '0x33333...',
@@ -66,7 +66,7 @@ const receipt = await dataUnion.removeMembers([
 ```
 New Data Unions have the "member weights" feature, it can be used to give some members different share of revenues. The weights are relative to each other, so if you have e.g. 3 members with weights `1.5, 1.5, 3`, then the first two members will get 25% each, and the third member will get 50% of the future revenues. The weights can be set when adding members:
 ```js
-const receipt = await dataUnion.addMembersWithWeights([
+const receipt = await vault.addMembersWithWeights([
     ['0x11111...', 1.5],
     ['0x22222...', 1.5],
     ['0x33333...', 3],
@@ -74,7 +74,7 @@ const receipt = await dataUnion.addMembersWithWeights([
 ```
 The weights can be changed later with the `setMemberWeights` function, which additionally allows adding and removing members in the same transaction:
 ```js
-const receipt = await dataUnion.setMemberWeights([
+const receipt = await vault.setMemberWeights([
     ['0x11111...', 3], // change the weight
     ['0x22222...', 0], // remove member
     ['0x44444...', 3], // add new member
@@ -82,25 +82,25 @@ const receipt = await dataUnion.setMemberWeights([
 ```
 The users can part with the data union themselves
 ```js
-const receipt = await dataUnion.part()
+const receipt = await vault.part()
 ```
 
 Checking if an address belongs to the Data Union:
 ```js
-const isMember = await dataUnion.isMember('0x12345...')
+const isMember = await vault.isMember('0x12345...')
 ```
 
 Send all withdrawable earnings to the member's address:
 ```js
-const receipt = await dataUnion.withdrawAllToMember('0x12345...')
+const receipt = await vault.withdrawAllToMember('0x12345...')
 ```
 
 Send all withdrawable earnings to the address signed off by the member:
 ```js
 const recipientAddress = '0x22222...'
 
-const signature = await dataUnion.signWithdrawAllTo(recipientAddress)
-const receipt = await dataUnion.withdrawAllToSigned(
+const signature = await vault.signWithdrawAllTo(recipientAddress)
+const receipt = await vault.withdrawAllToSigned(
     '0x11111...', // member address
     recipientAddress,
     signature
@@ -110,8 +110,8 @@ const receipt = await dataUnion.withdrawAllToSigned(
 Send only some of the withdrawable earnings to the address signed off by the member
 ```js
 const oneEth = "1000000000000000000" // amounts in wei
-const signature = await dataUnion.signWithdrawAmountTo(recipientAddress, oneEth)
-const receipt = await dataUnion.withdrawAmountToSigned(
+const signature = await vault.signWithdrawAmountTo(recipientAddress, oneEth)
+const receipt = await vault.withdrawAmountToSigned(
     '0x12345...', // member address
     recipientAddress,
     oneEth,
@@ -122,33 +122,33 @@ const receipt = await dataUnion.withdrawAmountToSigned(
 Setting a new admin fee:
 ```js
 // Any number between 0 and 1, inclusive
-const receipt = await dataUnion.setAdminFee(0.4)
+const receipt = await vault.setAdminFee(0.4)
 ```
 
 Setting new metadata: Store information about your data union in a JSON file on-chain inside the contract. For example you can store a DAO manifesto, a name or anything else you can think of.
 ```js
-const receipt = await dataUnion.setMetadata(
+const receipt = await vault.setMetadata(
     {"name": "awesome DU", "maintainer": ["josh#4223", "marc#2324"]}
 );
 
-const metadata = await dataUnion.getMetadata();
+const metadata = await vault.getMetadata();
 ```
 
 If the Data Union is set up to use the [default join server](https://github.com/rail-protocol/rail/tree/main/packages/default-join-server) then members can join the Data Union by giving a correct secret.
 
 Admin can add secrets that allow anyone to join, as well as revoke those secrets, using the following functions:
 ```js
-await dataUnion.createSecret() // returns the newly created secret
-await dataUnion.createSecret('user XYZ') // admin can also give the secret a more human-readable name
-await dataUnion.deleteSecret(secret) // secret as returned by createSecret
-await dataUnion.listSecrets() // in case you forgot ;)
+await vault.createSecret() // returns the newly created secret
+await vault.createSecret('user XYZ') // admin can also give the secret a more human-readable name
+await vault.deleteSecret(secret) // secret as returned by createSecret
+await vault.listSecrets() // in case you forgot ;)
 ```
 
-The `dataUnion.createSecret()` response will look like the following:
+The `vault.createSecret()` response will look like the following:
 ```js
 {
 	"secret": "0fc6b4d6-6558-4c04-b42e-49a8ae5b5ebf",
-	"dataUnion": "0x12345",
+	"vault": "0x12345",
 	"chain": "polygon",
 	"name": "A human-readable label for the new secret"
 }
@@ -156,8 +156,8 @@ The `dataUnion.createSecret()` response will look like the following:
 
 The member can then join using that same response object, or simply an object with the correct field "secret":
 ```js
-await dataUnion.join(secretResponse)
-await dataUnion.join({ secret: "0fc6b4d6-6558-4c04-b42e-49a8ae5b5ebf" })
+await vault.join(secretResponse)
+await vault.join({ secret: "0fc6b4d6-6558-4c04-b42e-49a8ae5b5ebf" })
 ```
 
 #### Query functions
@@ -165,29 +165,29 @@ These are available for everyone and anyone, to query publicly available info fr
 
 Get Data Union's statistics:
 ```js
-const stats = await dataUnion.getStats()
+const stats = await vault.getStats()
 ```
 Get a member's stats:
 ```js
-const memberStats = await dataUnion.getMemberStats('0x12345...')
+const memberStats = await vault.getMemberStats('0x12345...')
 ```
 Get the withdrawable DATA tokens in the DU for a member:
 ```js
 // Returns a BigNumber
-const balance = await dataUnion.getWithdrawableEarnings('0x12345...')
+const balance = await vault.getWithdrawableEarnings('0x12345...')
 ```
 Getting the set admin fee:
 ```js
-const adminFee = await dataUnion.getAdminFee()
+const adminFee = await vault.getAdminFee()
 ```
 Getting admin's address:
 ```js
-const adminAddress = await dataUnion.getAdminAddress()
+const adminAddress = await vault.getAdminAddress()
 ```
 
 Getting the Data Union's version:
 ```js
-const version = await dataUnion.getVersion()
+const version = await vault.getVersion()
 // Can be 0, 1, 2, or 3
 // 0 if the contract is not a data union
 ```
@@ -206,23 +206,23 @@ const deploymentOptions = {
     }
 }
 
-const dataUnion = await DU.deployVault({
+const vault = await DU.deployVault({
     deploymentOptions
 })
 ```
 
-The [Default Join Server](https://github.com/dataunions/default-join-server) hosted by the Rail Protocol is added as a `joinPartAgent` by default so that joining with secret works using the member function `join`. If you plan to run your own join server, include its address in the `joinPartAgents`:
+The [Default Join Server](https://github.com/vaults/default-join-server) hosted by the Rail Protocol is added as a `joinPartAgent` by default so that joining with secret works using the member function `join`. If you plan to run your own join server, include its address in the `joinPartAgents`:
 ```js
-const dataUnion = await DU.deployVault({
+const vault = await DU.deployVault({
     joinPartAgents: [adminAddress, myJoinServerAddress],
     adminFee,
 })
 ```
 
 ### Utility functions
-In order to retrieve the client's address an async call must me made to `dataunions.getAddress`
+In order to retrieve the client's address an async call must me made to `vaults.getAddress`
 ```js
-const address = await dataunions.getAddress()
+const address = await vaults.getAddress()
 ```
 
 If you want to generate a new random wallet, you can use
