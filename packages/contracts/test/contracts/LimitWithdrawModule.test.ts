@@ -1,27 +1,26 @@
-import { expect, use } from "chai"
-import { waffle } from "hardhat"
-import { BigNumber, utils } from "ethers"
+import { ethers as hardhatEthers } from "hardhat"
+import { expect } from "chai"
+
+import type { Wallet, BigNumber } from "ethers"
 
 import Debug from "debug"
 const log = Debug("rail:test:LimitWithdrawModule")
 // const log = console.log  // for debugging?
 
-import LimitWithdrawModuleJson from "../../artifacts/contracts/modules/LimitWithdrawModule.sol/LimitWithdrawModule.json"
-import VaultJson from "../../artifacts/contracts/Vault.sol/Vault.json"
-import DefaultFeeOracleJson from "../../artifacts/contracts/DefaultFeeOracle.sol/DefaultFeeOracle.json"
-
-import TestTokenJson from "../../artifacts/contracts/test/TestToken.sol/TestToken.json"
-
 import type { LimitWithdrawModule, DefaultFeeOracle, Vault as Vault, TestToken } from "../../typechain"
 
-// type EthereumAddress = string
-
-use(waffle.solidity)
-const { deployContract, provider } = waffle
-const { parseEther } = utils
+const {
+    getSigners,
+    getContractFactory,
+    provider,
+    utils: { parseEther },
+} = hardhatEthers
 
 describe("LimitWithdrawModule", () => {
-    const [creator, member0, dao, ...others] = provider.getWallets()
+    let creator: Wallet
+    let member0: Wallet
+    let dao: Wallet
+    let others: Wallet[]
 
     let testToken: TestToken
     let vault: Vault
@@ -30,13 +29,18 @@ describe("LimitWithdrawModule", () => {
     let limitWithdrawModuleArgs: [string, number, number, BigNumber, BigNumber]
 
     before(async () => {
-        testToken = await deployContract(creator, TestTokenJson, ["name", "symbol"]) as TestToken
+        [creator, member0, dao, ...others] = await getSigners() as unknown as Wallet[]
+
+        testToken = await (await getContractFactory("TestToken", { signer: creator })).deploy("name", "symbol") as TestToken
+        await testToken.deployed()
         await testToken.mint(creator.address, parseEther("10000"))
 
-        const feeOracle = await deployContract(dao, DefaultFeeOracleJson, []) as DefaultFeeOracle
+        const feeOracle = await (await getContractFactory("DefaultFeeOracle", { signer: dao })).deploy() as DefaultFeeOracle
+        await feeOracle.deployed()
         await feeOracle.initialize(parseEther("0.01"), dao.address)
 
-        vault = await deployContract(creator, VaultJson, []) as Vault
+        vault = await (await getContractFactory("Vault", { signer: creator })).deploy() as Vault
+        await vault.deployed()
 
         // function initialize(
         //     address initialOwner,
@@ -72,7 +76,8 @@ describe("LimitWithdrawModule", () => {
             parseEther("100"),
             parseEther("1")
         ]
-        limitWithdrawModule = await deployContract(creator, LimitWithdrawModuleJson, limitWithdrawModuleArgs) as LimitWithdrawModule
+        limitWithdrawModule = await (await getContractFactory("LimitWithdrawModule", { signer: creator })).deploy(...limitWithdrawModuleArgs) as LimitWithdrawModule
+        await limitWithdrawModule.deployed()
         await vault.setWithdrawModule(limitWithdrawModule.address)
         await vault.addJoinListener(limitWithdrawModule.address)
         await vault.addPartListener(limitWithdrawModule.address)

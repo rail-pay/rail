@@ -1,69 +1,76 @@
-import { expect, use } from "chai"
-import { waffle, upgrades } from "hardhat"
-import { Contract, ContractFactory, utils, BigNumber } from "ethers"
-const { parseEther } = utils
+import { ethers as hardhatEthers } from "hardhat"
+import { expect } from "chai"
 
-import VaultFactoryJson from "../../artifacts/contracts/VaultFactory.sol/VaultFactory.json"
-import VaultJson from "../../artifacts/contracts/Vault.sol/Vault.json"
-import FeeOracleJson from "../../artifacts/contracts/DefaultFeeOracle.sol/DefaultFeeOracle.json"
-
-import TestTokenJson from "../../artifacts/contracts/test/TestToken.sol/TestToken.json"
-
-import { VaultFactory, DefaultFeeOracle, TestToken } from "../../typechain"
+import type { Wallet, BigNumber } from "ethers"
 
 import Debug from "debug"
-const log = Debug("Streamr:du:test:BinanceAdapter")
+const log = Debug("Streamr:du:test:Vault")
+//const log = console.log  // for debugging?
 
-use(waffle.solidity)
-const { deployContract, provider } = waffle
+import type { Vault, VaultFactory, TestToken, DefaultFeeOracle } from "../../typechain"
+import type { EthereumAddress } from "../../../client/src"
 
-type EthereumAddress = string
+const {
+    provider,
+    getSigners,
+    getContractFactory,
+    utils: { parseEther },
+} = hardhatEthers
+
 
 describe("VaultFactory", (): void => {
-    const accounts = provider.getWallets()
+    let creator: Wallet
+    let a1: Wallet
+    let a2: Wallet
+    let a3: Wallet
+    let m1: Wallet
+    let m2: Wallet
+    let m3: Wallet
+    let o1: Wallet
+    let o2: Wallet
+    let protocolBeneficiary: Wallet
 
-    const creator = accounts[0]
-    const agents = accounts.slice(1, 3)
-    const members = accounts.slice(3, 6)
-    const others = accounts.slice(6)
-    const protocolBeneficiary = accounts[8]
-
-    const m = members.map(member => member.address)
-    const o = others.map(outsider => outsider.address)
+    let agents: EthereumAddress[]
+    let members: EthereumAddress[]
 
     let factory: VaultFactory
+    let vaultTemplate: Vault
     let testToken: TestToken
 
     before(async () => {
-        testToken = await deployContract(creator, TestTokenJson, ["name", "symbol"]) as TestToken
-        const vault = await deployContract(creator, VaultJson, [])
-        const feeOracleFactory = new ContractFactory(FeeOracleJson.abi, FeeOracleJson.bytecode, creator)
-        const feeOracle = await upgrades.deployProxy(feeOracleFactory, [
-            parseEther("0.01"),
-            protocolBeneficiary.address
-        ], { kind: "uups" }) as DefaultFeeOracle
-        const factoryFactory = new ContractFactory(VaultFactoryJson.abi, VaultFactoryJson.bytecode, creator)
-        factory = await upgrades.deployProxy(factoryFactory, [
-            vault.address,
-            testToken.address,
-            feeOracle.address,
-        ], { kind: "uups" }) as VaultFactory
+        [creator, a1, a2, a3, m1, m2, m3, o1, o2, protocolBeneficiary] = await getSigners() as unknown as Wallet[]
+        agents = [a1, a2, a3].map(a => a.address)
+        members = [m1, m2, m3].map(m => m.address)
+
+        testToken = await (await getContractFactory("TestToken", { signer: creator })).deploy("name", "symbol") as TestToken
+        await testToken.deployed()
+        await testToken.mint(creator.address, parseEther("10000"))
+
+        const feeOracle = await (await getContractFactory("DefaultFeeOracle", { signer: creator })).deploy() as DefaultFeeOracle
+        await feeOracle.deployed()
+        await feeOracle.initialize(parseEther("0.01"), protocolBeneficiary.address)
+
+        vaultTemplate = await (await getContractFactory("Vault", { signer: creator })).deploy() as Vault
+        await vaultTemplate.deployed()
+
+        factory = await (await getContractFactory("VaultFactory", { signer: creator })).deploy() as VaultFactory
+        await factory.deployed()
+        await factory.initialize(vaultTemplate.address, testToken.address, feeOracle.address)
     })
 
-    it("sidechain ETH flow", async () => {
+    it("gives ETH to new beneficiaries", async () => {
         const ownerEth = parseEther("0.01")
         const newVaultEth = parseEther("1")
         const newMemberEth = parseEther("0.1")
 
-        const factoryOutsider = factory.connect(others[0])
-        await expect(factoryOutsider.setNewVaultInitialEth(newMemberEth)).to.be.reverted
-        await expect(factoryOutsider.setNewVaultOwnerInitialEth(newMemberEth)).to.be.reverted
-        await expect(factoryOutsider.setNewMemberInitialEth(newMemberEth)).to.be.reverted
+        await expect(factory.connect(o1).setNewVaultInitialEth(newMemberEth)).to.be.reverted
+        await expect(factory.connect(o1).setNewVaultOwnerInitialEth(newMemberEth)).to.be.reverted
+        await expect(factory.connect(o1).setNewMemberInitialEth(newMemberEth)).to.be.reverted
         await expect(factory.setNewVaultInitialEth(newVaultEth)).to.emit(factory, "NewVaultInitialEthUpdated")
         await expect(factory.setNewVaultOwnerInitialEth(ownerEth)).to.emit(factory, "NewVaultOwnerInitialEthUpdated")
         await expect(factory.setNewMemberInitialEth(newMemberEth)).to.emit(factory, "DefaultNewMemberInitialEthUpdated")
 
-        await others[0].sendTransaction({
+        await o1.sendTransaction({
             to: factory.address,
             value: parseEther("2"),
         })
@@ -79,7 +86,7 @@ describe("VaultFactory", (): void => {
         const args : [EthereumAddress, BigNumber, EthereumAddress[], string] = [
             creator.address,
             parseEther("0.1"),
-            agents.map(a => a.address),
+            agents,
             "",
         ]
         log("deployNewVaultSidechain args: %o", args)
@@ -90,17 +97,16 @@ describe("VaultFactory", (): void => {
         if (!createdEvent || !createdEvent.args || !createdEvent.args.length) {
             throw new Error("Missing DUCreated event")
         }
-        const [newVaultAddress] = createdEvent.args
+        const [ newVaultAddress ] = createdEvent.args
         expect(tr?.events?.filter((evt) => evt?.event === "DUCreated") ?? []).to.have.length(1)
 
         log("%s code: %s", newVaultAddress, await provider.getCode(newVaultAddress))
         expect(await provider.getCode(newVaultAddress)).not.equal("0x")
 
-        const newVaultCreator = new Contract(newVaultAddress, VaultJson.abi, creator)
-        const newVaultAgent = new Contract(newVaultAddress, VaultJson.abi, agents[0])
-        const newVaultOutsider = new Contract(newVaultAddress, VaultJson.abi, others[0])
         const newVaultBalance = await provider.getBalance(newVaultAddress)
         log("newvault_address: %s, balance %s", newVaultAddress, newVaultBalance)
+
+        const newVault = vaultTemplate.attach(newVaultAddress)
 
         // TODO: move asserts to the end
 
@@ -112,20 +118,20 @@ describe("VaultFactory", (): void => {
         expect(creatorBalanceChange).not.equal(0)
 
         // 1st added member should have been given newMemberEth
-        const balanceBefore1 = await provider.getBalance(members[0].address)
-        await expect(newVaultAgent.addMembers(m)).to.emit(newVaultAgent, "MemberJoined")
-        const balanceChange1 = (await provider.getBalance(members[0].address)).sub(balanceBefore1)
+        const balanceBefore1 = await provider.getBalance(m1.address)
+        await expect(newVault.connect(a1).addMembers(members)).to.emit(newVault.connect(a1), "MemberJoined")
+        const balanceChange1 = (await provider.getBalance(m1.address)).sub(balanceBefore1)
         expect(balanceChange1).to.equal(newMemberEth)
 
         // change the setting from within DU. check member Eth
         const newMemberEth2 = parseEther("0.2")
-        await expect(newVaultOutsider.setNewMemberEth(newMemberEth2)).to.be.reverted
-        await expect(newVaultCreator.setNewMemberEth(newMemberEth2)).to.emit(newVaultCreator, "NewMemberEthChanged")
+        await expect(newVault.connect(o1).setNewMemberEth(newMemberEth2)).to.be.reverted
+        await expect(newVault.connect(creator).setNewMemberEth(newMemberEth2)).to.emit(newVault.connect(creator), "NewMemberEthChanged")
 
         // 2nd added member should have been given newMemberEth
-        const balanceBefore2 = await provider.getBalance(others[0].address)
-        await expect(newVaultAgent.addMembers(o.slice(0, 1))).to.emit(newVaultAgent, "MemberJoined")
-        const balanceChange2 = (await provider.getBalance(others[0].address)).sub(balanceBefore2)
+        const balanceBefore2 = await provider.getBalance(o1.address)
+        await expect(newVault.connect(a1).addMembers([o1.address, o2.address])).to.emit(newVault.connect(a1), "MemberJoined")
+        const balanceChange2 = (await provider.getBalance(o1.address)).sub(balanceBefore2)
         expect(balanceChange2).to.equal(newMemberEth2)
     })
 })
