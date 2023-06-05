@@ -1,44 +1,44 @@
 <h1 align="left">
-  DataUnion Client
+  Rail Client
 </h1>
 
-The Data Union framework is a data crowdsourcing and crowdselling solution. Working in tandem with the Streamr Network and Ethereum, the framework powers applications that enable people to earn by sharing valuable data. You can [read more about it here](https://docs.dataunions.org/getting-started/intro-to-data-unions)
+The Data Union framework is a data crowdsourcing and crowdselling solution. Working in tandem with the Streamr Network and Ethereum, the framework powers applications that enable people to earn by sharing valuable data. You can [read more about it here](https://docs.rail.dev/getting-started/intro)
 
 #### Getting started
 
-Start by obtaining a DataUnionClient object:
+Start by obtaining a RailClient object:
 1) Give the DU client an access to signing with your private key.
 2) Choose a desired EVM chain and add it to the chain parameter. We currently support `gnosis`, and `polygon` (default).
 
 This first option for browsers is to hand in the Metamask object. This means DU client will not ever see the private key, and can only send transactions and sign messages with the user's explicit consent (pops up a Metamask window). This would connect to the polygon chain using Metamask:
 ```js
-import { DataUnionClient } from '@rail-protocol/client'
+import { RailClient } from '@rail-protocol/client'
 const { ethereum } = window
-const DU = new DataUnionClient({
+const DU = new RailClient({
   auth: { ethereum }
 });
 ```
 
-The second option is to give the private key directly in cleartext. This is meant for the server side node.js scripts, but also can be used in the browser; especially in the case where you don't need to sign things at all but only use the "getters" or read-only functions, in which case you can give a bogus/0x000... private key (since it won't ever be used). On server, it's recommended to store the private key encrypted on disk and only decrypt it just before handing it to the DataUnionClient, so that it will be in cleartext only in memory, never on disk.
+The second option is to give the private key directly in cleartext. This is meant for the server side node.js scripts, but also can be used in the browser; especially in the case where you don't need to sign things at all but only use the "getters" or read-only functions, in which case you can give a bogus/0x000... private key (since it won't ever be used). On server, it's recommended to store the private key encrypted on disk and only decrypt it just before handing it to the RailClient, so that it will be in cleartext only in memory, never on disk.
 ```js
-import { DataUnionClient } from '@rail-protocol/client'
+import { RailClient } from '@rail-protocol/client'
 const { privateKey } = Wallet.fromEncryptedJsonSync(process.env.WALLET_FILE)
-const DU = new DataUnionClient({
+const DU = new RailClient({
   auth: { privateKey },
   chain: 'gnosis',
 });
 ```
 
-The DataUnionClient object can be used to either deploy a new Data Union contract, or manipulate/query an existing one.
+The RailClient object can be used to either deploy a new Vault contract, or manipulate/query an existing one.
 
 The address that deploys the contract will become the admin of the data union. To deploy a new DataUnion with default [deployment options](#deployment-options):
 ```js
-const dataUnion = await DU.deployDataUnion()
+const dataUnion = await DU.deployVault()
 ```
 
 To get an existing (previously deployed) `DataUnion` instance:
 ```js
-const dataUnion = await DU.getDataUnion('0x12345...')
+const dataUnion = await DU.getVault('0x12345...')
 ```
 
 
@@ -48,7 +48,7 @@ Executing the admin functions generate transactions and as such require having e
 
 Adding members using admin functions is not at feature parity with the member function `join`. The newly added member will not automatically be granted publish permissions to the streams inside the Data Union. This will need to be done manually using the StreamrClient, see `StreamrClient.grantPermissions()`. Similarly, after removing a member using the admin function `removeMembers`, the publish permissions will need to be removed in a secondary step using `StreamrClient.revokePermissions()`. This is because the member function `join` relies on DU DAO hosted infrastructure, while the admin functions are completely self-sufficient (in fact, the DU DAO hosted server uses these very admin functions :).
 
-Adding members (joinPart agent only, [read here more about the roles](https://docs.dataunions.org/main-concepts/roles-and-responsibilities/joinpart-agents)):
+Adding members (joinPart agent only, [read here more about the roles](https://docs.rail.dev/main-concepts/roles-and-responsibilities/joinpart-agents)):
 ```js
 const receipt = await dataUnion.addMembers([
     '0x11111...',
@@ -56,7 +56,7 @@ const receipt = await dataUnion.addMembers([
     '0x33333...',
 ])
 ```
-Removing members (joinPart agent only (usually the admin is also a joinPart agent) read more [here](https://docs.dataunions.org/main-concepts/roles-and-responsibilities/joinpart-agents)):
+Removing members (joinPart agent only (usually the admin is also a joinPart agent) read more [here](https://docs.rail.dev/main-concepts/roles-and-responsibilities/joinpart-agents)):
 ```js
 const receipt = await dataUnion.removeMembers([
     '0x11111...',
@@ -194,26 +194,26 @@ const version = await dataUnion.getVersion()
 
 #### Deployment options
 
-`deployDataUnion` can take an options object as the argument. It's an object that can contain the following parameters. All shown values are the defaults for each property:
+`deployVault` can take an options object as the argument. It's an object that can contain the following parameters. All shown values are the defaults for each property:
 ```js
 const deploymentOptions = {
     adminAddress: "0x123...", // If omitted, defaults to the deployer. Will be the admin of the newly created data union
     adminFee: 0.3, // Share of revenue allocated to the adminAddress. Must be between 0...1
-    joinPartAgents: ["0x123..."], // Addresses that can join and part members. If omitted, set by default to include the admin as well as the default join server hosted by DU DAO
+    joinPartAgents: ["0x123..."], // Addresses that can join and part members. If omitted, set by default to include the admin as well as the default join server hosted by Rail Protocol
     metadata: { // optional
         "information": "related to your data union",
         "canBe": ["", "anything"]
     }
 }
 
-const dataUnion = await DU.deployDataUnion({
+const dataUnion = await DU.deployVault({
     deploymentOptions
 })
 ```
 
-The [Default Join Server](https://github.com/dataunions/default-join-server) hosted by the Data Union DAO is added as a `joinPartAgent` by default so that joining with secret works using the member function `join`. If you plan to run your own join server, include its address in the `joinPartAgents`:
+The [Default Join Server](https://github.com/dataunions/default-join-server) hosted by the Rail Protocol is added as a `joinPartAgent` by default so that joining with secret works using the member function `join`. If you plan to run your own join server, include its address in the `joinPartAgents`:
 ```js
-const dataUnion = await DU.deployDataUnion({
+const dataUnion = await DU.deployVault({
     joinPartAgents: [adminAddress, myJoinServerAddress],
     adminFee,
 })
@@ -227,5 +227,5 @@ const address = await dataunions.getAddress()
 
 If you want to generate a new random wallet, you can use
 ```js
-const { address, privateKey } = DataUnionClient.generateEthereumAccount()
+const { address, privateKey } = RailClient.generateEthereumAccount()
 ```

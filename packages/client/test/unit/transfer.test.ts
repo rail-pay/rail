@@ -1,13 +1,13 @@
 import { parseEther, formatEther } from '@ethersproject/units'
 import type { Wallet } from '@ethersproject/wallet'
 
-import { DataUnionClient } from '../../src/DataUnionClient'
+import { RailClient } from '../../src/RailClient'
 
 import { deployContracts, getWallets } from './setup'
 
 import type { DATAv2 } from '@streamr/data-v2'
 import type { BigNumberish } from '@ethersproject/bignumber'
-import type { DataUnion } from '../../src/DataUnion'
+import type { Vault } from '../../src/Vault'
 
 // const { log } = console
 const log = (..._: unknown[]) => {}
@@ -20,8 +20,8 @@ describe('DataUnion earnings transfer methods', () => {
     let otherMember: Wallet
     let outsider: Wallet
     let token: DATAv2
-    let dataUnion: DataUnion
-    let outsiderDataUnion: DataUnion
+    let dataUnion: Vault
+    let outsiderDataUnion: Vault
     beforeAll(async () => {
         [
             dao,
@@ -49,15 +49,15 @@ describe('DataUnion earnings transfer methods', () => {
         }
 
         // deploy a DU with admin fee 9% + DU fee 1% = total 10% fees
-        const adminClient = new DataUnionClient({ ...clientOptions, auth: { privateKey: admin.privateKey } })
-        const adminDataUnion = await adminClient.deployDataUnion({ adminFee: 0.09 })
+        const adminClient = new RailClient({ ...clientOptions, auth: { privateKey: admin.privateKey } })
+        const adminDataUnion = await adminClient.deployVault({ adminFee: 0.09 })
         await adminDataUnion.addMembers([member.address, otherMember.address])
 
-        const client = new DataUnionClient(clientOptions)
-        dataUnion = await client.getDataUnion(adminDataUnion.getAddress())
+        const client = new RailClient(clientOptions)
+        dataUnion = await client.getVault(adminDataUnion.getAddress())
 
-        const outsiderClient = new DataUnionClient({ ...clientOptions, auth: { privateKey: outsider.privateKey } })
-        outsiderDataUnion = await outsiderClient.getDataUnion(dataUnion.getAddress())
+        const outsiderClient = new RailClient({ ...clientOptions, auth: { privateKey: outsider.privateKey } })
+        outsiderDataUnion = await outsiderClient.getVault(dataUnion.getAddress())
     })
 
     async function fundDataUnion(dataUnionAddress: string, amountWei: BigNumberish) {

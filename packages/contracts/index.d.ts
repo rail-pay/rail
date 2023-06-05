@@ -1,1 +1,0 @@
-declare module "@rail-protocol/contracts";

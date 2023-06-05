@@ -31,7 +31,7 @@ contract Vault is Ownable, IERC677Receiver, IPurchaseListener {
 
     // Revenue handling: earnings = revenue - admin fee - du fee
     event RevenueReceived(uint256 amount);
-    event FeesCharged(uint256 adminFee, uint256 dataUnionFee);
+    event FeesCharged(uint256 adminFee, uint256 protocolFee);
     event NewEarnings(uint256 earningsPerMember, uint256 activeMemberCount);
     event NewWeightedEarnings(uint256 earningsPerUnitWeight, uint256 totalWeightWei, uint256 activeMemberCount);
 
@@ -175,7 +175,8 @@ contract Vault is Ownable, IERC677Receiver, IPurchaseListener {
 
     /**
      * Process unaccounted tokens that have been sent previously
-     * Called by AMB (see DataUnionMainnet:sendTokensToBridge)
+     * After calling this function, getters will show correct earnings for the beneficiaries
+     * TODO: getters should call this function, too!
      */
     function refreshRevenue() public returns (uint256) {
         uint256 balance = token.balanceOf(address(this));

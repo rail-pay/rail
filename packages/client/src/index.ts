@@ -1,12 +1,12 @@
 /**
- * DataUnionClient
+ * RailClient
  *
  * @packageDocumentation
- * @module DataUnionClient
+ * @module RailClient
  */
 
 import 'reflect-metadata'
-import { DataUnionClient } from './DataUnionClient'
+import { RailClient } from './RailClient'
 
 /**
  * This file captures named exports so we can manipulate them for cjs/browser builds.
@@ -18,10 +18,10 @@ export type { ContractReceipt, ContractTransaction } from '@ethersproject/contra
 export type { ExternalProvider } from '@ethersproject/providers'
 export type { ConnectionInfo } from '@ethersproject/web'
 
-export { DataUnionConfig, DATAUNION_CLIENT_DEFAULTS } from './Config'
+export { RailClientConfig, RAIL_CLIENT_DEFAULTS } from './Config'
 export * from './EthereumAddress'
 
-export * from './DataUnionClient'
-export * from './DataUnion'
+export * from './RailClient'
+export * from './Vault'
 
-export default DataUnionClient
+export default RailClient

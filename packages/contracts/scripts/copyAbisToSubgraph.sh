@@ -11,6 +11,7 @@ case "$PWD" in
 esac
 
 # This should be done right after a deployment: update thegraph definitions, use the most current ABIs
+# TODO: automate deployment
 
 jq .abi artifacts/contracts/VaultFactory.sol/VaultFactory.json > ../subgraph/abis/VaultFactory.json
 jq .abi artifacts/contracts/Vault.sol/Vault.json > ../subgraph/abis/Vault.json

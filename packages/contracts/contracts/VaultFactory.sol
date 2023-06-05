@@ -16,8 +16,8 @@ import "./Ownable.sol";
 contract VaultFactory is Initializable, OwnableUpgradeable, UUPSUpgradeable {
     event DUCreated(address indexed du, address indexed owner, address template);
 
-    event NewDUInitialEthUpdated(uint amount);
-    event NewDUOwnerInitialEthUpdated(uint amount);
+    event NewVaultInitialEthUpdated(uint amount);
+    event NewVaultOwnerInitialEthUpdated(uint amount);
     event DefaultNewMemberInitialEthUpdated(uint amount);
     event ProtocolFeeOracleUpdated(address newFeeOracleAddress);
 
@@ -27,9 +27,9 @@ contract VaultFactory is Initializable, OwnableUpgradeable, UUPSUpgradeable {
     address public vault;
     address public defaultToken;
 
-    // when sidechain DU is created, the factory sends a bit of sETH to the DU and the owner
-    uint public newDUInitialEth;
-    uint public newDUOwnerInitialEth;
+    // when the Vault is created, the factory sends a bit of ETH/MATIC/... to the DU and the owner, to get them started
+    uint public newVaultInitialEth;
+    uint public newVaultOwnerInitialEth;
     uint public defaultNewMemberEth;
     address public protocolFeeOracle;
 
@@ -55,14 +55,14 @@ contract VaultFactory is Initializable, OwnableUpgradeable, UUPSUpgradeable {
     // contract is payable so it can receive and hold the new member eth stipends
     receive() external payable {}
 
-    function setNewDUInitialEth(uint initialEthWei) public onlyOwner {
-        newDUInitialEth = initialEthWei;
-        emit NewDUInitialEthUpdated(initialEthWei);
+    function setNewVaultInitialEth(uint initialEthWei) public onlyOwner {
+        newVaultInitialEth = initialEthWei;
+        emit NewVaultInitialEthUpdated(initialEthWei);
     }
 
-    function setNewDUOwnerInitialEth(uint initialEthWei) public onlyOwner {
-        newDUOwnerInitialEth = initialEthWei;
-        emit NewDUOwnerInitialEthUpdated(initialEthWei);
+    function setNewVaultOwnerInitialEth(uint initialEthWei) public onlyOwner {
+        newVaultOwnerInitialEth = initialEthWei;
+        emit NewVaultOwnerInitialEthUpdated(initialEthWei);
     }
 
     function setNewMemberInitialEth(uint initialEthWei) public onlyOwner {
@@ -75,7 +75,7 @@ contract VaultFactory is Initializable, OwnableUpgradeable, UUPSUpgradeable {
         emit ProtocolFeeOracleUpdated(newFeeOracleAddress);
     }
 
-    function deployNewDataUnion(
+    function deployNewVault(
         address payable owner,
         uint256 adminFeeFraction,
         address[] memory agents,
@@ -84,7 +84,7 @@ contract VaultFactory is Initializable, OwnableUpgradeable, UUPSUpgradeable {
         public
         returns (address)
     {
-        return deployNewDataUnionUsingToken(
+        return deployNewVaultUsingToken(
             defaultToken,
             owner,
             agents,
@@ -93,7 +93,7 @@ contract VaultFactory is Initializable, OwnableUpgradeable, UUPSUpgradeable {
         );
     }
 
-    function deployNewDataUnionUsingToken(
+    function deployNewVaultUsingToken(
         address token,
         address payable owner,
         address[] memory agents,
@@ -114,16 +114,16 @@ contract VaultFactory is Initializable, OwnableUpgradeable, UUPSUpgradeable {
         emit DUCreated(du, owner, vault);
 
         // continue whether or not send succeeds
-        if (newDUInitialEth != 0 && address(this).balance >= newDUInitialEth) {
-            if (du.send(newDUInitialEth)) {
-                emit DUInitialEthSent(newDUInitialEth);
+        if (newVaultInitialEth != 0 && address(this).balance >= newVaultInitialEth) {
+            if (du.send(newVaultInitialEth)) {
+                emit DUInitialEthSent(newVaultInitialEth);
             }
         }
-        if (newDUOwnerInitialEth != 0 && address(this).balance >= newDUOwnerInitialEth) {
+        if (newVaultOwnerInitialEth != 0 && address(this).balance >= newVaultOwnerInitialEth) {
             // ignore failed sends. If they don't want the stipend, that's not a problem
             // solhint-disable-next-line multiple-sends
-            if (owner.send(newDUOwnerInitialEth)) {
-                emit OwnerInitialEthSent(newDUOwnerInitialEth);
+            if (owner.send(newVaultOwnerInitialEth)) {
+                emit OwnerInitialEthSent(newVaultOwnerInitialEth);
             }
         }
         return du;

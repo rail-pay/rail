@@ -1,11 +1,11 @@
 import { Wallet } from '@ethersproject/wallet'
 
-import { DataUnionClient } from '../../src/DataUnionClient'
+import { RailClient } from '../../src/RailClient'
 
 import { deployContracts, getWallets } from './setup'
 
 import type { DATAv2 } from '@streamr/data-v2'
-import type { DataUnion } from '../../src/DataUnion'
+import type { Vault } from '../../src/Vault'
 
 describe('DataUnion member', () => {
 
@@ -14,8 +14,8 @@ describe('DataUnion member', () => {
     let member: Wallet
     let otherMember: Wallet
     let token: DATAv2
-    let dataUnion: DataUnion
-    let adminDataUnion: DataUnion
+    let dataUnion: Vault
+    let adminDataUnion: Vault
     beforeAll(async () => {
         [
             dao,
@@ -41,12 +41,12 @@ describe('DataUnion member', () => {
             network: { rpcs: [{ url: ethereumUrl, timeout: 30 * 1000 }] }
         }
 
-        const adminClient = new DataUnionClient({ ...clientOptions, auth: { privateKey: admin.privateKey } })
-        adminDataUnion = await adminClient.deployDataUnion()
+        const adminClient = new RailClient({ ...clientOptions, auth: { privateKey: admin.privateKey } })
+        adminDataUnion = await adminClient.deployVault()
         await adminDataUnion.addMembers([member.address, otherMember.address])
 
-        const client = new DataUnionClient(clientOptions)
-        dataUnion = await client.getDataUnion(adminDataUnion.getAddress())
+        const client = new RailClient(clientOptions)
+        dataUnion = await client.getVault(adminDataUnion.getAddress())
     })
 
     it('cannot be just any random address', async () => {

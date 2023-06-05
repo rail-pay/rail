@@ -24,11 +24,9 @@
         "package.json",
         "src/**/*",
         "src/**/*.json",
-        "vendor/**/*",
         "src/config.schema.json"
     ],
     "exclude": [
         "src/index-esm.mjs"
-    ],
-    "references": []
+    ]
 }

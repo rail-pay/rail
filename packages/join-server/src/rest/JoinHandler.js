@@ -32,7 +32,7 @@ class JoinHandler {
 		try {
 			dataUnion = new domain.Address(req.validatedRequest.dataUnion)
 		} catch (err) {
-			this.sendJsonError(res, 400, `Invalid Data Union contract address: '${err.address}'`)
+			this.sendJsonError(res, 400, `Invalid Vault contract address: '${err.address}'`)
 			return
 		}
 

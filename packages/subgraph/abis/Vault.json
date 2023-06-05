@@ -54,7 +54,7 @@
       {
         "indexed": false,
         "internalType": "uint256",
-        "name": "dataUnionFee",
+        "name": "protocolFee",
         "type": "uint256"
       }
     ],

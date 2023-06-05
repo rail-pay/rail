@@ -6,11 +6,11 @@ import DefaultExport, * as NamedExports from '@rail-protocol/client'
 
 console.info('import DefaultExport, * as NamedExports from \'@rail-protocol/client\':', { DefaultExport, NamedExports })
 
-const DataUnionClient = DefaultExport
+const RailClient = DefaultExport
 
-assert(!!NamedExports.DATAUNION_CLIENT_DEFAULTS, 'Named exports should contain DATAUNION_CLIENT_DEFAULTS')
+assert(!!NamedExports.RAIL_CLIENT_DEFAULTS, 'Named exports should contain RAIL_CLIENT_DEFAULTS')
 
-const client = new DataUnionClient({
+const client = new RailClient({
     auth: Wallet.createRandom(),
 })
 

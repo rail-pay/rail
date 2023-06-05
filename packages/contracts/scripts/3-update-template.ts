@@ -1,12 +1,12 @@
 import { ContractFactory } from "ethers"
 import { ethers } from "hardhat"
-import { Chains } from "@streamr/config"
+import chains from "@rail-protocol/config"
 
 import { VaultFactory, Vault } from "../typechain"
 
 const { CHAIN } = process.env
 if (!CHAIN) { throw new Error("Please specify CHAIN environment variable (dev0, dev1, gnosis, polygon, mainnet)") }
-const { contracts } = Chains.load()[CHAIN]
+const { vaultFactoryAddress } = chains[CHAIN]
 
 async function main() {
     const vaultCF = await ethers.getContractFactory("Vault")
@@ -15,7 +15,7 @@ async function main() {
     console.log("DU template deployed at %s", vault.address)
 
     const vaultFactoryCF = await ethers.getContractFactory("VaultFactory") as ContractFactory
-    const vaultFactory = vaultFactoryCF.attach(contracts.VaultFactory) as VaultFactory
+    const vaultFactory = vaultFactoryCF.attach(vaultFactoryAddress) as VaultFactory
     console.log("DU factory deployed at %s", vaultFactory.address)
 
     const oldTemplateAddress = await vaultFactory.vault()

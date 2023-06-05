@@ -11,8 +11,8 @@ const createOnMemberJoin = require("./OnMemberJoin")
 
 module.exports = class DefaultJoinServer {
 
-	constructor(dataUnionClientOptions) {
-		this.dataUnionClientOptions = dataUnionClientOptions
+	constructor(railClientOptions) {
+		this.railClientOptions = railClientOptions
 	}
 
 	async start() {

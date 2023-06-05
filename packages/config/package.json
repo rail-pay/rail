@@ -4,7 +4,7 @@
     "author": "The Rail Protocol <contact@rail-protocol.org>",
     "description": "Rail Protocol smart contract addresses and other chain configs",
     "license": "Apache-2.0",
-    "main": "index.js",
+    "main": "chains.json",
     "repository": {
         "type": "git",
         "url": "git+https://github.com/streamr-dev/network-contracts.git"

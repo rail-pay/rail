@@ -1,5 +1,5 @@
 {
-  "extends": "./tsconfig.node.dataunion.json",
+  "extends": "./tsconfig.node.json",
   "compilerOptions": {
     "types": [
       "jest",

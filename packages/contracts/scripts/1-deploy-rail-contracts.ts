@@ -2,21 +2,22 @@ import { ethers, upgrades } from "hardhat"
 
 import { getAddress } from "@ethersproject/address"
 
-import { Chains } from "@streamr/config"
+import chains from "@rail-protocol/config"
 
 import { VaultFactory, DefaultFeeOracle } from "../typechain"
 import { parseEther } from "@ethersproject/units"
 
 const {
     PROTOCOL_BENEFICIARY_ADDRESS,
-    CHAIN = "dev0"
+    CHAIN = "docker"
 } = process.env
 
-const { DATA: tokenAddress } = Chains.load()[CHAIN].contracts
 if (!PROTOCOL_BENEFICIARY_ADDRESS) { throw new Error("Environment variable PROTOCOL_BENEFICIARY_ADDRESS not set") }
 const protocolBeneficiaryAddress = getAddress(PROTOCOL_BENEFICIARY_ADDRESS)
 
-async function main() {
+const { tokenAddress } = chains[CHAIN]
+
+async function deployContracts() {
     const signer = (await ethers.getSigners())[0]
 
     const vaultFactory = await ethers.getContractFactory("Vault", { signer })
@@ -41,7 +42,7 @@ async function main() {
     console.log("DU factory deployed at %s", factory.address)
 }
 
-main()
+deployContracts()
     .then(() => process.exit(0))
     .catch((error) => {
         console.error(error)

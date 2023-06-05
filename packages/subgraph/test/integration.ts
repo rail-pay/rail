@@ -5,7 +5,7 @@ import { Wallet, providers, utils } from 'ethers'
 const { parseEther, formatEther } = utils
 
 import { DATAv2, deployToken } from '@streamr/data-v2'
-import { DataUnion, DataUnionClient } from '@rail-protocol/client'
+import { DataUnion, RailClient } from '@rail-protocol/client'
 
 import { until } from '../../client/test/until'
 
@@ -43,16 +43,16 @@ describe('DU subgraph', () => {
         await (await token.grantRole(MINTER_ROLE, tokenAdminWallet.address)).wait()
         log('   token deployed at %s', token.address)
 
-        const client = new DataUnionClient({
+        const client = new RailClient({
             auth: { privateKey: wallet.privateKey },
             chain: 'dev1',
             tokenAddress: token.address,
         })
         log('Deploying DU from %s...', wallet.address)
-        dataUnion = await client.deployDataUnionUsingToken(token.address, {})
-        const duAddress = dataUnion.getAddress()
-        log('DU deployed at %s, waiting for thegraph confirmation...', duAddress)
-        await until(async () => (await query(`{ dataUnion(id: "${duAddress.toLowerCase()}") { id } }`)).dataUnion != null, 10000, 2000)
+        dataUnion = await client.deployVaultUsingToken(token.address, {})
+        const vaultAddress = dataUnion.getAddress()
+        log('DU deployed at %s, waiting for thegraph confirmation...', vaultAddress)
+        await until(async () => (await query(`{ dataUnion(id: "${vaultAddress.toLowerCase()}") { id } }`)).dataUnion != null, 10000, 2000)
     })
 
     it('detects member joins and parts (MemberJoined, MemberParted)', async function () {
@@ -65,13 +65,13 @@ describe('DU subgraph', () => {
 
         async function getMemberBuckets(): Promise<Array<any>> {
             const res = await query(`{
-                dataUnionStatsBuckets(where: {dataUnion: "${dataUnionId}"}) {
+                vaultBuckets(where: {dataUnion: "${dataUnionId}"}) {
                     memberCountAtStart
                     memberCountChange
                     type
                   }
             }`)
-            return res.dataUnionStatsBuckets
+            return res.vaultBuckets
         }
 
         const memberCountAtStart = await getMemberCount()
@@ -117,12 +117,12 @@ describe('DU subgraph', () => {
 
         async function getRevenueBuckets(): Promise<Array<any>> {
             const res = await query(`{
-                dataUnionStatsBuckets(where: {dataUnion: "${dataUnionId}", type: "DAY"}) {
+                vaultBuckets(where: {dataUnion: "${dataUnionId}", type: "DAY"}) {
                     revenueAtStartWei
                     revenueChangeWei
                 }
             }`)
-            return res.dataUnionStatsBuckets
+            return res.vaultBuckets
         }
 
         const revenueEventsBefore = await getRevenueEvents()
@@ -190,13 +190,13 @@ describe('DU subgraph', () => {
 
         async function getWeightBuckets(): Promise<Array<any>> {
             const res = await query(`{
-                dataUnionStatsBuckets(where: {dataUnion: "${dataUnionId}"}) {
+                vaultBuckets(where: {dataUnion: "${dataUnionId}"}) {
                     totalWeightAtStart
                     totalWeightChange
                     type
                   }
             }`)
-            return res.dataUnionStatsBuckets
+            return res.vaultBuckets
         }
 
         const totalWeightBefore = await getTotalWeight()

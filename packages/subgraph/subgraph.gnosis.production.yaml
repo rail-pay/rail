@@ -39,7 +39,7 @@ templates:
       file: ./src/dataunion.ts
       entities:
         - Member
-        - DataUnionStatsBucket
+        - VaultBucket
         - RevenueEvent
       abis:
         - name: Vault

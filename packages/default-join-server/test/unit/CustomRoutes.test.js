@@ -23,7 +23,7 @@ describe('CustomRoutes', () => {
 		}
 
 		client = {
-			getDataUnion: sinon.spy(async (dataUnionAddress) => {
+			getVault: sinon.spy(async (dataUnionAddress) => {
 				if (dataUnionAddress === '0x12345') {
 					return dataUnion
 				}
@@ -78,7 +78,7 @@ describe('CustomRoutes', () => {
 				})
 			})
 
-			expect(client.getDataUnion.calledOnceWith('not-found'))
+			expect(client.getVault.calledOnceWith('not-found'))
 			expect(dataUnion.getAdminAddress.calledOnce).to.be.false
 			expect(db.listSecrets.called).to.be.false
 		})
@@ -131,7 +131,7 @@ describe('CustomRoutes', () => {
 				})
 			})
 
-			expect(client.getDataUnion.calledOnceWith('not-found'))
+			expect(client.getVault.calledOnceWith('not-found'))
 			expect(dataUnion.getAdminAddress.calledOnce).to.be.false
 			expect(db.createAppSecret.called).to.be.false
 		})
@@ -188,7 +188,7 @@ describe('CustomRoutes', () => {
 				})
 			})
 
-			expect(client.getDataUnion.calledOnceWith('not-found'))
+			expect(client.getVault.calledOnceWith('not-found'))
 			expect(dataUnion.getAdminAddress.calledOnce).to.be.false
 			expect(db.deleteAppSecret.called).to.be.false
 		})

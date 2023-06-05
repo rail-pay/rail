@@ -102,7 +102,7 @@ describe("LimitWithdrawModule", () => {
         await dataUnion.partMembers(newMembers)
     })
 
-    it("only lets data union contract call the methods", async () => {
+    it("only lets vault contract call the methods", async () => {
         await expect(limitWithdrawModule.onJoin(others[0].address)).to.be.revertedWith("error_onlyDataUnionContract")
         await expect(limitWithdrawModule.onPart(others[0].address, "0")).to.be.revertedWith("error_onlyDataUnionContract")
         await expect(limitWithdrawModule.onWithdraw(member0.address, others[0].address, testToken.address, "0")).to.be.revertedWith("error_onlyDataUnionContract")

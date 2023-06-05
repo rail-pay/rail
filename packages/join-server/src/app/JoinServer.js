@@ -3,7 +3,7 @@ const express = require('express')
 const cors = require('cors')
 const http = require('http')
 const pino = require('pino')
-const { DataUnionClient } = require('@rail-protocol/client')
+const { RailClient } = require('@rail-protocol/client')
 const config = require('@streamr/config')
 const rest = require('../rest')
 const { JoinRequestService } = require('./JoinRequestService')
@@ -64,7 +64,7 @@ class JoinServer {
 			for (const chainName in chains) {
 				for (const contractName in chains[chainName].contracts) {
 					if (contractName === "VaultFactory") {
-						clients.set(chainName, this.newDataUnionClient(chains[chainName], privateKey))
+						clients.set(chainName, this.newRailClient(chains[chainName], privateKey))
 					}
 				}
 			}
@@ -122,7 +122,7 @@ class JoinServer {
 		})
 	}
 
-	newDataUnionClient(chain /* config.Chain */, privateKey /* string */) {
+	newRailClient(chain /* config.Chain */, privateKey /* string */) {
 		const options = {
 			auth: {
 				privateKey,
@@ -133,7 +133,7 @@ class JoinServer {
 				rpcs: chain.rpcEndpoints,
 			}
 		}
-		return new DataUnionClient(options)
+		return new RailClient(options)
 	}
 
 	routes() {

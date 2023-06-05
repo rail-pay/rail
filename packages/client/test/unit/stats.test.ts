@@ -1,9 +1,9 @@
 import type { Wallet } from '@ethersproject/wallet'
 
-import { DataUnionClient } from '../../src/DataUnionClient'
-import type { DataUnionClientConfig } from '../../src/Config'
+import { RailClient } from '../../src/RailClient'
+import type { RailClientConfig } from '../../src/Config'
 import type { DATAv2 } from '@streamr/data-v2'
-import type { DataUnion } from '../../src/DataUnion'
+import type { Vault } from '../../src/Vault'
 
 import { deployContracts, getWallets } from './setup'
 
@@ -15,9 +15,9 @@ describe('DataUnion stats getters', () => {
     let otherMember: Wallet
     let removedMember: Wallet
     let outsider: Wallet
-    let dataUnion: DataUnion
+    let dataUnion: Vault
     let token: DATAv2
-    let clientOptions: Partial<DataUnionClientConfig>
+    let clientOptions: Partial<RailClientConfig>
     beforeAll(async () => {
         [
             dao,
@@ -44,13 +44,13 @@ describe('DataUnion stats getters', () => {
             },
             network: { rpcs: [{ url: ethereumUrl, timeout: 30 * 1000 }] }
         }
-        const adminClient = new DataUnionClient({ ...clientOptions, auth: { privateKey: admin.privateKey } })
-        const adminDataUnion = await adminClient.deployDataUnion()
+        const adminClient = new RailClient({ ...clientOptions, auth: { privateKey: admin.privateKey } })
+        const adminDataUnion = await adminClient.deployVault()
         await adminDataUnion.addMembers([member.address, otherMember.address, removedMember.address])
         await adminDataUnion.removeMembers([removedMember.address])
 
-        const client = new DataUnionClient(clientOptions)
-        dataUnion = await client.getDataUnion(adminDataUnion.getAddress())
+        const client = new RailClient(clientOptions)
+        dataUnion = await client.getVault(adminDataUnion.getAddress())
     })
 
     it('DataUnion stats', async () => {

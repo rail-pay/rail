@@ -9,7 +9,7 @@ import { Vault as templateJson, VaultFactory as factoryJson, DefaultFeeOracle as
 import type { Vault, VaultFactory, IFeeOracle } from '@rail-protocol/contracts/typechain'
 
 // import debug from 'debug'
-// const log = debug('DataUnionClient:unit-tests:withdraw')
+// const log = debug('RailClient:unit-tests:withdraw')
 
 const ethereumRpcPort = Number.parseInt(process.env.GANACHE_PORT || "3456")
 const ethereumUrl = `http://localhost:${ethereumRpcPort}`

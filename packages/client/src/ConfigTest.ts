@@ -1,4 +1,15 @@
-import { networks } from "@streamr/config"
+import config from "@rail-protocol/config"
+
+const {
+    REST_URL,
+    STREAMR_DOCKER_DEV_HOST,
+    TOKEN_ADDRESS = config.docker.tokenAddress,
+    FACTORY_ADDRESS = config.docker.vaultFactoryAddress,
+    TEMPLATE_ADDRESS = config.docker.vaultTemplateAddress,
+    JOIN_PART_AGENT_ADDRESS = config.docker.joinPartAgentAddress,
+    ETHEREUM_SERVER_URL,
+    TEST_TIMEOUT,
+} = process.env
 
 function toNumber(value: any): number | undefined {
     return (value !== undefined) ? Number(value) : undefined
@@ -8,20 +19,20 @@ function toNumber(value: any): number | undefined {
  * Streamr client constructor options that work in the test environment
  */
 export const ConfigTest = {
-    // theGraphUrl: `http://${process.env.STREAMR_DOCKER_DEV_HOST || '10.200.10.1'}:8000/subgraphs/name/streamr-dev/network-contracts`,
-    restUrl: process.env.REST_URL || `http://${process.env.STREAMR_DOCKER_DEV_HOST || 'localhost'}/api/v2`,
-    tokenAddress: process.env.TOKEN_ADDRESS || networks.dev1.contracts.DATA,
+    // theGraphUrl: `http://${STREAMR_DOCKER_DEV_HOST || '10.200.10.1'}:8000/subgraphs/name/streamr-dev/network-contracts`,
+    restUrl: REST_URL || `http://${STREAMR_DOCKER_DEV_HOST || 'localhost'}/api/v2`,
+    tokenAddress: TOKEN_ADDRESS,
     dataUnion: {
-        factoryAddress: process.env.DU_FACTORY || networks.dev1.contracts.VaultFactory,
-        templateAddress: process.env.DU_TEMPLATE || networks.dev1.contracts.Vault,
-        joinPartAgentAddress: networks.dev0.contracts["core-api"], // TODO: this should be the join server
+        factoryAddress: FACTORY_ADDRESS,
+        templateAddress: TEMPLATE_ADDRESS,
+        joinPartAgentAddress: JOIN_PART_AGENT_ADDRESS,
     },
     network: {
         name: 'dev1',
         chainId: 8996,
         rpcs: [{
-            url: process.env.ETHEREUM_SERVER_URL || `http://${process.env.STREAMR_DOCKER_DEV_HOST || '10.200.10.1'}:8546`,
-            timeout: toNumber(process.env.TEST_TIMEOUT) ?? 30 * 1000
+            url: ETHEREUM_SERVER_URL || `http://${STREAMR_DOCKER_DEV_HOST || '10.200.10.1'}:8546`,
+            timeout: toNumber(TEST_TIMEOUT) ?? 30 * 1000
         }]
     },
     _timeouts: {

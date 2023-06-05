@@ -5,6 +5,7 @@
     "author": "The Rail Protocol <contact@rail-protocol.org>",
     "private": true,
     "workspaces": [
+        "packages/config",
         "packages/contracts",
         "packages/join-server",
         "packages/client",

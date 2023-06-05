@@ -199,7 +199,7 @@
             "src": "contracts/VaultFactory.sol:30"
           },
           {
-            "label": "newDUInitialEth",
+            "label": "newVaultInitialEth",
             "offset": 0,
             "slot": "203",
             "type": "t_uint256",
@@ -207,7 +207,7 @@
             "src": "contracts/VaultFactory.sol:33"
           },
           {
-            "label": "newDUOwnerInitialEth",
+            "label": "newVaultOwnerInitialEth",
             "offset": 0,
             "slot": "204",
             "type": "t_uint256",

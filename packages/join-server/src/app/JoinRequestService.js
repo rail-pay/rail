@@ -15,10 +15,10 @@ class JoinRequestService {
 	}
 
 	async create(member, dataUnion, chain) {
-		const dataUnionClient = this.clients.get(chain)
+		const railClient = this.clients.get(chain)
 		let du
 		try {
-			du = await dataUnionClient.getDataUnion(dataUnion)
+			du = await railClient.getVault(dataUnion)
 		} catch (err) {
 			throw new DataUnionRetrievalError(`Error while retrieving data union ${dataUnion}: ${err.message}`)
 		}
@@ -47,8 +47,8 @@ class JoinRequestService {
 	}
 
 	close() {
-		this.clients.forEach((dataUnionClient) => {
-			dataUnionClient.close()
+		this.clients.forEach((railClient) => {
+			railClient.close()
 		})
 	}
 }

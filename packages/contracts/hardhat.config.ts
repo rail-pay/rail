@@ -1,11 +1,8 @@
-import "@nomiclabs/hardhat-waffle"
-import "@nomiclabs/hardhat-ethers"
+import "@nomicfoundation/hardhat-chai-matchers"
+import "@nomicfoundation/hardhat-toolbox"
 import "@openzeppelin/hardhat-upgrades"
-import "hardhat-typechain"
-import "solidity-coverage"
-import type { HardhatUserConfig } from "hardhat/types"
 
-const config: HardhatUserConfig = {
+const config = {
     solidity: {
         version: "0.8.6",
         settings: {

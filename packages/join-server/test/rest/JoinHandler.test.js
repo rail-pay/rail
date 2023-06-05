@@ -97,7 +97,7 @@ describe('POST /join', async () => {
 					chain: 'polygon',
 				}),
 			},
-			expectedErrorMessage: `Invalid Data Union contract address: '0x01234'`,
+			expectedErrorMessage: `Invalid Vault contract address: '0x01234'`,
 		},
 		{
 			name: 'client sends invalid chain name',

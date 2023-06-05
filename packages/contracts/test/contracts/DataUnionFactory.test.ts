@@ -52,15 +52,15 @@ describe("VaultFactory", (): void => {
 
     it("sidechain ETH flow", async () => {
         const ownerEth = parseEther("0.01")
-        const newDUEth = parseEther("1")
+        const newVaultEth = parseEther("1")
         const newMemberEth = parseEther("0.1")
 
         const factoryOutsider = factory.connect(others[0])
-        await expect(factoryOutsider.setNewDUInitialEth(newMemberEth)).to.be.reverted
-        await expect(factoryOutsider.setNewDUOwnerInitialEth(newMemberEth)).to.be.reverted
+        await expect(factoryOutsider.setNewVaultInitialEth(newMemberEth)).to.be.reverted
+        await expect(factoryOutsider.setNewVaultOwnerInitialEth(newMemberEth)).to.be.reverted
         await expect(factoryOutsider.setNewMemberInitialEth(newMemberEth)).to.be.reverted
-        await expect(factory.setNewDUInitialEth(newDUEth)).to.emit(factory, "NewDUInitialEthUpdated")
-        await expect(factory.setNewDUOwnerInitialEth(ownerEth)).to.emit(factory, "NewDUOwnerInitialEthUpdated")
+        await expect(factory.setNewVaultInitialEth(newVaultEth)).to.emit(factory, "NewVaultInitialEthUpdated")
+        await expect(factory.setNewVaultOwnerInitialEth(ownerEth)).to.emit(factory, "NewVaultOwnerInitialEthUpdated")
         await expect(factory.setNewMemberInitialEth(newMemberEth)).to.emit(factory, "DefaultNewMemberInitialEthUpdated")
 
         await others[0].sendTransaction({
@@ -70,7 +70,7 @@ describe("VaultFactory", (): void => {
 
         const creatorBalanceBefore = await provider.getBalance(creator.address)
 
-        // function deployNewDataUnion(
+        // function deployNewVault(
         //     address payable owner,
         //     uint256 adminFeeFraction,
         //     address[] memory agents,
@@ -82,30 +82,30 @@ describe("VaultFactory", (): void => {
             agents.map(a => a.address),
             "",
         ]
-        log("deployNewDUSidechain args: %o", args)
+        log("deployNewVaultSidechain args: %o", args)
 
-        const tx = await factory.deployNewDataUnion(...args)
+        const tx = await factory.deployNewVault(...args)
         const tr = await tx.wait()
         const [createdEvent] = tr?.events?.filter((evt) => evt?.event === "DUCreated") ?? []
         if (!createdEvent || !createdEvent.args || !createdEvent.args.length) {
             throw new Error("Missing DUCreated event")
         }
-        const [newDuAddress] = createdEvent.args
+        const [newVaultAddress] = createdEvent.args
         expect(tr?.events?.filter((evt) => evt?.event === "DUCreated") ?? []).to.have.length(1)
 
-        log("%s code: %s", newDuAddress, await provider.getCode(newDuAddress))
-        expect(await provider.getCode(newDuAddress)).not.equal("0x")
+        log("%s code: %s", newVaultAddress, await provider.getCode(newVaultAddress))
+        expect(await provider.getCode(newVaultAddress)).not.equal("0x")
 
-        const newDuCreator = new Contract(newDuAddress, VaultJson.abi, creator)
-        const newDuAgent = new Contract(newDuAddress, VaultJson.abi, agents[0])
-        const newDuOutsider = new Contract(newDuAddress, VaultJson.abi, others[0])
-        const newDuBalance = await provider.getBalance(newDuAddress)
-        log("newdu_address: %s, balance %s", newDuAddress, newDuBalance)
+        const newVaultCreator = new Contract(newVaultAddress, VaultJson.abi, creator)
+        const newVaultAgent = new Contract(newVaultAddress, VaultJson.abi, agents[0])
+        const newVaultOutsider = new Contract(newVaultAddress, VaultJson.abi, others[0])
+        const newVaultBalance = await provider.getBalance(newVaultAddress)
+        log("newvault_address: %s, balance %s", newVaultAddress, newVaultBalance)
 
         // TODO: move asserts to the end
 
         // check created DU Eth
-        expect(newDuBalance).to.equal(newDUEth)
+        expect(newVaultBalance).to.equal(newVaultEth)
 
         // check owner eth increased (can't assert exact change because creator also pays gas fees)
         const creatorBalanceChange = (await provider.getBalance(creator.address)).sub(creatorBalanceBefore)
@@ -113,18 +113,18 @@ describe("VaultFactory", (): void => {
 
         // 1st added member should have been given newMemberEth
         const balanceBefore1 = await provider.getBalance(members[0].address)
-        await expect(newDuAgent.addMembers(m)).to.emit(newDuAgent, "MemberJoined")
+        await expect(newVaultAgent.addMembers(m)).to.emit(newVaultAgent, "MemberJoined")
         const balanceChange1 = (await provider.getBalance(members[0].address)).sub(balanceBefore1)
         expect(balanceChange1).to.equal(newMemberEth)
 
         // change the setting from within DU. check member Eth
         const newMemberEth2 = parseEther("0.2")
-        await expect(newDuOutsider.setNewMemberEth(newMemberEth2)).to.be.reverted
-        await expect(newDuCreator.setNewMemberEth(newMemberEth2)).to.emit(newDuCreator, "NewMemberEthChanged")
+        await expect(newVaultOutsider.setNewMemberEth(newMemberEth2)).to.be.reverted
+        await expect(newVaultCreator.setNewMemberEth(newMemberEth2)).to.emit(newVaultCreator, "NewMemberEthChanged")
 
         // 2nd added member should have been given newMemberEth
         const balanceBefore2 = await provider.getBalance(others[0].address)
-        await expect(newDuAgent.addMembers(o.slice(0, 1))).to.emit(newDuAgent, "MemberJoined")
+        await expect(newVaultAgent.addMembers(o.slice(0, 1))).to.emit(newVaultAgent, "MemberJoined")
         const balanceChange2 = (await provider.getBalance(others[0].address)).sub(balanceBefore2)
         expect(balanceChange2).to.equal(newMemberEth2)
     })

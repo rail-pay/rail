@@ -25,7 +25,7 @@
             "buffer": [
                 "buffer/"
             ]//,
-            // "@rail-protocol/contracts": [
+            // "@dataunions/contracts": [
             //     "../contracts/typechain/index.ts"
             // ]
         }

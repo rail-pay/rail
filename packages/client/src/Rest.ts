@@ -1,5 +1,6 @@
 /**
  * More ergonomic wrapper around fetch/authFetch
+ * TODO: replace with "normal" fetch
  */
 import { authFetch } from './authFetch'
 

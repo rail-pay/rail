@@ -34,7 +34,7 @@ enum BucketType {
   DAY
 }
 
-type DataUnionStatsBucket @entity {
+type VaultBucket @entity {
   id: ID!
   type: BucketType!
   dataUnion: DataUnion!

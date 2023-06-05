@@ -10,7 +10,7 @@ The process of joining a Data Union is generally as follows:
 
 Data Union builder teams can easily [extend](#extending) the validation logic and run their own join server. Implementing any kind of join request validation logic is possible.
 
-As an alternative to running your own customized join server, the Data Union DAO hosts a [default join server](https://github.com/dataunions/default-join-server), which also extends this base package and implements a validation logic based on application secrets stored in a database. Forking that as a starting point may be an easier way to get started on your own customizations, or you can follow the instructions in this readme to start the customizations from scratch.
+As an alternative to running your own customized join server, the Rail Protocol hosts a [default join server](https://github.com/dataunions/default-join-server), which also extends this base package and implements a validation logic based on application secrets stored in a database. Forking that as a starting point may be an easier way to get started on your own customizations, or you can follow the instructions in this readme to start the customizations from scratch.
 
 This package can also be [run as-is](#running-as-is), in which case the join server performs only signature validation and therefore allows anyone to join a Data Union.
 
@@ -44,7 +44,7 @@ That's exactly what's happening in the [default join server](https://github.com/
 
 Note that this base join server does not grant the joining member permissions to any data backend, it just adds the member to the smart contract. In your join server, you should grant the joining member the ability to share their data via whatever data backend/protocol your Data Union is using via using the `onMemberJoin` hook (see [Options](#options)).
 
-The [default join server](https://github.com/dataunions/default-join-server) hosted by the Data Union DAO is [Streamr](https://streamr.network)-aware, meaning that it grants new members publish permission to Streamr streams associated with that Data Union. If you're using a different data protocol/backend, you need to grant access to your data backend to your new DU members (unless of course your backend accepts data from anyone, not just DU members).
+The [default join server](https://github.com/dataunions/default-join-server) hosted by the Rail Protocol is [Streamr](https://streamr.network)-aware, meaning that it grants new members publish permission to Streamr streams associated with that Data Union. If you're using a different data protocol/backend, you need to grant access to your data backend to your new DU members (unless of course your backend accepts data from anyone, not just DU members).
 
 ### Options
 
@@ -120,7 +120,7 @@ const srv = new JoinServer({
 
 ### Adding custom endpoints
 
-Custom endpoints (routes) can be created on the server by passing in a `customRoutes` function, which receives the `express` app instance as an argument as well as a `Map` of DataUnionClient instances (one per supported chain).
+Custom endpoints (routes) can be created on the server by passing in a `customRoutes` function, which receives the `express` app instance as an argument as well as a `Map` of RailClient instances (one per supported chain).
 
 All requests pass through the signature validation middleware, which makes the parsed and validated content of the `request` payload available as `req.validatedRequest`.
 

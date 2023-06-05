@@ -11,7 +11,7 @@ describe('JoinRequestService', () => {
 	const CHAIN = 'polygon'
 
 	let joinRequestService
-	let dataUnionClient
+	let railClient
 	let dataUnionObject
 	let onMemberJoin
 
@@ -21,12 +21,12 @@ describe('JoinRequestService', () => {
 			addMembers: sinon.stub().resolves(true),
 		}
 
-		dataUnionClient = {
-			getDataUnion: sinon.stub().resolves(dataUnionObject),
+		railClient = {
+			getVault: sinon.stub().resolves(dataUnionObject),
 		}
 
 		const clients = new Map()
-		clients.set(CHAIN, dataUnionClient)
+		clients.set(CHAIN, railClient)
 		onMemberJoin = sinon.stub()
 		joinRequestService = new JoinRequestService(unitTestLogger, clients, onMemberJoin)
 	})
@@ -45,7 +45,7 @@ describe('JoinRequestService', () => {
 		})
 
 		it('rejects when data union is not found', async () => {
-			dataUnionClient.getDataUnion = sinon.stub().rejects()
+			railClient.getVault = sinon.stub().rejects()
 			await expect(joinRequestService.create(MEMBER_ADDRESS, DATAUNION_ADDRESS, CHAIN)).to.be.rejectedWith(DataUnionRetrievalError)
 		})
 

@@ -2,7 +2,7 @@
     "name": "@rail-protocol/test-exports",
     "version": "1.0.0",
     "description": "Test DU client packaging",
-    "author": "Data Union DAO <contact@dataunions.org>",
+    "author": "Rail Protocol <contact@rail.dev>",
     "license": "Apache-2.0",
     "private": true,
     "main": "commonjs.js",

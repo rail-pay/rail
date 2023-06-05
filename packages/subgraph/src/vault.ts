@@ -1,6 +1,6 @@
 import { log, Address, BigInt, BigDecimal } from '@graphprotocol/graph-ts'
 
-import { DataUnion, DataUnionStatsBucket, Member, RevenueEvent } from '../generated/schema'
+import { DataUnion, VaultBucket, Member, RevenueEvent } from '../generated/schema'
 import {
     MemberJoined,
     MemberParted,
@@ -14,100 +14,100 @@ import {
 ///////////////////////////////////////////////////////////////
 
 export function handleOwnershipTransferred(event: OwnershipTransferred): void {
-    let dataUnion = getDataUnion(event.address)
+    let dataUnion = getVault(event.address)
     dataUnion.owner = event.params.newOwner.toHexString()
     dataUnion.save()
 }
 
 export function handleMemberJoined(event: MemberJoined): void {
-    let duAddress = event.address
+    let vaultAddress = event.address
     let memberAddress = event.params.member
-    log.warning('handleMemberJoined: member={} duAddress={}', [memberAddress.toHexString(), duAddress.toHexString()])
+    log.warning('handleMemberJoined: member={} vaultAddress={}', [memberAddress.toHexString(), vaultAddress.toHexString()])
 
-    let member = getMember(memberAddress, duAddress)
+    let member = getMember(memberAddress, vaultAddress)
     member.address = memberAddress.toHexString()
-    member.dataUnion = duAddress.toHexString()
+    member.dataUnion = vaultAddress.toHexString()
     member.joinDate = event.block.timestamp
     member.status = 'ACTIVE'
     member.weight = BigDecimal.fromString('1')
     member.save()
 
-    updateDataUnion(duAddress, event.block.timestamp, 1)
+    updateDataUnion(vaultAddress, event.block.timestamp, 1)
 }
 
 export function handleMemberParted(event: MemberParted): void {
-    let duAddress = event.address
+    let vaultAddress = event.address
     let memberAddress = event.params.member
-    log.warning('handleMemberParted: member={} duAddress={}', [memberAddress.toHexString(), duAddress.toHexString()])
+    log.warning('handleMemberParted: member={} vaultAddress={}', [memberAddress.toHexString(), vaultAddress.toHexString()])
 
-    let member = getMember(memberAddress, duAddress)
+    let member = getMember(memberAddress, vaultAddress)
     member.status = 'INACTIVE'
     member.save()
 
-    updateDataUnion(duAddress, event.block.timestamp, -1)
+    updateDataUnion(vaultAddress, event.block.timestamp, -1)
 }
 
 export function handleRevenueReceived(event: RevenueReceived): void {
-    let duAddress = event.address
+    let vaultAddress = event.address
     let amount = event.params.amount
-    log.warning('handleRevenueReceived: duAddress={} amount={}', [duAddress.toHexString(), amount.toString()])
+    log.warning('handleRevenueReceived: vaultAddress={} amount={}', [vaultAddress.toHexString(), amount.toString()])
 
-    updateDataUnion(duAddress, event.block.timestamp, 0, BigDecimal.zero(), amount)
+    updateDataUnion(vaultAddress, event.block.timestamp, 0, BigDecimal.zero(), amount)
 
     // additionally save the individual events for later querying
     let revenueEvent = new RevenueEvent(
-        duAddress.toHexString() + '-' +
+        vaultAddress.toHexString() + '-' +
         event.block.number.toString() + '-' +
         event.transaction.index.toHexString() + '-' +
         event.transactionLogIndex.toString()
     )
-    revenueEvent.dataUnion = duAddress.toHexString()
+    revenueEvent.dataUnion = vaultAddress.toHexString()
     revenueEvent.amountWei = amount
     revenueEvent.date = event.block.timestamp
     revenueEvent.save()
 }
 
 export function handleMemberWeightChanged(event: MemberWeightChanged): void {
-    let duAddress = event.address
+    let vaultAddress = event.address
     let memberAddress = event.params.member
     let oldWeightWei = event.params.oldWeight
     let weightWei = event.params.newWeight
     let weight = weightWei.toBigDecimal().div(BigDecimal.fromString('1000000000000000000'))
     let weightChange = weightWei.minus(oldWeightWei).toBigDecimal().div(BigDecimal.fromString('1000000000000000000'))
-    log.warning('handleMemberWeightChanged: member={} duAddress={} weight={} (+ {})', [
-        memberAddress.toHexString(), duAddress.toHexString(), weight.toString(), weightChange.toString()
+    log.warning('handleMemberWeightChanged: member={} vaultAddress={} weight={} (+ {})', [
+        memberAddress.toHexString(), vaultAddress.toHexString(), weight.toString(), weightChange.toString()
     ])
 
-    let member = getMember(memberAddress, duAddress)
+    let member = getMember(memberAddress, vaultAddress)
     member.weight = weight
     member.save()
 
-    updateDataUnion(duAddress, event.block.timestamp, 0, weightChange)
+    updateDataUnion(vaultAddress, event.block.timestamp, 0, weightChange)
 }
 
 function updateDataUnion(
-    duAddress: Address,
+    vaultAddress: Address,
     timestamp: BigInt,
     memberCountChange: i32,
     totalWeightChange: BigDecimal = BigDecimal.zero(),
     revenueChangeWei: BigInt = BigInt.zero()
 ): void {
-    log.warning('updateDataUnion: duAddress={} timestamp={}', [duAddress.toHexString(), timestamp.toString()])
+    log.warning('updateDataUnion: vaultAddress={} timestamp={}', [vaultAddress.toHexString(), timestamp.toString()])
 
     // buckets must be done first so that *AtStart values are correct for newly created buckets
-    let hourBucket = getBucket('HOUR', timestamp, duAddress)
+    let hourBucket = getBucket('HOUR', timestamp, vaultAddress)
     hourBucket.memberCountChange += memberCountChange
     hourBucket.revenueChangeWei += revenueChangeWei
     hourBucket.totalWeightChange += totalWeightChange
     hourBucket.save()
 
-    let dayBucket = getBucket('DAY', timestamp, duAddress)
+    let dayBucket = getBucket('DAY', timestamp, vaultAddress)
     dayBucket.memberCountChange += memberCountChange
     dayBucket.revenueChangeWei += revenueChangeWei
     dayBucket.totalWeightChange += totalWeightChange
     dayBucket.save()
 
-    let dataUnion = getDataUnion(duAddress)
+    let dataUnion = getVault(vaultAddress)
     dataUnion.memberCount += memberCountChange
     dataUnion.revenueWei += revenueChangeWei
     dataUnion.totalWeight += totalWeightChange
@@ -118,20 +118,20 @@ function updateDataUnion(
 // GETTERS: load an existing object or create a new one
 ///////////////////////////////////////////////////////////////
 
-function getDataUnion(duAddress: Address): DataUnion {
-    let dataUnion = DataUnion.load(duAddress.toHexString())
+function getVault(vaultAddress: Address): DataUnion {
+    let dataUnion = DataUnion.load(vaultAddress.toHexString())
     if (dataUnion == null) {
         // this should never happen because in factory.ts we create a DataUnion object for every new DataUnion template instantiation
         //   the functions in this file can only be called after the template is instantiated
         // if you get this error, it means either that the DB is in bad state, or code has been changed to instantiate
         //   DataUnion templates without creating the corresponding DataUnion DB objects
-        throw new Error('getDataUnion: DataUnion database object was not found, address=' + duAddress.toHexString())
+        throw new Error('getVault: DataUnion database object was not found, address=' + vaultAddress.toHexString())
     }
     return dataUnion
 }
 
-function getMember(memberAddress: Address, duAddress: Address): Member {
-    let memberId = memberAddress.toHexString() + '-' + duAddress.toHexString()
+function getMember(memberAddress: Address, vaultAddress: Address): Member {
+    let memberId = memberAddress.toHexString() + '-' + vaultAddress.toHexString()
     let member = Member.load(memberId)
     if (member == null) {
         member = new Member(memberId)
@@ -139,7 +139,7 @@ function getMember(memberAddress: Address, duAddress: Address): Member {
     return member
 }
 
-function getBucket(length: string, timestamp: BigInt, duAddress: Address): DataUnionStatsBucket {
+function getBucket(length: string, timestamp: BigInt, vaultAddress: Address): VaultBucket {
     let bucketSeconds: BigInt
     if (length === 'HOUR') {
         bucketSeconds = BigInt.fromI32(60 * 60)
@@ -152,18 +152,18 @@ function getBucket(length: string, timestamp: BigInt, duAddress: Address): DataU
     }
 
     let bucketStartDate = timestamp.minus(timestamp.mod(bucketSeconds))
-    let bucketId = duAddress.toHexString() + '-' + length + '-' + bucketStartDate.toString()
-    let bucket = DataUnionStatsBucket.load(bucketId)
+    let bucketId = vaultAddress.toHexString() + '-' + length + '-' + bucketStartDate.toString()
+    let bucket = VaultBucket.load(bucketId)
 
     // Create a new bucket, get starting values from DataUnion
     if (bucket == null) {
-        bucket = new DataUnionStatsBucket(bucketId)
+        bucket = new VaultBucket(bucketId)
         bucket.type = length
-        bucket.dataUnion = duAddress.toHexString()
+        bucket.dataUnion = vaultAddress.toHexString()
         bucket.startDate = bucketStartDate
         bucket.endDate = bucketStartDate.plus(bucketSeconds)
 
-        let dataUnion = getDataUnion(duAddress)
+        let dataUnion = getVault(vaultAddress)
         bucket.memberCountAtStart = dataUnion.memberCount
         bucket.revenueAtStartWei = dataUnion.revenueWei
         bucket.totalWeightAtStart = dataUnion.totalWeight

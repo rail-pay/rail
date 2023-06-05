@@ -12,7 +12,7 @@ module.exports = (db) => {
 				})
 			}
 
-			const dataUnion = await client.getDataUnion(req.validatedRequest.dataUnion)
+			const dataUnion = await client.getVault(req.validatedRequest.dataUnion)
 			if (!dataUnion) {
 				res.status(404)
 				res.set('content-type', 'application/json')

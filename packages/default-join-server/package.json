@@ -2,7 +2,7 @@
   "name": "@rail-protocol/default-join-server",
   "version": "0.0.1",
   "description": "A join server that extends the base join server by adding app secret validation and Streamr-awareness",
-  "author": "Data Union DAO <contact@dataunions.org>",
+  "author": "Rail Protocol <contact@rail.dev>",
   "license": "AGPL-3.0-or-later",
   "private": false,
   "publishConfig": {

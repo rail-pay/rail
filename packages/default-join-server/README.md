@@ -2,7 +2,7 @@
 
 A Data Union join server that imports the [base join server](https://github.com/dataunions/data-union-join-server) and extends it by adding app join request validation based on app secrets stored in MySQL. The join server also supports granting access to [Streamr](https://streamr.network) streams when a member joins a Data Union that uses Streamr on the data transport layer.
 
-An instance of this join server is run by the Data Union DAO to make it easier for Data Union builders to get started and control access to the Data Unions. Note that you can fork this join server and customize it to your needs, for example to implement additional validation for join requests or take some different action when after members join.
+An instance of this join server is run by the Rail Protocol to make it easier for Data Union builders to get started and control access to the Data Unions. Note that you can fork this join server and customize it to your needs, for example to implement additional validation for join requests or take some different action when after members join.
 
 ## Running
 

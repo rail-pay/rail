@@ -7,24 +7,24 @@ import type { BigNumberish } from '@ethersproject/bignumber'
 import type { ContractReceipt, ContractTransaction } from '@ethersproject/contracts'
 import type { Signer } from '@ethersproject/abstract-signer'
 
-import type { Vault } from '@rail-protocol/contracts/typechain'
+import type { Vault as VaultContract } from '@rail-protocol/contracts/typechain'
 
 import { sleep } from './sleep'
 import { sign } from './signing'
 import type { EthereumAddress } from './EthereumAddress'
-import type { DataUnionClient } from './DataUnionClient'
+import type { RailClient } from './RailClient'
 import type { Rest } from './Rest'
 
 import { debug } from 'debug'
 const log = debug('DataUnion')
 
-export interface DataUnionDeployOptions {
+export interface VaultDeployOptions {
     adminAddress?: EthereumAddress,
     joinPartAgents?: EthereumAddress[],
     dataUnionName?: string,
     adminFee?: number,
-    sidechainPollingIntervalMs?: number,
-    sidechainRetryTimeoutMs?: number
+    // sidechainPollingIntervalMs?: number,
+    // sidechainRetryTimeoutMs?: number
     confirmations?: number
     gasPrice?: BigNumber
     metadata?: object
@@ -36,14 +36,14 @@ export interface JoinResponse {
     chain: string
 }
 
-export interface DataUnionStats {
-    // new stat added in the member weights feature, will be equal to activeMemberCount for older data unions
+export interface VaultStats {
+    // new stat added in the member weights feature, will be equal to activeMemberCount for Vaults that don't modify weights
     totalWeight: number,
 
-    // new stats added in 2.2 (admin & data union fees)
+    // new stats added in 2.2 (fees)
     totalRevenue?: BigNumber,
     totalAdminFees?: BigNumber,
-    totalDataUnionFees?: BigNumber,
+    totalProtocolFees?: BigNumber,
 
     // stats that already existed in 2.0
     activeMemberCount: BigNumber,
@@ -64,7 +64,7 @@ export interface MemberStats {
     status: MemberStatus
     totalEarnings: BigNumber
     withdrawableEarnings: BigNumber
-    weight?: number // will be 1 for older data unions, missing for non-active members
+    weight?: number // will be 1 if not modified, and missing for non-active members
 }
 
 export interface SecretsResponse {
@@ -104,19 +104,18 @@ async function waitOrRetryTx(
 /**
  * @category Important
  */
-export class DataUnion {
+export class Vault {
 
-    // TODO: remove DataUnionClient from here. This coupling makes all of this code a ball of mud, completely inter-connected
-    private client: DataUnionClient
-    private joinServer: Rest
-    public readonly contract: Vault
+    // TODO: remove RailClient from here. This coupling makes all of this code a ball of mud, completely inter-connected
+    private client: RailClient
+    private joinServer?: Rest
+    public readonly contract: VaultContract
 
     /** @internal */
-    constructor(contract: Vault, joinServerConnection: Rest, client: DataUnionClient) {
-        // validate and convert to checksum case
-        this.client = client
-        this.joinServer = joinServerConnection
+    constructor(contract: VaultContract, client: RailClient, joinServerConnection?: Rest) {
         this.contract = contract
+        this.joinServer = joinServerConnection
+        this.client = client
     }
 
     /** @returns the contract address of the data union */
@@ -124,14 +123,12 @@ export class DataUnion {
         return this.contract.address
     }
 
-    /** @returns the name of the chain the data union contract is deployed on */
+    /** @returns the name of the chain the vault contract is deployed on */
     getChainName(): string {
         return this.client.chainName
     }
 
     /**
-     * Version 2.2: admin fee is collected in DataUnionSidechain
-     * Version 2.0: admin fee was collected in DataUnionMainnet
      * @returns the data union admin fee fraction (between 0.0 and 1.0) that admin gets from each revenue event
      */
     async getAdminFee(): Promise<number> {
@@ -144,7 +141,7 @@ export class DataUnion {
     }
 
     async getVersion(): Promise<number> {
-        return this.contract.version().then((versionBN) => versionBN.toNumber())
+        return this.contract.version().then((versionBN: BigNumber) => versionBN.toNumber())
     }
 
     /**
@@ -194,20 +191,21 @@ export class DataUnion {
             ...params
         }
         const signedRequest = await sign(request, this.client.wallet)
+        if (!this.joinServer) {
+            throw new Error('No join server configured')
+        }
         return this.joinServer.post<T>(endpointPath, signedRequest).catch((err) => {
             if (err.message?.match(/cannot estimate gas/)) {
-                throw new Error("Data Union join-server couldn't send the join transaction. Please contact the join-server administrator.")
+                throw new Error("Vault join-server couldn't send the join transaction. Please contact the join-server administrator.")
             }
             throw err
         })
     }
 
-    // TODO: drop old DU support already probably...
     /**
-    * Open {@link https://docs.dataunions.org/main-concepts/data-union/data-union-observation our docs} to get more information about the stats
-    * @returns valuable information about the data union
-    */
-    async getStats(): Promise<DataUnionStats> {
+     * @returns valuable information about the vault
+     */
+    async getStats(): Promise<VaultStats> {
         // Most of the interface has remained stable, but getStats has been implemented in functions that return
         // a different number of stats, hence the need for the more complex and very manually decoded query.
         const provider = this.client.wallet.provider!
@@ -217,53 +215,28 @@ export class DataUnion {
         })
         log('getStats raw response (length = %d) %s', getStatsResponse.length, getStatsResponse)
 
-        // Attempt to decode longer response first; if that fails, try the shorter one. Decoding too little won't throw, but decoding too much will
-        // for uint[9] returning getStats, see e.g. https://blockscout.com/xdai/mainnet/address/0x15287E573007d5FbD65D87ed46c62Cf4C71Dd66d/contracts
-        // for uint[6] returning getStats, see e.g. https://blockscout.com/xdai/mainnet/address/0x71586e2eb532612F0ae61b624cb0a9c26e2F4c3B/contracts
-        try {
-            const [[
-                totalRevenue, totalEarnings, totalAdminFees, totalDataUnionFees, totalWithdrawn,
-                activeMemberCount, inactiveMemberCount, lifetimeMemberEarnings, joinPartAgentCount
-            ]] = defaultAbiCoder.decode(['uint256[9]'], getStatsResponse) as BigNumber[][]
-            // add totalWeight if it's available, otherwise just assume equal weight 1.0/member
-            const totalWeightBN = await this.contract.totalWeight().catch(() => parseEther(activeMemberCount.toString()))
-            return {
-                totalRevenue, // == earnings (that go to members) + adminFees + dataUnionFees
-                totalAdminFees,
-                totalDataUnionFees,
-                totalEarnings,
-                totalWithdrawable: totalEarnings.sub(totalWithdrawn),
-                activeMemberCount,
-                inactiveMemberCount,
-                joinPartAgentCount,
-                lifetimeMemberEarnings,
-                totalWeight: Number(formatEther(totalWeightBN)),
-            }
-        } catch (e) { }
-
-        try {
-            const [[
-                totalEarnings, totalEarningsWithdrawn, activeMemberCount, inactiveMemberCount,
-                lifetimeMemberEarnings, joinPartAgentCount
-            ]] = defaultAbiCoder.decode(['uint256[6]'], getStatsResponse) as BigNumber[][]
-            // add totalWeight if it's available, otherwise just assume equal weight 1.0/member
-            const totalWeightBN = await this.contract.totalWeight().catch(() => parseEther(activeMemberCount.toString()))
-            return {
-                totalEarnings,
-                totalWithdrawable: totalEarnings.sub(totalEarningsWithdrawn),
-                activeMemberCount,
-                inactiveMemberCount,
-                joinPartAgentCount,
-                lifetimeMemberEarnings,
-                totalWeight: Number(formatEther(totalWeightBN)),
-            }
-        } catch (e) {
-            throw new Error(`getStats failed to decode response: ${(e as Error).message}`)
+        const [[
+            totalRevenue, totalEarnings, totalAdminFees, totalProtocolFees, totalWithdrawn,
+            activeMemberCount, inactiveMemberCount, lifetimeMemberEarnings, joinPartAgentCount
+        ]] = defaultAbiCoder.decode(['uint256[9]'], getStatsResponse) as BigNumber[][]
+        // add totalWeight if it's available, otherwise just assume equal weight 1.0/member
+        const totalWeightBN = await this.contract.totalWeight().catch(() => parseEther(activeMemberCount.toString()))
+        return {
+            totalRevenue, // == earnings (that go to members) + adminFees + protocolFees
+            totalAdminFees,
+            totalProtocolFees,
+            totalEarnings,
+            totalWithdrawable: totalEarnings.sub(totalWithdrawn),
+            activeMemberCount,
+            inactiveMemberCount,
+            joinPartAgentCount,
+            lifetimeMemberEarnings,
+            totalWeight: Number(formatEther(totalWeightBN)),
         }
     }
 
     /**
-    * Open {@link https://docs.dataunions.org/main-concepts/data-union/data-union-observation our docs} to get more information about the stats
+    * Open {@link https://docs.rail.dev/main-concepts/data-union/data-union-observation our docs} to get more information about the stats
     * @returns stats of a single data union member
     */
     async getMemberStats(memberAddress: EthereumAddress): Promise<MemberStats> {
@@ -309,7 +282,7 @@ export class DataUnion {
     /**
      * Send HTTP(s) request to the join server, asking to join the data union
      * Typically you would send a sharedSecret with the request.
-     * Read more in {@link https://docs.dataunions.org/main-concepts/joinpart-server joinPart server}
+     * Read more in {@link https://docs.rail.dev/main-concepts/joinpart-server joinPart server}
      */
     async join(params?: object): Promise<JoinResponse> {
         return this.post<JoinResponse>(["join"], params)
@@ -332,27 +305,12 @@ export class DataUnion {
         return (state === ACTIVE)
     }
 
-    /** @internal */
-    async checkMinimumWithdraw(memberAddress: EthereumAddress): Promise<void> {
-        const withdrawable = await this.contract.getWithdrawableEarnings(memberAddress)
-        if (withdrawable.eq(0)) {
-            throw new Error(`${memberAddress} has nothing to withdraw in (sidechain) data union ${this.contract.address}`)
-        }
-
-        if (this.client.minimumWithdrawTokenWei && withdrawable.lt(this.client.minimumWithdrawTokenWei)) {
-            throw new Error(`${memberAddress} has only ${withdrawable} to withdraw in `
-                + `DataUnion ${this.contract.address} (min: ${this.client.minimumWithdrawTokenWei})`)
-        }
-    }
-
     /**
      * Withdraw all your earnings
      * @returns the transaction receipt
      */
     async withdrawAll(): Promise<ContractReceipt> {
         const memberAddress = await this.client.getAddress()
-        await this.checkMinimumWithdraw(memberAddress)
-
         const ethersOverrides = await this.client.getOverrides()
         const tx = await this.contract.withdrawAll(memberAddress, false, ethersOverrides)
         return tx.wait()
@@ -364,9 +322,6 @@ export class DataUnion {
      * @returns the transaction receipt
      */
     async withdrawAllTo(recipientAddress: EthereumAddress): Promise<ContractReceipt> {
-        const memberAddress = await this.client.getAddress()
-        await this.checkMinimumWithdraw(memberAddress)
-
         const address = getAddress(recipientAddress)
         const ethersOverrides = await this.client.getOverrides()
         const tx = await this.contract.withdrawAllTo(address, false, ethersOverrides)
@@ -381,7 +336,7 @@ export class DataUnion {
      *   invalidated by the first withdraw after signing it. In other words, any signature can be invalidated
      *   by making a "normal" withdraw e.g. `await streamrClient.withdrawAll()`
      * Admin can execute the withdraw using this signature: ```
-     *   await adminDataUnionClient.withdrawAllToSigned(memberAddress, recipientAddress, signature)
+     *   await adminRailClient.withdrawAllToSigned(memberAddress, recipientAddress, signature)
      * ```
      * @param recipientAddress - the address authorized to receive the tokens
      * @returns signature authorizing withdrawing all earnings to given recipientAddress
@@ -406,7 +361,7 @@ export class DataUnion {
         const signer = this.client.wallet
         const address = await signer.getAddress()
         const [activeStatus, , , withdrawn] = await this.contract.memberData(address)
-        if (activeStatus == 0) { throw new Error(`${address} is not a member in DataUnion (sidechain address ${this.contract.address})`) }
+        if (activeStatus == 0) { throw new Error(`${address} is not a member in DataUnion (${this.contract.address})`) }
         return this._createWithdrawSignature(amountTokenWei, to, withdrawn, signer)
     }
 
@@ -426,7 +381,7 @@ export class DataUnion {
     }
 
     /**
-     * Transfer an amount of earnings to another member in DataunionSidechain
+     * Transfer an amount of earnings to another member in Vault
      * @param memberAddress - the other member who gets their tokens out of the DataUnion
      * @param amountTokenWei - the amount that want to add to the member
      * @returns receipt once transfer transaction is confirmed
@@ -599,24 +554,24 @@ export class DataUnion {
     }
 
     /**
-     * Admin: Stores a Javascript object in JSON format in the data union contract, can be retrieved with `getMetadata`
-     * @param metadata object to be stored in the data union contract
+     * Admin: Stores a Javascript object in JSON format in the vault contract, can be retrieved with `getMetadata`
+     * @param metadata object to be stored in the vault contract
      */
     async setMetadata(metadata: object): Promise<ContractReceipt> {
         return this.sendAdminTx(this.contract.setMetadata, JSON.stringify(metadata))
     }
 
     /**
-    * Admin: Automate sending ETH/native token to new members so that they can afford to do a withdraw without first having to acquire ETH/native token
-    * If the DU is deployed on a sidechain, it is the native token (e.g. MATIC on Polygon) instead of ETH
-    * @param stipendWei in ETH/native token that is sent to every new DU member
+    * Admin: Automate sending ETH/native token to new beneficiaries so that they can afford to do a withdraw
+    *          without first having to acquire ETH/native token
+    * @param stipendWei in ETH/native token that is sent to every new beneficiary
     */
     async setNewMemberStipend(stipendWei: BigNumberish): Promise<ContractReceipt> {
         return this.sendAdminTx(this.contract.setNewMemberEth, stipendWei)
     }
 
     /**
-     * Transfer amount to specific member in DataunionSidechain
+     * Transfer amount to specific other beneficiary in Vault
      * @param memberAddress - target member who gets the tokens added to their earnings in the the DataUnion
      * @param amountTokenWei - the amount that want to add to the member
      * @returns receipt once transfer transaction is confirmed

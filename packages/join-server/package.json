@@ -2,7 +2,7 @@
   "name": "@rail-protocol/join-server",
   "version": "0.0.1",
   "description": "Data Union join server base implementation",
-  "author": "Data Union DAO <contact@dataunions.org>",
+  "author": "Rail Protocol <contact@rail.dev>",
   "license": "AGPL-3.0-or-later",
   "private": false,
   "publishConfig": {
@@ -32,7 +32,6 @@
   },
   "dependencies": {
     "@rail-protocol/client": "0.0.1",
-    "@streamr/config": "latest",
     "commander": "9.4.0",
     "cors": "2.8.5",
     "ethers": "5.7.0",

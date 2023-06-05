@@ -1,7 +1,7 @@
 import type { Wallet } from '@ethersproject/wallet'
 
-import { DataUnionClient } from '../../src/DataUnionClient'
-import type { DataUnionClientConfig } from '../../src/Config'
+import { RailClient } from '../../src/RailClient'
+import type { RailClientConfig } from '../../src/Config'
 
 import { deployContracts, getWallets } from './setup'
 
@@ -10,7 +10,7 @@ describe('DataUnion metadata', () => {
     let dao: Wallet
     let admin: Wallet
     let member: Wallet
-    let clientOptions: Partial<DataUnionClientConfig>
+    let clientOptions: Partial<RailClientConfig>
     beforeAll(async () => {
         [
             dao,
@@ -35,17 +35,17 @@ describe('DataUnion metadata', () => {
         }
     })
 
-    async function deployDataUnion() {
-        const adminClient = new DataUnionClient({ ...clientOptions, auth: { privateKey: admin.privateKey } })
-        const adminDataUnion = await adminClient.deployDataUnion()
+    async function deployVault() {
+        const adminClient = new RailClient({ ...clientOptions, auth: { privateKey: admin.privateKey } })
+        const adminDataUnion = await adminClient.deployVault()
         await adminDataUnion.addMembers([member.address])
-        const client = new DataUnionClient(clientOptions)
-        const dataUnion = await client.getDataUnion(adminDataUnion.getAddress())
+        const client = new RailClient(clientOptions)
+        const dataUnion = await client.getVault(adminDataUnion.getAddress())
         return { adminDataUnion, dataUnion }
     }
 
     it('can be set by admin only', async () => {
-        const { adminDataUnion, dataUnion } = await deployDataUnion()
+        const { adminDataUnion, dataUnion } = await deployVault()
         const metadataBefore = await dataUnion.getMetadata()
         await expect(dataUnion.setMetadata({ testing: 123 })).rejects.toThrow(/not the DataUnion admin/)
         const metadataBefore2 = await dataUnion.getMetadata()
