@@ -2,40 +2,40 @@
     "hardhat": {
         "id": 31337,
         "rpcUrl": "http://localhost:8545",
-        "vaultFactoryAddress": "0x",
-        "vaultTemplateAddress": "0x",
+        "vaultFactoryAddress": "0x0000000000000000000000000000000000000000",
+        "vaultTemplateAddress": "0x0000000000000000000000000000000000000000",
         "joinPartAgentAddress": "0x0000000000000000000000000000000000000000",
-        "tokenAddress": "0x"
+        "tokenAddress": "0x0000000000000000000000000000000000000000"
     },
     "docker": {
         "id": 8995,
         "rpcUrl": "http://localhost:8545",
-        "vaultFactoryAddress": "0x",
-        "vaultTemplateAddress": "0x",
+        "vaultFactoryAddress": "0x0000000000000000000000000000000000000000",
+        "vaultTemplateAddress": "0x0000000000000000000000000000000000000000",
         "joinPartAgentAddress": "0x0000000000000000000000000000000000000000",
-        "tokenAddress": "0x"
+        "tokenAddress": "0x0000000000000000000000000000000000000000"
     },
     "mumbai": {
         "id": 80001,
         "rpcUrl": "https://rpc-mumbai.maticvigil.com",
-        "vaultFactoryAddress": "0x",
-        "vaultTemplateAddress": "0x",
+        "vaultFactoryAddress": "0x0000000000000000000000000000000000000000",
+        "vaultTemplateAddress": "0x0000000000000000000000000000000000000000",
         "joinPartAgentAddress": "0x0000000000000000000000000000000000000000",
-        "tokenAddress": "0x"
+        "tokenAddress": "0x0000000000000000000000000000000000000000"
     },
     "polygon": {
         "id": 137,
         "rpcUrl": "https://polygon-rpc.com",
-        "vaultFactoryAddress": "0x",
-        "vaultTemplateAddress": "0x",
+        "vaultFactoryAddress": "0x0000000000000000000000000000000000000000",
+        "vaultTemplateAddress": "0x0000000000000000000000000000000000000000",
         "joinPartAgentAddress": "0x0000000000000000000000000000000000000000",
         "tokenAddress": "0x3a9A81d576d83FF21f26f325066054540720fC34"
     },
     "gnosis": {
         "id": 100,
         "rpcUrl": "https://rpc.gnosischain.com",
-        "vaultFactoryAddress": "0x",
-        "vaultTemplateAddress": "0x",
+        "vaultFactoryAddress": "0x0000000000000000000000000000000000000000",
+        "vaultTemplateAddress": "0x0000000000000000000000000000000000000000",
         "joinPartAgentAddress": "0x0000000000000000000000000000000000000000",
         "tokenAddress": "0x256eb8a51f382650B2A1e946b8811953640ee47D"
     }
