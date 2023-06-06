@@ -26,7 +26,7 @@ describe('Vault member', () => {
         const {
             token: tokenContract,
             vaultFactory,
-            vault,
+            vaultTemplate,
             ethereumUrl
         } = await deployContracts(dao)
         token = tokenContract
@@ -34,11 +34,9 @@ describe('Vault member', () => {
         const clientOptions = {
             auth: { privateKey: member.privateKey },
             tokenAddress: token.address,
-            vault: {
-                factoryAddress: vaultFactory.address,
-                templateAddress: vault.address,
-            },
-            network: { rpcs: [{ url: ethereumUrl, timeout: 30 * 1000 }] }
+            factoryAddress: vaultFactory.address,
+            templateAddress: vaultTemplate.address,
+            rpcs: [{ url: ethereumUrl, timeout: 30 * 1000 }]
         }
 
         const adminClient = new RailClient({ ...clientOptions, auth: { privateKey: admin.privateKey } })
@@ -54,7 +52,7 @@ describe('Vault member', () => {
         expect(await vault.isMember("0x0000000000000000000000000000000000000000")).toBe(false)
     })
 
-    it('can part from the data union', async () => {
+    it('can part from the vault', async () => {
         const memberCountBefore = await vault.getActiveMemberCount()
         const isMemberBefore = await vault.isMember()
         await vault.part()

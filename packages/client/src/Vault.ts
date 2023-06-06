@@ -118,7 +118,7 @@ export class Vault {
         this.client = client
     }
 
-    /** @returns the contract address of the data union */
+    /** @returns the contract address of the vault */
     getAddress(): EthereumAddress {
         return this.contract.address
     }
@@ -129,7 +129,7 @@ export class Vault {
     }
 
     /**
-     * @returns the data union admin fee fraction (between 0.0 and 1.0) that admin gets from each revenue event
+     * @returns the vault admin fee fraction (between 0.0 and 1.0) that admin gets from each revenue event
      */
     async getAdminFee(): Promise<number> {
         const adminFeeBN = await this.contract.adminFeeFraction()
@@ -145,8 +145,8 @@ export class Vault {
     }
 
     /**
-    * Inactive members are members that got removed by a joinPartAgent or left the data union
-    * @returns all members of the data union
+    * Inactive members are members that got removed by a joinPartAgent or left the vault
+    * @returns all members of the vault
     */
     async getActiveMemberCount(): Promise<number> {
         return this.contract.activeMemberCount().then((x) => x.toNumber())
@@ -237,7 +237,7 @@ export class Vault {
 
     /**
     * Open {@link https://docs.rail.dev/main-concepts/data-union/data-union-observation our docs} to get more information about the stats
-    * @returns stats of a single data union member
+    * @returns stats of a single vault member
     */
     async getMemberStats(memberAddress: EthereumAddress): Promise<MemberStats> {
         const address = getAddress(memberAddress)
@@ -280,7 +280,7 @@ export class Vault {
     ///////////////////////////////
 
     /**
-     * Send HTTP(s) request to the join server, asking to join the data union
+     * Send HTTP(s) request to the join server, asking to join the vault
      * Typically you would send a sharedSecret with the request.
      * Read more in {@link https://docs.rail.dev/main-concepts/joinpart-server joinPart server}
      */
@@ -289,7 +289,7 @@ export class Vault {
     }
 
     /**
-     * A member can voluntarily leave the data union by calling `part()`.
+     * A member can voluntarily leave the vault by calling `part()`.
      * @returns transaction receipt
      */
     async part(): Promise<ContractReceipt> {
@@ -401,8 +401,8 @@ export class Vault {
     ///////////////////////////////
 
     /**
-     * Admin: Add a new data union secret to enable members to join without specific approval using this secret.
-     * For data unions that use the default-join-server
+     * Admin: Add a new vault secret to enable members to join without specific approval using this secret.
+     * For vaults that use the default-join-server
      */
     async createSecret(name: string = 'Untitled Secret'): Promise<SecretsResponse> {
         return this.post<SecretsResponse>(['secrets', 'create'], { name })
@@ -419,7 +419,7 @@ export class Vault {
     }
 
     /**
-     * JoinPartAgents: Add given Ethereum addresses as data union members
+     * JoinPartAgents: Add given Ethereum addresses as vault members
      * @param memberAddressList - list of Ethereum addresses to add as members
      */
     async addMembers(memberAddressList: EthereumAddress[]): Promise<ContractReceipt> {
@@ -431,7 +431,7 @@ export class Vault {
     }
 
     /**
-     * JoinPartAgents: Add given Ethereum addresses as data union members with weights (instead of the default 1.0)
+     * JoinPartAgents: Add given Ethereum addresses as vault members with weights (instead of the default 1.0)
      * @param memberAddressList - list of Ethereum addresses to add as members, may NOT be already in the Vault
      * @param weights - list of (non-zero) weights to assign to the new members (will be converted same way as ETH or tokens, multiplied by 10^18)
      */
@@ -445,7 +445,7 @@ export class Vault {
     }
 
     /**
-     * JoinPartAgents: Set weights for given Ethereum addresses as data union members; zero weight means "remove member"
+     * JoinPartAgents: Set weights for given Ethereum addresses as vault members; zero weight means "remove member"
      * This function can be used to simultaneously add and remove members in one transaction:
      *  - add a member by setting their weight to non-zero
      *  - remove a member by setting their weight to zero
@@ -463,7 +463,7 @@ export class Vault {
     }
 
     /**
-     * JoinPartAgents: Remove given members from data union
+     * JoinPartAgents: Remove given members from vault
      */
     async removeMembers(memberAddressList: EthereumAddress[]): Promise<ContractReceipt> {
         const members = memberAddressList.map(getAddress) // throws if there are bad addresses
@@ -535,14 +535,14 @@ export class Vault {
         } catch(error) {
             if ((error as Error).message.includes('error_onlyOwner')) {
                 const myAddress = await this.contract.signer.getAddress()
-                throw new Error(`Call to data union ${this.contract.address} failed: ${myAddress} is not the Vault admin!`)
+                throw new Error(`Call to vault ${this.contract.address} failed: ${myAddress} is not the Vault admin!`)
             }
             throw error
         }
     }
 
     /**
-     * Admin: set admin fee (between 0.0 and 1.0) for the data union
+     * Admin: set admin fee (between 0.0 and 1.0) for the vault
      */
     async setAdminFee(newFeeFraction: number): Promise<ContractReceipt> {
         if (newFeeFraction < 0 || newFeeFraction > 1) {

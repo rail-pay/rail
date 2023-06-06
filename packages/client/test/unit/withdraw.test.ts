@@ -31,7 +31,7 @@ describe('Vault withdrawX functions', () => {
         const {
             token: tokenContract,
             vaultFactory,
-            vault,
+            vaultTemplate,
             ethereumUrl
         } = await deployContracts(dao)
         token = tokenContract
@@ -39,11 +39,9 @@ describe('Vault withdrawX functions', () => {
         clientOptions = {
             auth: { privateKey: member.privateKey },
             tokenAddress: token.address,
-            vault: {
-                factoryAddress: vaultFactory.address,
-                templateAddress: vault.address,
-            },
-            network: { rpcs: [{ url: ethereumUrl, timeout: 30 * 1000 }] }
+            factoryAddress: vaultFactory.address,
+            templateAddress: vaultTemplate.address,
+            rpcs: [{ url: ethereumUrl, timeout: 30 * 1000 }]
         }
 
         // deploy a Vault with admin fee 9% + Vault fee 1% = total 10% fees

@@ -7,6 +7,7 @@ describe("Gas price strategy", () => {
             auth: {
                 privateKey: "0x0000000000000000000000000000000000000000000000000000000000000001"
             },
+            factoryAddress: "0x0000000000000000000000000000000000000000",
             chain: "gnosis"
         })
         client.wallet.provider!.getGasPrice = async () => parseUnits("100", "gwei")

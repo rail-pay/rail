@@ -33,7 +33,7 @@ describe('Vault earnings transfer methods', () => {
         const {
             token: tokenContract,
             vaultFactory,
-            vault,
+            vaultTemplate,
             ethereumUrl
         } = await deployContracts(dao)
         token = tokenContract
@@ -41,11 +41,9 @@ describe('Vault earnings transfer methods', () => {
         const clientOptions = {
             auth: { privateKey: member.privateKey },
             tokenAddress: token.address,
-            vault: {
-                factoryAddress: vaultFactory.address,
-                templateAddress: vault.address,
-            },
-            network: { rpcs: [{ url: ethereumUrl, timeout: 30 * 1000 }] }
+            factoryAddress: vaultFactory.address,
+            templateAddress: vaultTemplate.address,
+            rpcs: [{ url: ethereumUrl, timeout: 30 * 1000 }]
         }
 
         // deploy a Vault with admin fee 9% + Vault fee 1% = total 10% fees
@@ -81,7 +79,7 @@ describe('Vault earnings transfer methods', () => {
         expect(formatEther(balanceAfter.sub(balanceBefore))).toEqual('1.0')
     })
 
-    it('transfer earnings to another member within data union', async () => {
+    it('transfer earnings to another member within vault', async () => {
         await fundVault(vault.getAddress(), parseEther('2'))
 
         const statsBefore = await vault.getMemberStats(member.address)

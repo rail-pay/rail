@@ -3,7 +3,7 @@
 pragma solidity 0.8.6;
 
 /**
- * Describes how the data union member left
+ * Describes how the vault member left
  * For the base Vault contract this isn't important, but modules/extensions can find it very helpful
  * See e.g. LimitWithdrawModule
  */

@@ -39,7 +39,7 @@ describe('POST /join', async () => {
 
 	const happyTestCases = [
 		{
-			name: 'send join data union request',
+			name: 'send join vault request',
 			body: {
 				address: '0x766760C748bcEcf5876a6469a6aed3C642CdA261',
 				request: JSON.stringify({
@@ -89,7 +89,7 @@ describe('POST /join', async () => {
 			expectedErrorMessage: `Invalid member address: '0x00000'`,
 		},
 		{
-			name: 'client sends invalid data union address',
+			name: 'client sends invalid vault address',
 			body: {
 				address: '0x766760C748bcEcf5876a6469a6aed3C642CdA261',
 				request: JSON.stringify({
@@ -111,7 +111,7 @@ describe('POST /join', async () => {
 			expectedErrorMessage: `Invalid chain name: 'foobar'`,
 		},
 		{
-			name: 'send join data union request without chain',
+			name: 'send join vault request without chain',
 			body: {
 				address: '0x766760C748bcEcf5876a6469a6aed3C642CdA261',
 				request: JSON.stringify({

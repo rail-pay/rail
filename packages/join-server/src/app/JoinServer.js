@@ -63,7 +63,7 @@ class JoinServer {
 			for (const chainName in config) {
 				for (const contractName in config[chainName]) {
 					if (contractName === "VaultFactory") {
-						clients.set(chainName, this.newRailClient(config[chainName], chainName, privateKey))
+						clients.set(chainName, this.newRailClient(chainName, privateKey))
 					}
 				}
 			}
@@ -121,18 +121,13 @@ class JoinServer {
 		})
 	}
 
-	newRailClient(chain, chainName, privateKey) {
-		const options = {
+	newRailClient(chain, privateKey) {
+		return new RailClient({
 			auth: {
 				privateKey,
 			},
-			network: {
-				name: chainName,
-				chainId: chain.id,
-				rpcs: [chain.rpcUrl],
-			}
-		}
-		return new RailClient(options)
+			chain,
+		})
 	}
 
 	routes() {

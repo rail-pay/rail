@@ -36,7 +36,7 @@ describe('JoinRequestService', () => {
 	})
 
 	describe('create', () => {
-		it('adds members using the Vault client', async () => {
+		it('adds members using the RailClient', async () => {
 			const response = await joinRequestService.create(MEMBER_ADDRESS, VAULT_ADDRESS, CHAIN)
 			assert.isTrue(vaultObject.addMembers.calledWith([MEMBER_ADDRESS]))
 			assert.equal(response.member, MEMBER_ADDRESS)
@@ -44,7 +44,7 @@ describe('JoinRequestService', () => {
 			assert.equal(response.chain, CHAIN)
 		})
 
-		it('rejects when data union is not found', async () => {
+		it('rejects when vault is not found', async () => {
 			railClient.getVault = sinon.stub().rejects()
 			await expect(joinRequestService.create(MEMBER_ADDRESS, VAULT_ADDRESS, CHAIN)).to.be.rejectedWith(VaultRetrievalError)
 		})
@@ -54,7 +54,7 @@ describe('JoinRequestService', () => {
 			await expect(joinRequestService.create(MEMBER_ADDRESS, VAULT_ADDRESS, CHAIN)).to.be.rejectedWith(VaultJoinError)
 		})
 
-		it('rejects when joining data union fails', async () => {
+		it('rejects when joining vault fails', async () => {
 			vaultObject.addMembers = sinon.stub().rejects()
 			await expect(joinRequestService.create(MEMBER_ADDRESS, VAULT_ADDRESS, CHAIN)).to.be.rejectedWith(VaultJoinError)
 		})

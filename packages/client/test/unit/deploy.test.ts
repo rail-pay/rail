@@ -15,17 +15,15 @@ describe('Vault deploy', () => {
         const {
             token,
             vaultFactory,
-            vault,
+            vaultTemplate,
             ethereumUrl
         } = await deployContracts(dao)
         clientOptions = {
             auth: { privateKey: user.privateKey },
             tokenAddress: token.address,
-            vault: {
-                factoryAddress: vaultFactory.address,
-                templateAddress: vault.address,
-            },
-            network: { rpcs: [{ url: ethereumUrl, timeout: 30 * 1000 }] }
+            factoryAddress: vaultFactory.address,
+            templateAddress: vaultTemplate.address,
+            rpcs: [{ url: ethereumUrl, timeout: 30 * 1000 }]
         }
     })
 

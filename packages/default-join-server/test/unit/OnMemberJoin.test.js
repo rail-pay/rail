@@ -69,7 +69,7 @@ describe('StreamrAwareJoinHook', () => {
 		expect(streamrClient.setPermissions.called).to.be.false
 	})
 
-	it('does nothing if no streams are associated with the data union', async () => {
+	it('does nothing if no streams are associated with the vault', async () => {
 		streamrDB.getStreamsForVault = sinon.mock().resolves([])
 		await onMemberJoin('member', 'vault', 'chain')
 		expect(streamrClient.setPermissions.called).to.be.false

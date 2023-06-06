@@ -101,12 +101,12 @@ describe('Vault joining using join-server', () => {
         })
     }, 40000)
 
-    it('cannot join a non-existing data union', async () => {
+    it('cannot join a non-existing vault', async () => {
         const client = new RailClient(clientOptions)
         const vault = await client.getVault(vaultAddress)
         const badContract = vault.contract.attach("0x0000000000000000000000000000000000000012")
         const badVault = new Vault(badContract, client.restPlugin, client)
-        await expect(badVault.join()).rejects.toThrow("Error while retrieving data union 0x0000000000000000000000000000000000000012: " +
+        await expect(badVault.join()).rejects.toThrow("Error while retrieving vault 0x0000000000000000000000000000000000000012: " +
                                                             "0x0000000000000000000000000000000000000012 is not an Ethereum contract!")
     })
 

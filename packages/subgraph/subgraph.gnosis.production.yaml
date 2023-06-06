@@ -1,6 +1,6 @@
 ---
 specVersion: 0.0.4
-description: Subgraph definitions for data unions
+description: Subgraph definitions for vaults
 repository: ""
 schema:
   file: ./schema.graphql

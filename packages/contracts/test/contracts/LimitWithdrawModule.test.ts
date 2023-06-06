@@ -87,7 +87,7 @@ describe("LimitWithdrawModule", () => {
         await vault.addMember(member0.address)
         await provider.send("evm_increaseTime", [+await limitWithdrawModule.requiredMemberAgeSeconds()])
         await provider.send("evm_mine", [])
-        log("Member %s was added to data union and is now 'old' enough to withdraw", member0.address)
+        log("Member %s was added to vault and is now 'old' enough to withdraw", member0.address)
     })
 
     it("only lets members withdraw after they've been in the Vault long enough", async () => {

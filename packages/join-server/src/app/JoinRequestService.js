@@ -20,7 +20,7 @@ class JoinRequestService {
 		try {
 			du = await railClient.getVault(vault)
 		} catch (err) {
-			throw new VaultRetrievalError(`Error while retrieving data union ${vault}: ${err.message}`)
+			throw new VaultRetrievalError(`Error while retrieving vault ${vault}: ${err.message}`)
 		}
 
 		if (await du.isMember(member)) {
@@ -30,13 +30,13 @@ class JoinRequestService {
 		try {
 			await du.addMembers([member])
 		} catch (err) {
-			throw new VaultJoinError(`Error while adding member ${member} to data union ${vault}: ${err.message}`)
+			throw new VaultJoinError(`Error while adding member ${member} to vault ${vault}: ${err.message}`)
 		}
 
 		try {
 			await this.onMemberJoin(member, vault, chain)
 		} catch (err) {
-			throw new VaultJoinError(`Error while adding member ${member} to data union ${vault}: ${err.message}`)
+			throw new VaultJoinError(`Error while adding member ${member} to vault ${vault}: ${err.message}`)
 		}
 
 		return {

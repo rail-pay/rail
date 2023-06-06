@@ -77,7 +77,7 @@ describe("BanModule", () => {
 
         await vault.addJoinPartAgent(joinPartAgent.address)
         await vault.connect(joinPartAgent).addMember(member0.address)
-        log("Member %s was added to data union", member0.address)
+        log("Member %s was added to vault", member0.address)
     })
 
     it("doesn't let previously banned members re-join", async () => {

@@ -86,14 +86,14 @@ contract BanModule is VaultModule, IJoinListener {
         }
     }
 
-    /** Reverse a ban and re-join the member to the data union */
+    /** Reverse a ban and re-join the member to the vault */
     function restore(address member) public onlyJoinPartAgent {
         require(isBanned(member), "error_memberNotBanned");
         removeBan(member);
         IVault(vault).addMember(member);
     }
 
-    /** Reverse ban and re-join the members to the data union */
+    /** Reverse ban and re-join the members to the vault */
     function restoreMembers(address[] memory members) public onlyJoinPartAgent {
         for (uint8 i = 0; i < members.length; ++i) {
             restore(members[i]);

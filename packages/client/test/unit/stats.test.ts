@@ -30,7 +30,7 @@ describe('Vault stats getters', () => {
         const {
             token: tokenContract,
             vaultFactory,
-            vault,
+            vaultTemplate,
             ethereumUrl
         } = await deployContracts(dao)
         token = tokenContract
@@ -38,11 +38,9 @@ describe('Vault stats getters', () => {
         clientOptions = {
             auth: { privateKey: member.privateKey },
             tokenAddress: token.address,
-            vault: {
-                factoryAddress: vaultFactory.address,
-                templateAddress: vault.address,
-            },
-            network: { rpcs: [{ url: ethereumUrl, timeout: 30 * 1000 }] }
+            factoryAddress: vaultFactory.address,
+            templateAddress: vaultTemplate.address,
+            rpcs: [{ url: ethereumUrl, timeout: 30 * 1000 }]
         }
         const adminClient = new RailClient({ ...clientOptions, auth: { privateKey: admin.privateKey } })
         const adminVault = await adminClient.deployVault()

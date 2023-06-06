@@ -80,7 +80,7 @@ new JoinServer({
 
 ## Running as-is
 
-You can also run the "base" join server without any customizations. This may be useful for development and testing. Note that the base join server only does the signature validation, meaning that anyone (including bots etc.) can join your data unions.
+You can also run the "base" join server without any customizations. This may be useful for development and testing. Note that the base join server only does the signature validation, meaning that anyone (including bots etc.) can join your vaults.
 
 ```
 npm install -g @rail-protocol/join-server
@@ -91,7 +91,7 @@ For other command-line options, see the help available at `join-server -h`.
 
 ## Extending
 
-The functionality of the join server can be extended by data union teams in two important ways: validating custom fields in join requests, and adding custom HTTP endpoints.
+The functionality of the join server can be extended by vault teams in two important ways: validating custom fields in join requests, and adding custom HTTP endpoints.
 
 ### Adding custom fields to join requests
 
@@ -157,7 +157,7 @@ In the context of the signed message wrapper, the full request to this endpoint 
 
 ## Authentication
 
-All endpoints exposed by the join server expect requests to be signed with the requesting Ethereum wallet using a simple signature scheme. The details are below, however most users shouldn't need to implement the authentication from scratch, but instead simply use the [Vault client](https://www.npmjs.com/package/@rail-protocol/client).
+All endpoints exposed by the join server expect requests to be signed with the requesting Ethereum wallet using a simple signature scheme. The details are below, however most users shouldn't need to implement the authentication from scratch, but instead simply use the [RailClient](https://www.npmjs.com/package/@rail-protocol/client).
 
 Requests to the join server look like this:
 

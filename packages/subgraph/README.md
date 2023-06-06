@@ -1,4 +1,4 @@
-# Subgraph definitions for sidechain data unions
+# Subgraph definitions for vaults
 
 ## NOTE: If new smart contracts are deployed
 

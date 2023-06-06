@@ -7,10 +7,10 @@ The Rail framework is a data crowdsourcing and crowdselling solution. Working in
 #### Getting started
 
 Start by obtaining a RailClient object:
-1) Give the Vault client an access to signing with your private key.
+1) Give the RailClient an access to signing with your private key.
 2) Choose a desired EVM chain and add it to the chain parameter. We currently support `gnosis`, and `polygon` (default).
 
-This first option for browsers is to hand in the Metamask object. This means Vault client will not ever see the private key, and can only send transactions and sign messages with the user's explicit consent (pops up a Metamask window). This would connect to the polygon chain using Metamask:
+This first option for browsers is to hand in the Metamask object. This means RailClient will not ever see the private key, and can only send transactions and sign messages with the user's explicit consent (pops up a Metamask window). This would connect to the polygon chain using Metamask:
 ```js
 import { RailClient } from '@rail-protocol/client'
 const { ethereum } = window
@@ -31,7 +31,7 @@ const rail = new RailClient({
 
 The RailClient object can be used to either deploy a new Vault contract, or manipulate/query an existing one.
 
-The address that deploys the contract will become the admin of the data union. To deploy a new Vault with default [deployment options](#deployment-options):
+The address that deploys the contract will become the admin of the vault. To deploy a new Vault with default [deployment options](#deployment-options):
 ```js
 const vault = await rail.deployVault()
 ```
@@ -80,7 +80,7 @@ const receipt = await vault.setMemberWeights([
     ['0x44444...', 3], // add new member
 ])
 ```
-The users can part with the data union themselves
+The users can part with the vault themselves
 ```js
 const receipt = await vault.part()
 ```
@@ -125,7 +125,7 @@ Setting a new admin fee:
 const receipt = await vault.setAdminFee(0.4)
 ```
 
-Setting new metadata: Store information about your data union in a JSON file on-chain inside the contract. For example you can store a DAO manifesto, a name or anything else you can think of.
+Setting new metadata: Store information about your vault in a JSON file on-chain inside the contract. For example you can store a DAO manifesto, a name or anything else you can think of.
 ```js
 const receipt = await vault.setMetadata(
     {"name": "awesome Vault", "maintainer": ["josh#4223", "marc#2324"]}
@@ -197,11 +197,11 @@ const version = await vault.getVersion()
 `deployVault` can take an options object as the argument. It's an object that can contain the following parameters. All shown values are the defaults for each property:
 ```js
 const deploymentOptions = {
-    adminAddress: "0x123...", // If omitted, defaults to the deployer. Will be the admin of the newly created data union
+    adminAddress: "0x123...", // If omitted, defaults to the deployer. Will be the admin of the newly created vault
     adminFee: 0.3, // Share of revenue allocated to the adminAddress. Must be between 0...1
     joinPartAgents: ["0x123..."], // Addresses that can join and part members. If omitted, set by default to include the admin as well as the default join server hosted by Rail Protocol
     metadata: { // optional
-        "information": "related to your data union",
+        "information": "related to your vault",
         "canBe": ["", "anything"]
     }
 }

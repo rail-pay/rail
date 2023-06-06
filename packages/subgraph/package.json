@@ -1,7 +1,7 @@
 {
     "name": "@rail-protocol/subgraph",
     "version": "0.0.1",
-    "description": "Subgraph definitions for sidechain data unions",
+    "description": "Subgraph definitions for vaults",
     "author": "Rail Protocol <contact@rail.dev>",
     "license": "UNLICENSED",
     "private": true,

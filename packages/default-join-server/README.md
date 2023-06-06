@@ -12,7 +12,7 @@ An instance of this join server is run by the Rail Protocol to make it easier fo
 
 ## Join requests
 
-The join request payloads are expected to contain an additional key `secret`, containing a valid app secret previously added to the data union via the `/secrets/create` endpoint.
+The join request payloads are expected to contain an additional key `secret`, containing a valid app secret previously added to the vault via the `/secrets/create` endpoint.
 
 An example join request:
 

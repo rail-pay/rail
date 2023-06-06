@@ -44,7 +44,7 @@ describe('Subgraph', () => {
 
         const client = new RailClient({
             auth: { privateKey: wallet.privateKey },
-            chain: 'dev1',
+            chain: 'docker',
             tokenAddress: token.address,
         })
         log('Deploying Vault from %s...', wallet.address)
