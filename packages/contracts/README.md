@@ -14,6 +14,6 @@ import type { Vault, VaultFactory } from '@rail-protocol/contracts/typechain'
 import { ContractFactory, Contract } from 'ethers'
 const factoryFactory = new ContractFactory(factoryJson.abi, factoryJson.bytecode, creatorWallet)
 const factory = factoryFactory.deploy(templateAddress, tokenAddress, feeOracleAddress) as VaultFactory
-const newVault = factory.deployNewVault(adminAddress, adminFee, agents, metadata) as Vault
+const newVault = factory.deployNewVault(operatorAddress, operatorFee, agents, metadata) as Vault
 const existingVault = new Contract(templateJson.abi, vaultAddress, creatorWallet) as Vault
 ```

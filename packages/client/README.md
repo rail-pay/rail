@@ -31,7 +31,7 @@ const rail = new RailClient({
 
 The RailClient object can be used to either deploy a new Vault contract, or manipulate/query an existing one.
 
-The address that deploys the contract will become the admin of the vault. To deploy a new Vault with default [deployment options](#deployment-options):
+The address that deploys the contract will become the operator of the vault. To deploy a new Vault with default [deployment options](#deployment-options):
 ```js
 const vault = await rail.deployVault()
 ```
@@ -44,9 +44,9 @@ const vault = await rail.getVault('0x12345...')
 
 #### Admin Functions
 
-Executing the admin functions generate transactions and as such require having enough of the native token to pay the gas on the chain you deployed on. To get some native token, you can reach out on the [Vault Discord](https://discord.gg/AY7kDBEtkr). We can send you some to get started. Transactions usually cost a fraction of a cent in Polygon, and Gnosis has historically been especially cheap.
+Executing the operator functions generate transactions and as such require having enough of the native token to pay the gas on the chain you deployed on. To get some native token, you can reach out on the [Vault Discord](https://discord.gg/AY7kDBEtkr). We can send you some to get started. Transactions usually cost a fraction of a cent in Polygon, and Gnosis has historically been especially cheap.
 
-Adding beneficiaries using admin functions is not at feature parity with the beneficiary function `join`. The newly added beneficiary will not automatically be granted publish permissions to the streams inside the Vault. This will need to be done manually using the StreamrClient, see `StreamrClient.grantPermissions()`. Similarly, after removing a beneficiary using the admin function `removeMembers`, the publish permissions will need to be removed in a secondary step using `StreamrClient.revokePermissions()`. This is because the beneficiary function `join` relies on Vault DAO hosted infrastructure, while the admin functions are completely self-sufficient (in fact, the Vault DAO hosted server uses these very admin functions :).
+Adding beneficiaries using operator functions is not at feature parity with the beneficiary function `join`. The newly added beneficiary will not automatically be granted publish permissions to the streams inside the Vault. This will need to be done manually using the StreamrClient, see `StreamrClient.grantPermissions()`. Similarly, after removing a beneficiary using the operator function `removeMembers`, the publish permissions will need to be removed in a secondary step using `StreamrClient.revokePermissions()`. This is because the beneficiary function `join` relies on Vault DAO hosted infrastructure, while the operator functions are completely self-sufficient (in fact, the Vault DAO hosted server uses these very operator functions :).
 
 Adding beneficiaries (joinPart agent only, [read here more about the roles](https://docs.rail.dev/main-concepts/roles-and-responsibilities/joinpart-agents)):
 ```js
@@ -56,7 +56,7 @@ const receipt = await vault.addMembers([
     '0x33333...',
 ])
 ```
-Removing beneficiaries (joinPart agent only (usually the admin is also a joinPart agent) read more [here](https://docs.rail.dev/main-concepts/roles-and-responsibilities/joinpart-agents)):
+Removing beneficiaries (joinPart agent only (usually the operator is also a joinPart agent) read more [here](https://docs.rail.dev/main-concepts/roles-and-responsibilities/joinpart-agents)):
 ```js
 const receipt = await vault.removeMembers([
     '0x11111...',
@@ -119,7 +119,7 @@ const receipt = await vault.withdrawAmountToSigned(
 )
 ```
 
-Setting a new admin fee:
+Setting a new operator fee:
 ```js
 // Any number between 0 and 1, inclusive
 const receipt = await vault.setAdminFee(0.4)
@@ -139,7 +139,7 @@ If the Vault is set up to use the [default join server](https://github.com/rail-
 Admin can add secrets that allow anyone to join, as well as revoke those secrets, using the following functions:
 ```js
 await vault.createSecret() // returns the newly created secret
-await vault.createSecret('user XYZ') // admin can also give the secret a more human-readable name
+await vault.createSecret('user XYZ') // operator can also give the secret a more human-readable name
 await vault.deleteSecret(secret) // secret as returned by createSecret
 await vault.listSecrets() // in case you forgot ;)
 ```
@@ -176,13 +176,13 @@ Get the withdrawable DATA tokens in the Vault for a beneficiary:
 // Returns a BigNumber
 const balance = await vault.getWithdrawableEarnings('0x12345...')
 ```
-Getting the set admin fee:
+Getting the set operator fee:
 ```js
-const adminFee = await vault.getAdminFee()
+const operatorFee = await vault.getAdminFee()
 ```
-Getting admin's address:
+Getting operator's address:
 ```js
-const adminAddress = await vault.getAdminAddress()
+const operatorAddress = await vault.getAdminAddress()
 ```
 
 Getting the Vault's version:
@@ -197,9 +197,9 @@ const version = await vault.getVersion()
 `deployVault` can take an options object as the argument. It's an object that can contain the following parameters. All shown values are the defaults for each property:
 ```js
 const deploymentOptions = {
-    adminAddress: "0x123...", // If omitted, defaults to the deployer. Will be the admin of the newly created vault
-    adminFee: 0.3, // Share of revenue allocated to the adminAddress. Must be between 0...1
-    joinPartAgents: ["0x123..."], // Addresses that can join and part beneficiaries. If omitted, set by default to include the admin as well as the default join server hosted by Rail Protocol
+    operatorAddress: "0x123...", // If omitted, defaults to the deployer. Will be the operator of the newly created vault
+    operatorFee: 0.3, // Share of revenue allocated to the operatorAddress. Must be between 0...1
+    joinPartAgents: ["0x123..."], // Addresses that can join and part beneficiaries. If omitted, set by default to include the operator as well as the default join server hosted by Rail Protocol
     metadata: { // optional
         "information": "related to your vault",
         "canBe": ["", "anything"]
@@ -214,8 +214,8 @@ const vault = await rail.deployVault({
 The [Default Join Server](https://github.com/vaults/default-join-server) hosted by the Rail Protocol is added as a `joinPartAgent` by default so that joining with secret works using the beneficiary function `join`. If you plan to run your own join server, include its address in the `joinPartAgents`:
 ```js
 const vault = await rail.deployVault({
-    joinPartAgents: [adminAddress, myJoinServerAddress],
-    adminFee,
+    joinPartAgents: [operatorAddress, myJoinServerAddress],
+    operatorFee,
 })
 ```
 

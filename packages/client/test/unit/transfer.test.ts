@@ -15,7 +15,7 @@ const log = (..._: unknown[]) => {}
 describe('Vault earnings transfer methods', () => {
 
     let dao: Wallet
-    let admin: Wallet
+    let operator: Wallet
     let beneficiary: Wallet
     let otherMember: Wallet
     let outsider: Wallet
@@ -25,7 +25,7 @@ describe('Vault earnings transfer methods', () => {
     beforeAll(async () => {
         [
             dao,
-            admin,
+            operator,
             beneficiary,
             otherMember,
             outsider,
@@ -46,13 +46,13 @@ describe('Vault earnings transfer methods', () => {
             rpcs: [{ url: ethereumUrl, timeout: 30 * 1000 }]
         }
 
-        // deploy a Vault with admin fee 9% + Vault fee 1% = total 10% fees
-        const adminClient = new RailClient({ ...clientOptions, auth: { privateKey: admin.privateKey } })
-        const adminVault = await adminClient.deployVault({ adminFee: 0.09 })
-        await adminVault.addMembers([beneficiary.address, otherMember.address])
+        // deploy a Vault with operator fee 9% + Vault fee 1% = total 10% fees
+        const operatorClient = new RailClient({ ...clientOptions, auth: { privateKey: operator.privateKey } })
+        const operatorVault = await operatorClient.deployVault({ operatorFee: 0.09 })
+        await operatorVault.addMembers([beneficiary.address, otherMember.address])
 
         const client = new RailClient(clientOptions)
-        vault = await client.getVault(adminVault.getAddress())
+        vault = await client.getVault(operatorVault.getAddress())
 
         const outsiderClient = new RailClient({ ...clientOptions, auth: { privateKey: outsider.privateKey } })
         outsiderVault = await outsiderClient.getVault(vault.getAddress())

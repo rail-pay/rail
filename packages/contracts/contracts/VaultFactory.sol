@@ -77,7 +77,7 @@ contract VaultFactory is Initializable, OwnableUpgradeable, UUPSUpgradeable {
 
     function deployNewVault(
         address payable owner,
-        uint256 adminFeeFraction,
+        uint256 operatorFeeFraction,
         address[] memory agents,
         string calldata metadataJsonString
     )
@@ -88,7 +88,7 @@ contract VaultFactory is Initializable, OwnableUpgradeable, UUPSUpgradeable {
             defaultToken,
             owner,
             agents,
-            adminFeeFraction,
+            operatorFeeFraction,
             metadataJsonString
         );
     }

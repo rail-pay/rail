@@ -47,7 +47,7 @@ async function getWithdrawSignature(
 
 describe("Vault", () => {
     let dao: Wallet
-    let admin: Wallet
+    let operator: Wallet
     let a1: Wallet
     let a2: Wallet
     let a3: Wallet
@@ -66,7 +66,7 @@ describe("Vault", () => {
     let vaultFromMember0: Vault
 
     before(async () => {
-        [dao, admin, a1, a2, a3, m1, m2, m3, ...otherWallets] = await getSigners() as unknown as Wallet[]
+        [dao, operator, a1, a2, a3, m1, m2, m3, ...otherWallets] = await getSigners() as unknown as Wallet[]
         agents = [a1, a2, a3].map(a => a.address)
         beneficiaries = [m1, m2, m3].map(m => m.address)
         others = otherWallets.map(o => o.address)
@@ -82,14 +82,14 @@ describe("Vault", () => {
         log("List of relevant addresses:")
         log("  testToken: %s", testToken.address)
         log("  dao: %s", dao.address)
-        log("  admin: %s", admin.address)
+        log("  operator: %s", operator.address)
         log("  agents: %o", agents)
         log("  beneficiaries: %o", beneficiaries)
         log("  outsider addresses used in tests: %o", others)
     })
 
     beforeEach(async () => {
-        vault = await (await getContractFactory("Vault", { signer: admin })).deploy() as Vault
+        vault = await (await getContractFactory("Vault", { signer: operator })).deploy() as Vault
         await vault.deployed()
 
         vaultFromAgent = vault.connect(a2)
@@ -105,7 +105,7 @@ describe("Vault", () => {
         //     string calldata metadataJsonString
         // )
         await vault.initialize(
-            admin.address,
+            operator.address,
             testToken.address,
             agents,
             "1",
@@ -131,7 +131,7 @@ describe("Vault", () => {
 
         expect(await vault.totalEarnings()).to.equal(2700)
         expect(await vault.totalAdminFees()).to.equal(270)
-        expect(await vault.getEarnings(admin.address)).to.equal(270)
+        expect(await vault.getEarnings(operator.address)).to.equal(270)
         expect(await vault.totalProtocolFees()).to.equal(30)
         expect(await vault.getEarnings(dao.address)).to.equal(30)
         expect(await vault.getEarnings(m1.address)).to.equal(900)
@@ -145,7 +145,7 @@ describe("Vault", () => {
         await vault.connect(randomOutsider).refreshRevenue()
         expect(await vault.totalEarnings()).to.equal(4500)
         expect(await vault.totalAdminFees()).to.equal(450)
-        expect(await vault.getEarnings(admin.address)).to.equal(450)
+        expect(await vault.getEarnings(operator.address)).to.equal(450)
         expect(await vault.totalProtocolFees()).to.equal(50)
         expect(await vault.getEarnings(dao.address)).to.equal(50)
         expect(await vault.getEarnings(m1.address)).to.equal(900)
@@ -159,7 +159,7 @@ describe("Vault", () => {
         await vault.connect(randomOutsider).refreshRevenue()
         expect(await vault.totalEarnings()).to.equal(8100)
         expect(await vault.totalAdminFees()).to.equal(810)
-        expect(await vault.getEarnings(admin.address)).to.equal(810)
+        expect(await vault.getEarnings(operator.address)).to.equal(810)
         expect(await vault.totalProtocolFees()).to.equal(90)
         expect(await vault.getEarnings(dao.address)).to.equal(90)
         expect(await vault.getEarnings(newMember.address)).to.equal(900)
@@ -222,7 +222,7 @@ describe("Vault", () => {
     it("getEarnings", async () => {
         await expect(vault.getEarnings(others[0])).to.be.revertedWith("error_notMember")
         await expect(vault.getEarnings(a1.address)).to.be.revertedWith("error_notMember")
-        await expect(vault.getEarnings(admin.address)).to.be.revertedWith("error_notMember")
+        await expect(vault.getEarnings(operator.address)).to.be.revertedWith("error_notMember")
         expect(await vault.getEarnings(m1.address)).to.equal(0)
 
         await testToken.transfer(vault.address, "3000")
@@ -231,7 +231,7 @@ describe("Vault", () => {
         expect(await vault.getEarnings(m1.address)).to.equal(900)
         expect(await vault.getEarnings(m2.address)).to.equal(900)
         expect(await vault.getEarnings(m3.address)).to.equal(900)
-        expect(await vault.getEarnings(admin.address)).to.equal(270)
+        expect(await vault.getEarnings(operator.address)).to.equal(270)
         expect(await vault.getEarnings(dao.address)).to.equal(30)
     })
 
@@ -350,7 +350,7 @@ describe("Vault", () => {
         await testToken.transfer(vault.address, "3000")
         await vault.refreshRevenue()
         await expect(vault.connect(otherWallets[0]).transferWithinContract(m2.address, "100")).to.be.revertedWith("error_notMember")
-        // change after sidechain fees / ETH-141: admin receives fees and so becomes an INACTIVE beneficiary by _increaseBalance
+        // change after sidechain fees / ETH-141: operator receives fees and so becomes an INACTIVE beneficiary by _increaseBalance
         // await expect(vaultSidechain.transferWithinContract(m2.address, "100")).to.be.revertedWith("error_notMember")
         await expect(vaultFromMember0.transferWithinContract(m2.address, "100")).to.emit(vault, "TransferWithinContract")
         await expect(vaultFromMember0.transferWithinContract(others[1], "100")).to.emit(vault, "TransferWithinContract")
@@ -362,7 +362,7 @@ describe("Vault", () => {
         expect(await vault.inactiveMemberCount()).to.equal(3)
         expect((await vault.beneficiaryData(others[1])).status).to.equal(2)
         expect((await vault.beneficiaryData(dao.address)).status).to.equal(2)
-        expect((await vault.beneficiaryData(admin.address)).status).to.equal(2)
+        expect((await vault.beneficiaryData(operator.address)).status).to.equal(2)
     })
 
     it.skip("getStats", async () => {
@@ -387,7 +387,7 @@ describe("Vault", () => {
         expect(totalProtocolFees).to.equal(30)
         expect(totalEarningsWithdrawn).to.equal(500)
         expect(activeMemberCount).to.equal(3)
-        expect(inactiveMemberCount).to.equal(0) // admin and dao are cleaned out of this number though they show up in the "inactiveMemberCount"
+        expect(inactiveMemberCount).to.equal(0) // operator and dao are cleaned out of this number though they show up in the "inactiveMemberCount"
         expect(lifetimeMemberEarnings).to.equal(900)
         expect(joinPartAgentCount).to.equal(2)
     })
@@ -411,7 +411,7 @@ describe("Vault", () => {
 
     it("fails to initialize twice", async () => {
         await expect(vault.initialize(
-            admin.address,
+            operator.address,
             testToken.address,
             agents,
             "1",
@@ -449,44 +449,44 @@ describe("Vault", () => {
         expect(await vault.owner()).to.equal(others[0])
 
         await expect(vault.transferOwnership(others[0])).to.be.revertedWith("error_onlyOwner")
-        await vault.connect(otherWallets[0]).transferOwnership(admin.address)
+        await vault.connect(otherWallets[0]).transferOwnership(operator.address)
         await expect(vault.claimOwnership()).to.emit(vault, "OwnershipTransferred")
-        expect(await vault.owner()).to.equal(admin.address)
+        expect(await vault.owner()).to.equal(operator.address)
     })
 
     it("rejects unexpected ERC677 tokens", async () => {
-        const randomToken = await (await getContractFactory("TestToken", { signer: admin })).deploy("random", "RND") as TestToken
+        const randomToken = await (await getContractFactory("TestToken", { signer: operator })).deploy("random", "RND") as TestToken
         await randomToken.deployed()
-        await randomToken.mint(admin.address, parseEther("10000"))
+        await randomToken.mint(operator.address, parseEther("10000"))
         await expect(randomToken.transferAndCall(vault.address, "1000", "0x")).to.be.revertedWith("error_onlyTokenContract")
     })
 
-    it("rejects admin fee that would cause total fees sum above 1.0", async () => {
-        await expect(vault.setAdminFee(parseEther("0.995"))).to.be.revertedWith("error_adminFee")
+    it("rejects operator fee that would cause total fees sum above 1.0", async () => {
+        await expect(vault.setAdminFee(parseEther("0.995"))).to.be.revertedWith("error_operatorFee")
     })
 
-    it.skip("adjusts an admin fee that would cause total fees sum above 1.0", async () => {
+    it.skip("adjusts an operator fee that would cause total fees sum above 1.0", async () => {
         await expect(vault.setAdminFee(parseEther("0.9"))).to.emit(vault, "AdminFeeChanged")
-        expect(await vault.adminFeeFraction()).to.equal(parseEther("0.9"))
+        expect(await vault.operatorFeeFraction()).to.equal(parseEther("0.9"))
         await feeOracle.setFee(parseEther("0.2"))
         expect(testToken.transfer(vault.address, "3000")).to.emit(testToken, "Transfer")
         await vault.refreshRevenue()
-        expect(await vault.adminFeeFraction()).to.equal(parseEther("0.8"))
+        expect(await vault.operatorFeeFraction()).to.equal(parseEther("0.8"))
         await feeOracle.setFee(parseEther("0.01"))
     })
 
-    it.skip("lets only admin change the metadata", async () => {
+    it.skip("lets only operator change the metadata", async () => {
         await expect(vault.connect(beneficiaries[0]).setMetadata("foo")).to.be.revertedWith("error_onlyOwner")
         expect(await vault.metadataJsonString()).to.equal("{}")
-        await expect(vault.connect(admin).setMetadata("foo")).to.emit(vault, "MetadataChanged")
+        await expect(vault.connect(operator).setMetadata("foo")).to.emit(vault, "MetadataChanged")
         expect(await vault.metadataJsonString()).to.equal("foo")
     })
 
-    it.skip("lets only admin change the admin fee", async () => {
+    it.skip("lets only operator change the operator fee", async () => {
         await expect(vault.connect(beneficiaries[0]).setAdminFee(parseEther("0.5"))).to.be.revertedWith("error_onlyOwner")
-        expect(await vault.adminFeeFraction()).to.equal(parseEther("0.09"))
-        await expect(vault.connect(admin).setAdminFee(parseEther("0.5"))).to.emit(vault, "AdminFeeChanged")
-        expect(await vault.adminFeeFraction()).to.equal(parseEther("0.5"))
+        expect(await vault.operatorFeeFraction()).to.equal(parseEther("0.09"))
+        await expect(vault.connect(operator).setAdminFee(parseEther("0.5"))).to.emit(vault, "AdminFeeChanged")
+        expect(await vault.operatorFeeFraction()).to.equal(parseEther("0.5"))
     })
 
     it("cannot swap modules after locking", async () => {

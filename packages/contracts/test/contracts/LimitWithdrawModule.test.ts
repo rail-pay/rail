@@ -113,7 +113,7 @@ describe("LimitWithdrawModule", () => {
         await expect(limitWithdrawModule.onWithdraw(beneficiary0.address, others[0].address, testToken.address, "0")).to.be.revertedWith("error_onlyVaultContract")
     })
 
-    it("only lets admin reset the module", async () => {
+    it("only lets operator reset the module", async () => {
         await expect(limitWithdrawModule.connect(beneficiary0).setParameters(...limitWithdrawModuleArgs)).to.be.revertedWith("error_onlyOwner")
         await expect(limitWithdrawModule.setParameters(...limitWithdrawModuleArgs)).to.emit(limitWithdrawModule, "ModuleReset")
     })

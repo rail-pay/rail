@@ -10,16 +10,16 @@ import type { Vault } from '../../src/Vault'
 describe('Vault beneficiary', () => {
 
     let dao: Wallet
-    let admin: Wallet
+    let operator: Wallet
     let beneficiary: Wallet
     let otherMember: Wallet
     let token: DATAv2
     let vault: Vault
-    let adminVault: Vault
+    let operatorVault: Vault
     beforeAll(async () => {
         [
             dao,
-            admin,
+            operator,
             beneficiary,
             otherMember,
         ] = getWallets()
@@ -39,12 +39,12 @@ describe('Vault beneficiary', () => {
             rpcs: [{ url: ethereumUrl, timeout: 30 * 1000 }]
         }
 
-        const adminClient = new RailClient({ ...clientOptions, auth: { privateKey: admin.privateKey } })
-        adminVault = await adminClient.deployVault()
-        await adminVault.addMembers([beneficiary.address, otherMember.address])
+        const operatorClient = new RailClient({ ...clientOptions, auth: { privateKey: operator.privateKey } })
+        operatorVault = await operatorClient.deployVault()
+        await operatorVault.addMembers([beneficiary.address, otherMember.address])
 
         const client = new RailClient(clientOptions)
-        vault = await client.getVault(adminVault.getAddress())
+        vault = await client.getVault(operatorVault.getAddress())
     })
 
     it('cannot be just any random address', async () => {
@@ -64,11 +64,11 @@ describe('Vault beneficiary', () => {
         expect(beneficiaryCountAfter).toEqual(beneficiaryCountBefore - 1)
     })
 
-    it('can be added by admin', async () => {
+    it('can be added by operator', async () => {
         const userAddress = Wallet.createRandom().address
         const beneficiaryCountBefore = await vault.getActiveMemberCount()
         const isMemberBefore = await vault.isMember(userAddress)
-        await adminVault.addMembers([userAddress])
+        await operatorVault.addMembers([userAddress])
         const isMemberAfter = await vault.isMember(userAddress)
         const beneficiaryCountAfter = await vault.getActiveMemberCount()
 
@@ -77,8 +77,8 @@ describe('Vault beneficiary', () => {
         expect(beneficiaryCountAfter).toEqual(beneficiaryCountBefore + 1)
     })
 
-    it('can be removed by admin', async () => {
-        await adminVault.removeMembers([otherMember.address])
+    it('can be removed by operator', async () => {
+        await operatorVault.removeMembers([otherMember.address])
         const isMember = await vault.isMember(otherMember.address)
         expect(isMember).toBe(false)
     })
@@ -90,12 +90,12 @@ describe('Vault beneficiary', () => {
         const { totalWeight: totalWeightBefore } = await vault.getStats()
         const isMemberBefore = await vault.isMember(userAddress)
 
-        await adminVault.addMembersWithWeights([userAddress], [2])
+        await operatorVault.addMembersWithWeights([userAddress], [2])
         const isMemberAfter1 = await vault.isMember(userAddress)
         const beneficiaryCountAfter1 = await vault.getActiveMemberCount()
         const { totalWeight: totalWeightAfter1 } = await vault.getStats()
 
-        await adminVault.setMemberWeights([userAddress, user2Address], [0, 3])
+        await operatorVault.setMemberWeights([userAddress, user2Address], [0, 3])
         const isMemberAfter2 = await vault.isMember(userAddress)
         const beneficiaryCountAfter2 = await vault.getActiveMemberCount()
         const { totalWeight: totalWeightAfter2 } = await vault.getStats()

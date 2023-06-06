@@ -10,7 +10,7 @@ import { deployContracts, getWallets } from './setup'
 describe('Vault stats getters', () => {
 
     let dao: Wallet
-    let admin: Wallet
+    let operator: Wallet
     let beneficiary: Wallet
     let otherMember: Wallet
     let removedMember: Wallet
@@ -21,7 +21,7 @@ describe('Vault stats getters', () => {
     beforeAll(async () => {
         [
             dao,
-            admin,
+            operator,
             beneficiary,
             otherMember,
             removedMember,
@@ -42,13 +42,13 @@ describe('Vault stats getters', () => {
             templateAddress: vaultTemplate.address,
             rpcs: [{ url: ethereumUrl, timeout: 30 * 1000 }]
         }
-        const adminClient = new RailClient({ ...clientOptions, auth: { privateKey: admin.privateKey } })
-        const adminVault = await adminClient.deployVault()
-        await adminVault.addMembers([beneficiary.address, otherMember.address, removedMember.address])
-        await adminVault.removeMembers([removedMember.address])
+        const operatorClient = new RailClient({ ...clientOptions, auth: { privateKey: operator.privateKey } })
+        const operatorVault = await operatorClient.deployVault()
+        await operatorVault.addMembers([beneficiary.address, otherMember.address, removedMember.address])
+        await operatorVault.removeMembers([removedMember.address])
 
         const client = new RailClient(clientOptions)
-        vault = await client.getVault(adminVault.getAddress())
+        vault = await client.getVault(operatorVault.getAddress())
     })
 
     it('Vault stats', async () => {
@@ -88,8 +88,8 @@ describe('Vault stats getters', () => {
         expect(vault.getMemberStats('invalid-address')).rejects.toThrow(/invalid address/)
     })
 
-    it('gives Vault admin address correctly', async () => {
-        const adminAddress = await vault.getAdminAddress()
-        expect(adminAddress).toEqual(admin.address)
+    it('gives Vault operator address correctly', async () => {
+        const operatorAddress = await vault.getAdminAddress()
+        expect(operatorAddress).toEqual(operator.address)
     })
 })

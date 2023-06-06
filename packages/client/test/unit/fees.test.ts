@@ -10,7 +10,7 @@ import type { RailClientConfig } from '../../src/Config'
 import type { DATAv2 } from '@streamr/data-v2'
 
 import debug from 'debug'
-const log = debug('RailClient:unit-tests:adminFee')
+const log = debug('RailClient:unit-tests:operatorFee')
 
 describe('Vault fees', () => {
 
@@ -41,11 +41,11 @@ describe('Vault fees', () => {
         await (await token.transferAndCall(vaultAddress, amountWei, '0x')).wait()
     }
 
-    it('admin can set admin fee', async () => {
+    it('operator can set operator fee', async () => {
         const client = new RailClient(clientOptions)
         const vault = await client.deployVault()
         const oldFee = await vault.getAdminFee()
-        log(`Vault admin: ${await vault.getAdminAddress()}`)
+        log(`Vault operator: ${await vault.getAdminAddress()}`)
         log(`Sending tx from ${await client.getAddress()}`)
         const tr = await vault.setAdminFee(0.1)
         log(`Transaction events: ${JSON.stringify(tr.events!.map((e) => e.event))}`)
@@ -54,7 +54,7 @@ describe('Vault fees', () => {
         expect(newFee).toEqual(0.1)
     })
 
-    it('admin receives admin fees', async () => {
+    it('operator receives operator fees', async () => {
         const client = new RailClient(clientOptions)
         const vault = await client.deployVault()
         await vault.addMembers(["0x0000000000000000000000000000000000000001"])
@@ -63,11 +63,11 @@ describe('Vault fees', () => {
         expect(formatEther(await vault.getWithdrawableEarnings(user.address))).toEqual('0.1')
     })
 
-    // it('admin can set Vault fee', async () => {
+    // it('operator can set Vault fee', async () => {
     //     const client = new RailClient(clientOptions)
     //     const vault = await client.deployVault()
     //     const oldFee = await vault.getAdminFee()
-    //     log(`Vault admin: ${await vault.getAdminAddress()}`)
+    //     log(`Vault operator: ${await vault.getAdminAddress()}`)
     //     log(`Sending tx from ${await client.getAddress()}`)
     //     const tr = await vault.setAdminFee(0.1)
     //     log(`Transaction events: ${JSON.stringify(tr.events!.map((e) => e.event))}`)

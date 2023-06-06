@@ -205,10 +205,10 @@ export class RailClient {
 
     async deployVaultUsingToken(token: EthereumAddress, options: VaultDeployOptions = {}): Promise<Vault> {
         const {
-            adminAddress = await this.wallet.getAddress(),
-            joinPartAgents = [adminAddress, this.joinPartAgentAddress],
+            operatorAddress = await this.wallet.getAddress(),
+            joinPartAgents = [operatorAddress, this.joinPartAgentAddress],
             vaultName = `Vault-${Date.now()}`, // TODO: use uuid
-            adminFee = 0,
+            operatorFee = 0,
             confirmations = 1,
             gasPrice,
             metadata = {},
@@ -217,11 +217,11 @@ export class RailClient {
         log(`Going to deploy Vault with name: ${vaultName}`)
 
         const tokenAddress = getAddress(token)
-        const ownerAddress = getAddress(adminAddress)
+        const ownerAddress = getAddress(operatorAddress)
         const agentAddressList = joinPartAgents.map(getAddress)
 
-        if (adminFee < 0 || adminFee > 1) { throw new Error('VaultDeployOptions.adminFee must be a number between 0...1, got: ' + adminFee) }
-        const adminFeeBN = BigNumber.from((adminFee * 1e18).toFixed()) // last 2...3 decimals are going to be gibberish, but that's not much value
+        if (operatorFee < 0 || operatorFee > 1) { throw new Error('VaultDeployOptions.operatorFee must be a number between 0...1, got: ' + operatorFee) }
+        const operatorFeeBN = BigNumber.from((operatorFee * 1e18).toFixed()) // last 2...3 decimals are going to be gibberish, but that's not much value
 
         const ethersOverrides = await this.getOverrides()
         if (gasPrice) { ethersOverrides.gasPrice = gasPrice }
@@ -237,7 +237,7 @@ export class RailClient {
             tokenAddress,
             ownerAddress,
             agentAddressList,
-            adminFeeBN,
+            operatorFeeBN,
             JSON.stringify(metadata),
             ethersOverrides
         )
@@ -260,10 +260,10 @@ export class RailClient {
      */
     async deployVault(options: VaultDeployOptions = {}): Promise<Vault> {
         const {
-            adminAddress = await this.wallet.getAddress(),
-            joinPartAgents = [adminAddress, this.joinPartAgentAddress],
+            operatorAddress = await this.wallet.getAddress(),
+            joinPartAgents = [operatorAddress, this.joinPartAgentAddress],
             vaultName = `Vault-${Date.now()}`, // TODO: use uuid
-            adminFee = 0,
+            operatorFee = 0,
             confirmations = 1,
             gasPrice,
             metadata = {},
@@ -271,24 +271,24 @@ export class RailClient {
 
         log(`Going to deploy Vault with name: ${vaultName}`)
 
-        const ownerAddress = getAddress(adminAddress)
+        const ownerAddress = getAddress(operatorAddress)
         const agentAddressList = joinPartAgents.map(getAddress)
 
-        if (adminFee < 0 || adminFee > 1) { throw new Error('VaultDeployOptions.adminFee must be a number between 0...1, got: ' + adminFee) }
-        const adminFeeBN = BigNumber.from((adminFee * 1e18).toFixed()) // last 2...3 decimals are going to be gibberish, but that's not much value
+        if (operatorFee < 0 || operatorFee > 1) { throw new Error('VaultDeployOptions.operatorFee must be a number between 0...1, got: ' + operatorFee) }
+        const operatorFeeBN = BigNumber.from((operatorFee * 1e18).toFixed()) // last 2...3 decimals are going to be gibberish, but that's not much value
 
         const ethersOverrides = await this.getOverrides()
         if (gasPrice) { ethersOverrides.gasPrice = gasPrice }
 
         // function deployNewVault(
         //     address payable owner,
-        //     uint256 adminFeeFraction,
+        //     uint256 operatorFeeFraction,
         //     address[] memory agents
         // )
         const vaultFactory = await this.getFactory()
         const tx = await vaultFactory.deployNewVault(
             ownerAddress,
-            adminFeeBN,
+            operatorFeeBN,
             agentAddressList,
             JSON.stringify(metadata),
             ethersOverrides

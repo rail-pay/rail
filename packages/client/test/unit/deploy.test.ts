@@ -35,15 +35,15 @@ describe('Vault deploy', () => {
         })
 
         it('specified', async () => {
-            const adminAddress = "0x0000000000000000000000000000000000000123"
+            const operatorAddress = "0x0000000000000000000000000000000000000123"
             const client = new RailClient(clientOptions)
-            const vault = await client.deployVault({ adminAddress })
-            expect(await vault.getAdminAddress()).toBe(adminAddress)
+            const vault = await client.deployVault({ operatorAddress })
+            expect(await vault.getAdminAddress()).toBe(operatorAddress)
         })
 
         it('invalid', async () => {
             const client = new RailClient(clientOptions)
-            await expect(client.deployVault({ adminAddress: 'foobar' })).rejects.toThrow(/invalid address/)
+            await expect(client.deployVault({ operatorAddress: 'foobar' })).rejects.toThrow(/invalid address/)
         })
     })
 

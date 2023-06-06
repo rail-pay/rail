@@ -20,14 +20,14 @@ module.exports = (db) => {
 					error: `Vault ${req.validatedRequest.vault} on chain ${req.validatedRequest.chain} does not exist!`
 				})
 			} else {
-				const admin = await vault.getAdminAddress()
-				if (admin.toLowerCase() === req.body.address.toLowerCase()) {
+				const operator = await vault.getAdminAddress()
+				if (operator.toLowerCase() === req.body.address.toLowerCase()) {
 					next()
 				} else {
 					res.status(403)
 					res.set('content-type', 'application/json')
 					res.send({
-						error: `This endpoint can only be called by the Vault admin (${admin})`
+						error: `This endpoint can only be called by the Vault operator (${operator})`
 					})
 				}
 			}

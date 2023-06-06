@@ -21,7 +21,7 @@ import { deployContracts, getWallets } from './setup'
  ** /
 describe('Vault joining using join-server', () => {
 
-    let admin: Wallet
+    let operator: Wallet
     let beneficiary: Wallet
     let joinPartAgent: Wallet
     let vaultAddress: string
@@ -30,7 +30,7 @@ describe('Vault joining using join-server', () => {
     let server: JoinServer
     beforeAll(async () => {
         [
-            admin,
+            operator,
             beneficiary,
             joinPartAgent,
         ] = getWallets()
@@ -39,7 +39,7 @@ describe('Vault joining using join-server', () => {
             vaultFactory,
             vault,
             ethereumUrl
-        } = await deployContracts(admin)
+        } = await deployContracts(operator)
         token = tokenContract
 
         clientOptions = {
@@ -62,7 +62,7 @@ describe('Vault joining using join-server', () => {
             }
         }
 
-        const client = new RailClient({ ...clientOptions, auth: { privateKey: admin.privateKey } })
+        const client = new RailClient({ ...clientOptions, auth: { privateKey: operator.privateKey } })
         const vault = await client.deployVault()
         vaultAddress = vault.getAddress()
 

@@ -29,9 +29,9 @@ contract Vault is Ownable, IERC677Receiver, IPurchaseListener {
     event NewMemberEthSent(uint amountWei);
     event MemberWeightChanged(address indexed beneficiary, uint oldWeight, uint newWeight);
 
-    // Revenue handling: earnings = revenue - admin fee - du fee
+    // Revenue handling: earnings = revenue - operator fee - du fee
     event RevenueReceived(uint256 amount);
-    event FeesCharged(uint256 adminFee, uint256 protocolFee);
+    event FeesCharged(uint256 operatorFee, uint256 protocolFee);
     event NewEarnings(uint256 earningsPerMember, uint256 activeMemberCount);
     event NewWeightedEarnings(uint256 earningsPerUnitWeight, uint256 totalWeightWei, uint256 activeMemberCount);
 
@@ -73,7 +73,7 @@ contract Vault is Ownable, IERC677Receiver, IPurchaseListener {
 
     // Variable properties
     uint256 public newMemberEth;
-    uint256 public adminFeeFraction;
+    uint256 public operatorFeeFraction;
     string public metadataJsonString;
 
     // Useful stats
@@ -152,9 +152,9 @@ contract Vault is Ownable, IERC677Receiver, IPurchaseListener {
      */
     function setAdminFee(uint256 newAdminFee) public onlyOwner {
         uint protocolFeeFraction = protocolFeeOracle.protocolFeeFor(address(this));
-        require(newAdminFee + protocolFeeFraction <= 1 ether, "error_adminFee");
-        uint oldAdminFee = adminFeeFraction;
-        adminFeeFraction = newAdminFee;
+        require(newAdminFee + protocolFeeFraction <= 1 ether, "error_operatorFee");
+        uint oldAdminFee = operatorFeeFraction;
+        operatorFeeFraction = newAdminFee;
         emit AdminFeeChanged(newAdminFee, oldAdminFee);
     }
 
@@ -190,20 +190,20 @@ contract Vault is Ownable, IERC677Receiver, IPurchaseListener {
         uint protocolFeeFraction = protocolFeeOracle.protocolFeeFor(address(this));
         address protocolBeneficiary = protocolFeeOracle.beneficiary();
 
-        // sanity check: adjust oversize admin fee (prevent over 100% fees)
-        if (adminFeeFraction + protocolFeeFraction > 1 ether) {
-            adminFeeFraction = 1 ether - protocolFeeFraction;
+        // sanity check: adjust oversize operator fee (prevent over 100% fees)
+        if (operatorFeeFraction + protocolFeeFraction > 1 ether) {
+            operatorFeeFraction = 1 ether - protocolFeeFraction;
         }
 
-        uint adminFeeWei = (newTokens * adminFeeFraction) / (1 ether);
+        uint operatorFeeWei = (newTokens * operatorFeeFraction) / (1 ether);
         uint protocolFeeWei = (newTokens * protocolFeeFraction) / (1 ether);
-        uint newEarnings = newTokens - adminFeeWei - protocolFeeWei;
+        uint newEarnings = newTokens - operatorFeeWei - protocolFeeWei;
 
-        _increaseBalance(owner, adminFeeWei);
+        _increaseBalance(owner, operatorFeeWei);
         _increaseBalance(protocolBeneficiary, protocolFeeWei);
-        totalAdminFees += adminFeeWei;
+        totalAdminFees += operatorFeeWei;
         totalProtocolFees += protocolFeeWei;
-        emit FeesCharged(adminFeeWei, protocolFeeWei);
+        emit FeesCharged(operatorFeeWei, protocolFeeWei);
 
         // newEarnings and totalWeight are ether-scale (10^18), so need to scale earnings to "per unit weight" to avoid division going below 1
         uint earningsPerUnitWeightScaled = newEarnings * 1 ether / totalWeight;
@@ -286,7 +286,7 @@ contract Vault is Ownable, IERC677Receiver, IPurchaseListener {
         return maxWithdraw;
     }
 
-    // this includes the fees paid to admins and the Vault beneficiary
+    // this includes the fees paid to operators and the Vault beneficiary
     function totalWithdrawable() public view returns (uint256) {
         return totalRevenue - totalWithdrawn;
     }
@@ -457,7 +457,7 @@ contract Vault is Ownable, IERC677Receiver, IPurchaseListener {
     //------------------------------------------------------------
 
     /**
-     * Transfer tokens from outside contract, add to a recipient's in-contract balance. Skip admin and Vault fees etc.
+     * Transfer tokens from outside contract, add to a recipient's in-contract balance. Skip operator and Vault fees etc.
      */
     function transferToMemberInContract(address recipient, uint amount) public {
         // this is done first, so that in case token implementation calls the onTokenTransfer in its transferFrom (which by ERC677 it should NOT),
@@ -612,8 +612,8 @@ contract Vault is Ownable, IERC677Receiver, IPurchaseListener {
 
     /**
      * Do an "unlimited donate withdraw" on behalf of someone else, to an address they've specified.
-     * Sponsored withdraw is paid by admin, but target account could be whatever the beneficiary specifies.
-     * The signature gives a "blank cheque" for admin to withdraw all tokens to `recipient` in the future,
+     * Sponsored withdraw is paid by operator, but target account could be whatever the beneficiary specifies.
+     * The signature gives a "blank cheque" for operator to withdraw all tokens to `recipient` in the future,
      *   and it's valid until next withdraw (and so can be nullified by withdrawing any amount).
      * A new signature needs to be obtained for each subsequent future withdraw.
      * @param fromSigner whose earnings are being withdrawn
@@ -637,7 +637,7 @@ contract Vault is Ownable, IERC677Receiver, IPurchaseListener {
 
     /**
      * Do a "donate withdraw" on behalf of someone else, to an address they've specified.
-     * Sponsored withdraw is paid by admin, but target account could be whatever the beneficiary specifies.
+     * Sponsored withdraw is paid by operator, but target account could be whatever the beneficiary specifies.
      * The signature is valid only for given amount of tokens that may be different from maximum withdrawable tokens.
      * @param fromSigner whose earnings are being withdrawn
      * @param to the address the tokens will be sent to (instead of `msg.sender`)

@@ -221,7 +221,7 @@
       },
       {
         "internalType": "uint256",
-        "name": "adminFeeFraction",
+        "name": "operatorFeeFraction",
         "type": "uint256"
       },
       {

@@ -79,7 +79,7 @@ describe("VaultFactory", (): void => {
 
         // function deployNewVault(
         //     address payable owner,
-        //     uint256 adminFeeFraction,
+        //     uint256 operatorFeeFraction,
         //     address[] memory agents,
         //     string calldata metadataJsonString
         // )

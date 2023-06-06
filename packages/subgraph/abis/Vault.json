@@ -48,7 +48,7 @@
       {
         "indexed": false,
         "internalType": "uint256",
-        "name": "adminFee",
+        "name": "operatorFee",
         "type": "uint256"
       },
       {
@@ -509,7 +509,7 @@
   },
   {
     "inputs": [],
-    "name": "adminFeeFraction",
+    "name": "operatorFeeFraction",
     "outputs": [
       {
         "internalType": "uint256",

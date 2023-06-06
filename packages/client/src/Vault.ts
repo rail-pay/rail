@@ -19,10 +19,10 @@ import { debug } from 'debug'
 const log = debug('Vault')
 
 export interface VaultDeployOptions {
-    adminAddress?: EthereumAddress,
+    operatorAddress?: EthereumAddress,
     joinPartAgents?: EthereumAddress[],
     vaultName?: string,
-    adminFee?: number,
+    operatorFee?: number,
     // sidechainPollingIntervalMs?: number,
     // sidechainRetryTimeoutMs?: number
     confirmations?: number
@@ -129,11 +129,11 @@ export class Vault {
     }
 
     /**
-     * @returns the vault admin fee fraction (between 0.0 and 1.0) that admin gets from each revenue event
+     * @returns the vault operator fee fraction (between 0.0 and 1.0) that operator gets from each revenue event
      */
     async getAdminFee(): Promise<number> {
-        const adminFeeBN = await this.contract.adminFeeFraction()
-        return +adminFeeBN.toString() / 1e18
+        const operatorFeeBN = await this.contract.operatorFeeFraction()
+        return +operatorFeeBN.toString() / 1e18
     }
 
     async getAdminAddress(): Promise<EthereumAddress> {
@@ -196,7 +196,7 @@ export class Vault {
         }
         return this.joinServer.post<T>(endpointPath, signedRequest).catch((err) => {
             if (err.message?.match(/cannot estimate gas/)) {
-                throw new Error("Vault join-server couldn't send the join transaction. Please contact the join-server administrator.")
+                throw new Error("Vault join-server couldn't send the join transaction. Please contact the join-server operatoristrator.")
             }
             throw err
         })
@@ -222,7 +222,7 @@ export class Vault {
         // add totalWeight if it's available, otherwise just assume equal weight 1.0/beneficiary
         const totalWeightBN = await this.contract.totalWeight().catch(() => parseEther(activeMemberCount.toString()))
         return {
-            totalRevenue, // == earnings (that go to beneficiaries) + adminFees + protocolFees
+            totalRevenue, // == earnings (that go to beneficiaries) + operatorFees + protocolFees
             totalAdminFees,
             totalProtocolFees,
             totalEarnings,
@@ -336,7 +336,7 @@ export class Vault {
      *   invalidated by the first withdraw after signing it. In other words, any signature can be invalidated
      *   by making a "normal" withdraw e.g. `await streamrClient.withdrawAll()`
      * Admin can execute the withdraw using this signature: ```
-     *   await adminRailClient.withdrawAllToSigned(beneficiaryAddress, recipientAddress, signature)
+     *   await operatorRailClient.withdrawAllToSigned(beneficiaryAddress, recipientAddress, signature)
      * ```
      * @param recipientAddress - the address authorized to receive the tokens
      * @returns signature authorizing withdrawing all earnings to given recipientAddress
@@ -535,22 +535,22 @@ export class Vault {
         } catch(error) {
             if ((error as Error).message.includes('error_onlyOwner')) {
                 const myAddress = await this.contract.signer.getAddress()
-                throw new Error(`Call to vault ${this.contract.address} failed: ${myAddress} is not the Vault admin!`)
+                throw new Error(`Call to vault ${this.contract.address} failed: ${myAddress} is not the Vault operator!`)
             }
             throw error
         }
     }
 
     /**
-     * Admin: set admin fee (between 0.0 and 1.0) for the vault
+     * Admin: set operator fee (between 0.0 and 1.0) for the vault
      */
     async setAdminFee(newFeeFraction: number): Promise<ContractReceipt> {
         if (newFeeFraction < 0 || newFeeFraction > 1) {
             throw new Error('newFeeFraction argument must be a number between 0...1, got: ' + newFeeFraction)
         }
 
-        const adminFeeBN = parseEther(newFeeFraction.toString())
-        return this.sendAdminTx(this.contract.setAdminFee, adminFeeBN)
+        const operatorFeeBN = parseEther(newFeeFraction.toString())
+        return this.sendAdminTx(this.contract.setAdminFee, operatorFeeBN)
     }
 
     /**
