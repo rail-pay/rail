@@ -1,11 +1,11 @@
 // checks that require works
 const { Wallet } = require('@ethersproject/wallet')
-const DataUnionClient = require('@dataunions/client')
+const RailClient = require('@rail-protocol/client')
 const assert = require('node:assert')
 
-assert(!!DataUnionClient.DATAUNION_CLIENT_DEFAULTS, 'DataUnionClient should have DATAUNION_CLIENT_DEFAULTS')
+assert(!!RailClient.RAIL_CLIENT_DEFAULTS, 'RailClient should have RAIL_CLIENT_DEFAULTS')
 
-const client = new DataUnionClient({
+const client = new RailClient({
     auth: Wallet.createRandom(),
 })
 

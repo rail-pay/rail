@@ -3,118 +3,118 @@
 
 pragma solidity 0.8.6;
 
-import "./DataUnionModule.sol";
+import "./VaultModule.sol";
 import "./IJoinListener.sol";
 
 /**
- * @title Data Union module that limits per-user withdraws to given amount per period
- * @dev Setup: dataUnion.setJoinListener(this); dataUnion.addJoinPartAgent(this);
+ * @title Vault module that limits per-user withdraws to given amount per period
+ * @dev Setup: vault.setJoinListener(this); vault.addJoinPartAgent(this);
  */
-contract BanModule is DataUnionModule, IJoinListener {
+contract BanModule is VaultModule, IJoinListener {
     mapping (address => uint) public bannedUntilTimestamp;
 
-    event MemberBanned(address indexed member);
-    event BanWillEnd(address indexed member, uint banEndTimestamp);
-    event BanRemoved(address indexed member);
+    event MemberBanned(address indexed beneficiary);
+    event BanWillEnd(address indexed beneficiary, uint banEndTimestamp);
+    event BanRemoved(address indexed beneficiary);
 
-    constructor(address dataUnionAddress) DataUnionModule(dataUnionAddress) {}
+    constructor(address vaultAddress) VaultModule(vaultAddress) {}
 
-    function isBanned(address member) public view returns (bool) {
-        return block.timestamp < bannedUntilTimestamp[member];
+    function isBanned(address beneficiary) public view returns (bool) {
+        return block.timestamp < bannedUntilTimestamp[beneficiary];
     }
 
     /**
-     * Returns which members are banned in the given input list
+     * Returns which beneficiaries are banned in the given input list
      *
      * Example code snippets to read the result in TypeScript:
      * ```
-     * async function areMembersBanned(members: EthereumAddress[]): Promise<boolean[]> {
-     *    const banBits = await banModuleAdmin.areBanned(members)
-     *    return members.map((_, i) => banBits.shr(i).and(1).eq(1))
+     * async function areMembersBanned(beneficiaries: EthereumAddress[]): Promise<boolean[]> {
+     *    const banBits = await banModuleAdmin.areBanned(beneficiaries)
+     *    return beneficiaries.map((_, i) => banBits.shr(i).and(1).eq(1))
      * }
-     * async function selectBannedMembers(members: EthereumAddress[]): Promise<EthereumAddress[]> {
-     *    const banBits = await banModuleAdmin.areBanned(members)
-     *    return members.filter((_, i) => banBits.shr(i).and(1).eq(1))
+     * async function selectBannedMembers(beneficiaries: EthereumAddress[]): Promise<EthereumAddress[]> {
+     *    const banBits = await banModuleAdmin.areBanned(beneficiaries)
+     *    return beneficiaries.filter((_, i) => banBits.shr(i).and(1).eq(1))
      * }
      * ```
-     * @return membersBannedBitfield where least significant bit is the ban-state first address in input list etc.
+     * @return beneficiariesBannedBitfield where least significant bit is the ban-state first address in input list etc.
      */
-    function areBanned(address[] memory members) public view returns (uint256 membersBannedBitfield) {
+    function areBanned(address[] memory beneficiaries) public view returns (uint256 beneficiariesBannedBitfield) {
         uint bit = 1;
-        for (uint8 i = 0; i < members.length; ++i) {
-            if (isBanned(members[i])) {
-                membersBannedBitfield |= bit;
+        for (uint8 i = 0; i < beneficiaries.length; ++i) {
+            if (isBanned(beneficiaries[i])) {
+                beneficiariesBannedBitfield |= bit;
             }
             bit <<= 1;
         }
     }
 
-    /** Ban a member indefinitely */
-    function ban(address member) public onlyJoinPartAgent {
-        bannedUntilTimestamp[member] = type(uint).max;
-        if (IDataUnion(dataUnion).isMember(member)) {
-            IDataUnion(dataUnion).removeMember(member, LeaveConditionCode.BANNED);
+    /** Ban a beneficiary indefinitely */
+    function ban(address beneficiary) public onlyJoinPartAgent {
+        bannedUntilTimestamp[beneficiary] = type(uint).max;
+        if (IVault(vault).isMember(beneficiary)) {
+            IVault(vault).removeMember(beneficiary, LeaveConditionCode.BANNED);
         }
-        emit MemberBanned(member);
+        emit MemberBanned(beneficiary);
     }
 
-    /** Ban several members indefinitely */
-    function banMembers(address[] memory members) public onlyJoinPartAgent {
-        for (uint8 i = 0; i < members.length; ++i) {
-            ban(members[i]);
-        }
-    }
-
-    /** Ban a member for the given time period (in seconds) */
-    function banSeconds(address member, uint banLengthSeconds) public onlyJoinPartAgent {
-        ban(member);
-        bannedUntilTimestamp[member] = block.timestamp + banLengthSeconds;
-        emit BanWillEnd(member, bannedUntilTimestamp[member]);
-    }
-
-    /** Ban several members the given time period (in seconds) */
-    function banMembersSeconds(address[] memory members, uint banLengthSeconds) public onlyJoinPartAgent {
-        for (uint8 i = 0; i < members.length; ++i) {
-            banSeconds(members[i], banLengthSeconds);
+    /** Ban several beneficiaries indefinitely */
+    function banMembers(address[] memory beneficiaries) public onlyJoinPartAgent {
+        for (uint8 i = 0; i < beneficiaries.length; ++i) {
+            ban(beneficiaries[i]);
         }
     }
 
-    /** Ban several members, each for a specific time period (in seconds, for each user) */
-    function banMembersSpecificSeconds(address[] memory members, uint[] memory banLengthSeconds) public onlyJoinPartAgent {
-        for (uint8 i = 0; i < members.length; ++i) {
-            banSeconds(members[i], banLengthSeconds[i]);
+    /** Ban a beneficiary for the given time period (in seconds) */
+    function banSeconds(address beneficiary, uint banLengthSeconds) public onlyJoinPartAgent {
+        ban(beneficiary);
+        bannedUntilTimestamp[beneficiary] = block.timestamp + banLengthSeconds;
+        emit BanWillEnd(beneficiary, bannedUntilTimestamp[beneficiary]);
+    }
+
+    /** Ban several beneficiaries the given time period (in seconds) */
+    function banMembersSeconds(address[] memory beneficiaries, uint banLengthSeconds) public onlyJoinPartAgent {
+        for (uint8 i = 0; i < beneficiaries.length; ++i) {
+            banSeconds(beneficiaries[i], banLengthSeconds);
         }
     }
 
-    /** Reverse a ban and re-join the member to the data union */
-    function restore(address member) public onlyJoinPartAgent {
-        require(isBanned(member), "error_memberNotBanned");
-        removeBan(member);
-        IDataUnion(dataUnion).addMember(member);
-    }
-
-    /** Reverse ban and re-join the members to the data union */
-    function restoreMembers(address[] memory members) public onlyJoinPartAgent {
-        for (uint8 i = 0; i < members.length; ++i) {
-            restore(members[i]);
+    /** Ban several beneficiaries, each for a specific time period (in seconds, for each user) */
+    function banMembersSpecificSeconds(address[] memory beneficiaries, uint[] memory banLengthSeconds) public onlyJoinPartAgent {
+        for (uint8 i = 0; i < beneficiaries.length; ++i) {
+            banSeconds(beneficiaries[i], banLengthSeconds[i]);
         }
     }
 
-    /** Remove a ban without re-joining the member */
-    function removeBan(address member) public onlyJoinPartAgent {
-        delete bannedUntilTimestamp[member];
-        emit BanRemoved(member);
+    /** Reverse a ban and re-join the beneficiary to the vault */
+    function restore(address beneficiary) public onlyJoinPartAgent {
+        require(isBanned(beneficiary), "error_beneficiaryNotBanned");
+        removeBan(beneficiary);
+        IVault(vault).addMember(beneficiary);
     }
 
-    /** Remove ban without re-joining the members */
-    function removeBanMembers(address[] memory members) public onlyJoinPartAgent {
-        for (uint8 i = 0; i < members.length; ++i) {
-            removeBan(members[i]);
+    /** Reverse ban and re-join the beneficiaries to the vault */
+    function restoreMembers(address[] memory beneficiaries) public onlyJoinPartAgent {
+        for (uint8 i = 0; i < beneficiaries.length; ++i) {
+            restore(beneficiaries[i]);
         }
     }
 
-    /** Callback that gets called when a member wants to join */
-    function onJoin(address newMember) override view external onlyDataUnion {
-        require(!isBanned(newMember), "error_memberBanned");
+    /** Remove a ban without re-joining the beneficiary */
+    function removeBan(address beneficiary) public onlyJoinPartAgent {
+        delete bannedUntilTimestamp[beneficiary];
+        emit BanRemoved(beneficiary);
+    }
+
+    /** Remove ban without re-joining the beneficiaries */
+    function removeBanMembers(address[] memory beneficiaries) public onlyJoinPartAgent {
+        for (uint8 i = 0; i < beneficiaries.length; ++i) {
+            removeBan(beneficiaries[i]);
+        }
+    }
+
+    /** Callback that gets called when a beneficiary wants to join */
+    function onJoin(address newMember) override view external onlyVault {
+        require(!isBanned(newMember), "error_beneficiaryBanned");
     }
 }

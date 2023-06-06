@@ -1,4 +1,4 @@
-const config = require('@streamr/config')
+const chainConfig = require('@rail-protocol/config')
 
 class Chain {
 	constructor(name /* string */) {
@@ -22,12 +22,11 @@ class Chain {
 		if (typeof name !== 'string') {
 			throw new Error(`Chain name must be a string`)
 		}
-		const chains = config.Chains.load()
-		const chain = chains[name.toLowerCase()]
+		const chain = chainConfig[name.toLowerCase()]
 		if (chain === undefined) {
 			throw new Error(`Chain name is unknown: '${name}'`)
 		}
-		return new Chain(chain.toString())
+		return new Chain(name.toLowerCase())
 	}
 }
 

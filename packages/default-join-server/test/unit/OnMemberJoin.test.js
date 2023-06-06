@@ -14,7 +14,7 @@ describe('StreamrAwareJoinHook', () => {
 
 	beforeEach(() => {
 		streamrDB = {
-			getStreamsForDataUnion: sinon.mock().resolves([
+			getStreamsForVault: sinon.mock().resolves([
 				'streamId1',
 				'streamId2'
 			]),
@@ -32,15 +32,15 @@ describe('StreamrAwareJoinHook', () => {
 		onMemberJoin = createStreamrAwareJoinHook(streamrDB, /* privateKey */ null, streamrClient)
 	})
 
-	it('grants PUBLISH permissions to streams in the given Data Union', async () => {
-		await onMemberJoin('member', 'dataUnion', 'chain')
-		expect(streamrDB.getStreamsForDataUnion.calledOnceWith('dataUnion', 'chain')).to.be.true
+	it('grants PUBLISH permissions to streams in the given Vault', async () => {
+		await onMemberJoin('beneficiary', 'vault', 'chain')
+		expect(streamrDB.getStreamsForVault.calledOnceWith('vault', 'chain')).to.be.true
 		expect(streamrClient.setPermissions.calledOnceWith([
 			{
 				streamId: 'streamId1',
 				assignments: [
 					{
-						user: 'member',
+						user: 'beneficiary',
 						permissions: [StreamrClient.StreamPermission.PUBLISH]
 					}
 				]
@@ -49,7 +49,7 @@ describe('StreamrAwareJoinHook', () => {
 				streamId: 'streamId2',
 				assignments: [
 					{
-						user: 'member',
+						user: 'beneficiary',
 						permissions: [StreamrClient.StreamPermission.PUBLISH]
 					}
 				]
@@ -65,13 +65,13 @@ describe('StreamrAwareJoinHook', () => {
 			}
 		})
 
-		await expect(onMemberJoin('member', 'dataUnion', 'chain')).to.be.rejectedWith(Error)
+		await expect(onMemberJoin('beneficiary', 'vault', 'chain')).to.be.rejectedWith(Error)
 		expect(streamrClient.setPermissions.called).to.be.false
 	})
 
-	it('does nothing if no streams are associated with the data union', async () => {
-		streamrDB.getStreamsForDataUnion = sinon.mock().resolves([])
-		await onMemberJoin('member', 'dataUnion', 'chain')
+	it('does nothing if no streams are associated with the vault', async () => {
+		streamrDB.getStreamsForVault = sinon.mock().resolves([])
+		await onMemberJoin('beneficiary', 'vault', 'chain')
 		expect(streamrClient.setPermissions.called).to.be.false
 	})
 

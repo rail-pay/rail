@@ -1,15 +1,15 @@
 // check esm works, as native and via webpack + babel. Also see typescript.ts
-import DefaultExport, * as NamedExports from '@dataunions/client'
+import DefaultExport, * as NamedExports from '@rail-protocol/client'
 import assert from 'node:assert'
 import { Wallet } from '@ethersproject/wallet'
 
-console.info('import DefaultExport, * as NamedExports from \'@dataunions/client\':', { DefaultExport, NamedExports })
+console.info('import DefaultExport, * as NamedExports from \'@rail-protocol/client\':', { DefaultExport, NamedExports })
 
-const DataUnionClient = DefaultExport
+const RailClient = DefaultExport
 
-assert(!!NamedExports.DATAUNION_CLIENT_DEFAULTS, 'Named exports should contain DATAUNION_CLIENT_DEFAULTS')
+assert(!!NamedExports.RAIL_CLIENT_DEFAULTS, 'Named exports should contain RAIL_CLIENT_DEFAULTS')
 
-const client = new DataUnionClient({
+const client = new RailClient({
   auth: Wallet.createRandom(),
 })
 

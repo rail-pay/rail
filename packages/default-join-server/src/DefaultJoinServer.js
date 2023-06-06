@@ -1,5 +1,5 @@
 const { Sequelize } = require('sequelize')
-const { JoinServer } = require('@dataunions/join-server')
+const { JoinServer } = require('@rail-protocol/join-server')
 require('dotenv').config()
 
 const SecretsDB = require('./db/SecretDB')
@@ -11,8 +11,8 @@ const createOnMemberJoin = require("./OnMemberJoin")
 
 module.exports = class DefaultJoinServer {
 
-	constructor(dataUnionClientOptions) {
-		this.dataUnionClientOptions = dataUnionClientOptions
+	constructor(railClientOptions) {
+		this.railClientOptions = railClientOptions
 	}
 
 	async start() {

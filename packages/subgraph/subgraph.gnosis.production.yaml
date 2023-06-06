@@ -1,0 +1,57 @@
+---
+specVersion: 0.0.4
+description: Subgraph definitions for vaults
+repository: ""
+schema:
+  file: ./schema.graphql
+dataSources:
+  - kind: ethereum/contract
+    name: VaultFactory
+    network: xdai
+    source:
+      address: '0xe4515702878931b45Dfe4D89d3Fb3208910C913C'
+      abi: VaultFactory
+      startBlock: 24091573
+    mapping:
+      kind: ethereum/events
+      apiVersion: 0.0.6
+      language: wasm/assemblyscript
+      file: ./src/factory.ts
+      entities:
+        - Vault
+      abis:
+        - name: VaultFactory
+          file: ./abis/VaultFactory.json
+      eventHandlers:
+        - event: VaultCreated(indexed address,indexed address,address)
+          handler: handleVaultCreated
+
+templates:
+  - name: Vault
+    kind: ethereum/contract
+    network: xdai
+    source:
+      abi: Vault
+    mapping:
+      kind: ethereum/events
+      apiVersion: 0.0.6
+      language: wasm/assemblyscript
+      file: ./src/vault.ts
+      entities:
+        - Member
+        - VaultBucket
+        - RevenueEvent
+      abis:
+        - name: Vault
+          file: ./abis/Vault.json
+      eventHandlers:
+        - event: MemberJoined(indexed address)
+          handler: handleMemberJoined
+        - event: MemberParted(indexed address,indexed uint8)
+          handler: handleMemberParted
+        - event: RevenueReceived(uint256)
+          handler: handleRevenueReceived
+        - event: OwnershipTransferred(indexed address,indexed address)
+          handler: handleOwnershipTransferred
+        - event: MemberWeightChanged(indexed address,uint256,uint256)
+          handler: handleMemberWeightChanged

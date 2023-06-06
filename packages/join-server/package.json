@@ -1,8 +1,8 @@
 {
-  "name": "@dataunions/join-server",
-  "version": "3.0.3",
-  "description": "Data Union join server base implementation",
-  "author": "Data Union DAO <contact@dataunions.org>",
+  "name": "@rail-protocol/join-server",
+  "version": "0.0.1",
+  "description": "Vault join server base implementation",
+  "author": "Rail Protocol <contact@rail.dev>",
   "license": "AGPL-3.0-or-later",
   "private": false,
   "publishConfig": {
@@ -10,13 +10,13 @@
   },
   "repository": {
     "type": "git",
-    "url": "git+https://github.com/dataunions/data-unions.git",
+    "url": "git+https://github.com/vaults/data-unions.git",
     "directory": "packages/join-server"
   },
   "bugs": {
-    "url": "https://github.com/dataunions/data-unions/issues"
+    "url": "https://github.com/rail-protocol/rail/issues"
   },
-  "homepage": "https://github.com/dataunions/data-unions/tree/main/packages/join-server#readme",
+  "homepage": "https://github.com/rail-protocol/rail/tree/main/packages/join-server#readme",
   "main": "src/app/index.js",
   "engines": {
     "node": ">=16.13.1",
@@ -31,8 +31,7 @@
     "lint-fix": "make lint-fix"
   },
   "dependencies": {
-    "@dataunions/client": "3.0.8",
-    "@streamr/config": "2.5.1",
+    "@rail-protocol/client": "0.0.1",
     "commander": "9.4.0",
     "cors": "2.8.5",
     "ethers": "5.7.0",

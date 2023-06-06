@@ -1,15 +1,16 @@
 {
-    "name": "@dataunions/monorepo",
-    "description": "Smart contracts, client and The Graph subgraph for dataunions.",
-    "version": "3.0.0-beta.1",
-    "author": "Data Union DAO <contact@dataunions.org>",
+    "name": "@rail-protocol/rail",
+    "description": "Smart contracts, client and The Graph subgraph for the Rail protocol.",
+    "version": "0.0.1",
+    "author": "The Rail Protocol <contact@rail-protocol.org>",
     "private": true,
     "workspaces": [
+        "packages/config",
         "packages/contracts",
         "packages/join-server",
         "packages/client",
         "packages/default-join-server",
-        "packages/thegraph-subgraph"
+        "packages/subgraph"
     ],
     "scripts": {
         "build": "npm run --workspaces --if-present build",
@@ -22,12 +23,12 @@
         "prune-pkg": "npm prune --no-audit --include-workspace-root --production --workspace",
         "versions": "manypkg check && zx ./show-versions.mjs",
         "fix-package-jsons": "manypkg fix",
-        "format-check": "npm run format-check -w=@dataunions/contracts",
+        "format-check": "npm run format-check -w=@rail-protocol/contracts",
         "test": "npm run test --workspaces --if-present",
         "integration-test": "npm run integration-test --workspaces --if-present",
-        "graph1_build": "npm run deploy -w=@dataunions/solidity",
+        "graph1_build": "npm run deploy -w=@rail-protocol/solidity",
         "graph2_copyInfo": "./scripts/copyAbis.sh",
-        "graph3_build": "npm run doAll -w=@dataunions/thegraph-subgraph",
+        "graph3_build": "npm run doAll -w=@rail-protocol/subgraph",
         "graph": "npm run graph1_build && npm run graph2_copyInfo && npm run graph3_build"
     },
     "dependencies": {

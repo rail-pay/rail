@@ -1,5 +1,5 @@
 {
-    "extends": "./tsconfig.browser.dataunion.json",
+    "extends": "./tsconfig.browser.vault.json",
     "compilerOptions": {
         "composite": true,
         "noEmit": true,
@@ -25,7 +25,7 @@
             "buffer": [
                 "buffer/"
             ]//,
-            // "@dataunions/contracts": [
+            // "@vaults/contracts": [
             //     "../contracts/typechain/index.ts"
             // ]
         }

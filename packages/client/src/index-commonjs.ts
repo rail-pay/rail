@@ -1,11 +1,11 @@
-import DataUnionClient from "./index"
+import RailClient from "./index"
 import * as NamedExports from './index'
 // CJS entrypoint.
 
-const AugmentedClient = Object.assign(DataUnionClient, NamedExports)
+const AugmentedClient = Object.assign(RailClient, NamedExports)
 
-// required to get require('@dataunions/client') instead of require('@dataunions/client').default
+// required to get require('@rail-protocol/client') instead of require('@rail-protocol/client').default
 module.exports = AugmentedClient
 
-export default DataUnionClient
+export default RailClient
 export * from './index'

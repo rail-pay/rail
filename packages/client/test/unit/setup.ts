@@ -5,14 +5,14 @@ import { Wallet } from '@ethersproject/wallet'
 
 import { deployToken } from '@streamr/data-v2'
 
-import { DataUnionTemplate as templateJson, DataUnionFactory as factoryJson, DefaultFeeOracle as feeOracleJson } from '@dataunions/contracts'
-import type { DataUnionTemplate, DataUnionFactory, IFeeOracle } from '@dataunions/contracts/typechain'
+import { vaultAbi, vaultBytecode, vaultFactoryAbi, vaultFactoryBytecode, feeOracleAbi, feeOracleBytecode } from '@rail-protocol/contracts'
+import type { Vault, VaultFactory, IFeeOracle } from '@rail-protocol/contracts/typechain'
 
 // import debug from 'debug'
-// const log = debug('DataUnionClient:unit-tests:withdraw')
+// const log = debug('RailClient:unit-tests:withdraw')
 
 const ethereumRpcPort = Number.parseInt(process.env.GANACHE_PORT || "3456")
-const ethereumUrl = `http://localhost:${ethereumRpcPort}`
+const ethereumUrl = `http://127.0.0.1:${ethereumRpcPort}`
 const provider = new JsonRpcProvider(ethereumUrl)
 
 // These privateKeys correspond to "testrpc" mnemonic (start ganache with e.g. `npx ganache -p 3456 -m testrpc &`)
@@ -28,32 +28,32 @@ const privateKeys = [
     "0x2cd9855d17e01ce041953829398af7e48b24ece04ff9d0e183414de54dc52285",
 ]
 
-async function deployDataUnionTemplate(deployer: Wallet): Promise<DataUnionTemplate> {
-    const factory = new ContractFactory(templateJson.abi, templateJson.bytecode, deployer)
-    const contract = await factory.deploy() as unknown as DataUnionTemplate
+async function deployVault(deployer: Wallet): Promise<Vault> {
+    const factory = new ContractFactory(vaultAbi, vaultBytecode, deployer)
+    const contract = await factory.deploy() as unknown as Vault
     return contract.deployed()
 }
 
 async function deployFeeOracle(deployer: Wallet, protocolBeneficiaryAddress: string): Promise<IFeeOracle> {
-    const factory = new ContractFactory(feeOracleJson.abi, feeOracleJson.bytecode, deployer)
-    const contract = await factory.deploy() as unknown as IFeeOracle
+    const factory = new ContractFactory(feeOracleAbi, feeOracleBytecode, deployer)
+    const contract = await factory.deploy()
     await contract.deployed()
     const tx = await contract.initialize(
         parseEther("0.01"),
         protocolBeneficiaryAddress,
     )
     await tx.wait()
-    return contract
+    return contract as IFeeOracle
 }
 
-async function deployDataUnionFactory(
+async function deployVaultFactory(
     deployer: Wallet,
     templateAddress: string,
     tokenAddress: string,
     protocolFeeOracleAddress: string,
-): Promise<DataUnionFactory> {
-    const factory = new ContractFactory(factoryJson.abi, factoryJson.bytecode, deployer)
-    const contract = await factory.deploy() as unknown as DataUnionFactory
+): Promise<VaultFactory> {
+    const factory = new ContractFactory(vaultFactoryAbi, vaultFactoryBytecode, deployer)
+    const contract = await factory.deploy() as unknown as VaultFactory
     await contract.deployTransaction.wait()
     const tx = await contract.initialize(
         templateAddress,
@@ -76,19 +76,19 @@ export async function deployContracts(deployer: Wallet) {
 
     const token = await deployToken(deployer)
     await (await token.grantRole(await token.MINTER_ROLE(), deployer.address)).wait()
-    const dataUnionTemplate = await deployDataUnionTemplate(deployer)
+    const vaultTemplate = await deployVault(deployer)
     const feeOracle = await deployFeeOracle(deployer, deployer.address) // make deployer (the DAO) also protocol beneficiary
-    const dataUnionFactory = await deployDataUnionFactory(
+    const vaultFactory = await deployVaultFactory(
         deployer,
-        dataUnionTemplate.address,
+        vaultTemplate.address,
         token.address,
         feeOracle.address
     )
 
     return {
         token,
-        dataUnionFactory,
-        dataUnionTemplate,
+        vaultFactory,
+        vaultTemplate,
         ethereumUrl,
     }
 }

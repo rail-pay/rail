@@ -6,7 +6,7 @@ import type { Response } from 'node-fetch'
 import fetch from 'node-fetch'
 
 import { debug } from 'debug'
-const log = debug('dataunions:authFetch')
+const log = debug('vaults:authFetch')
 
 /**
  * Generates counter-based ids.
@@ -136,12 +136,6 @@ export async function authRequest(
     if (response.ok) {
         return response
     }
-
-    // no more sessions since DU3
-    // if ([400, 401].includes(response.status) && !requireNewToken) {
-    //     log('%d %s – revalidating session')
-    //     return authRequest<T>(url, options, true)
-    // }
 
     log('%s – failed', url)
     const errorBody = await response.json()

@@ -1,0 +1,61 @@
+---
+specVersion: 0.0.2
+description: Subgraph definitions for Vaults in production
+repository: ""
+schema:
+  file: ./schema.graphql
+dataSources:
+  # New Vault polygon/matic >>
+  - kind: ethereum/contract
+    name: VaultFactory
+    network: matic
+    source:
+      address: '0xd0B3a09A6bCee8446d10e6E7e12c78F8725C9B18'
+      abi: VaultFactory
+      startBlock: 32836939
+    mapping:
+      kind: ethereum/events
+      apiVersion: 0.0.5
+      language: wasm/assemblyscript
+      file: ./src/factory.ts
+      entities:
+        - Vault
+      abis:
+        - name: VaultFactory
+          file: ./abis/VaultFactory.json
+      eventHandlers:
+        - event: VaultCreated(indexed address,indexed address,address)
+          handler: handleVaultCreated
+  # New Vault polygon/matic <<
+
+templates:
+  # New Vault polygon/matic >>
+  - name: Vault
+    kind: ethereum/contract
+    network: matic
+    source:
+      abi: Vault
+    mapping:
+      kind: ethereum/events
+      apiVersion: 0.0.5
+      language: wasm/assemblyscript
+      file: ./src/vault.ts
+      entities:
+        - Member
+        - VaultBucket
+        - RevenueEvent
+      abis:
+        - name: Vault
+          file: ./abis/Vault.json
+      eventHandlers:
+        - event: MemberJoined(indexed address)
+          handler: handleMemberJoined
+        - event: MemberParted(indexed address,indexed uint8)
+          handler: handleMemberParted
+        - event: RevenueReceived(uint256)
+          handler: handleRevenueReceived
+        - event: OwnershipTransferred(indexed address,indexed address)
+          handler: handleOwnershipTransferred
+        - event: MemberWeightChanged(indexed address,uint256,uint256)
+          handler: handleMemberWeightChanged
+  # New Vault polygon/matic <<

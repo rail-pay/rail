@@ -12,12 +12,12 @@ describe('POST /join', async () => {
 		// JoinRequestService with mocked create()
 		const logger = unitTestLogger
 		const clients = new Map()
-		const onMemberJoin = function(_member, _dataUnion, _chain) {}
+		const onMemberJoin = function(_beneficiary, _vault, _chain) {}
 		const joinRequestService = new app.JoinRequestService(logger, clients, onMemberJoin)
-		joinRequestService.create = sinon.spy((member, dataUnion, chain) => {
+		joinRequestService.create = sinon.spy((beneficiary, vault, chain) => {
 			return {
-				member,
-				dataUnion,
+				beneficiary,
+				vault,
 				chain,
 			}
 		})
@@ -39,11 +39,11 @@ describe('POST /join', async () => {
 
 	const happyTestCases = [
 		{
-			name: 'send join data union request',
+			name: 'send join vault request',
 			body: {
 				address: '0x766760C748bcEcf5876a6469a6aed3C642CdA261',
 				request: JSON.stringify({
-					dataUnion: '0x81ed645D344cB2096aBA56B94d336E6dcF80f6C6',
+					vault: '0x81ed645D344cB2096aBA56B94d336E6dcF80f6C6',
 					chain: 'polygon',
 				}),
 			},
@@ -66,8 +66,8 @@ describe('POST /join', async () => {
 
 			const joinRequest = JSON.parse(tc.body.request)
 			const expectedBody = {
-				member: tc.body.address,
-				dataUnion: joinRequest.dataUnion,
+				beneficiary: tc.body.address,
+				vault: joinRequest.vault,
 			}
 			if (joinRequest.chain) {
 				expectedBody.chain = joinRequest.chain
@@ -78,44 +78,44 @@ describe('POST /join', async () => {
 
 	const testCases = [
 		{
-			name: 'client sends invalid member address',
+			name: 'client sends invalid beneficiary address',
 			body: {
 				address: '0x00000',
 				request: JSON.stringify({
-					dataUnion: '0x81ed645D344cB2096aBA56B94d336E6dcF80f6C6',
+					vault: '0x81ed645D344cB2096aBA56B94d336E6dcF80f6C6',
 					chain: 'polygon',
 				}),
 			},
-			expectedErrorMessage: `Invalid member address: '0x00000'`,
+			expectedErrorMessage: `Invalid beneficiary address: '0x00000'`,
 		},
 		{
-			name: 'client sends invalid data union address',
+			name: 'client sends invalid vault address',
 			body: {
 				address: '0x766760C748bcEcf5876a6469a6aed3C642CdA261',
 				request: JSON.stringify({
-					dataUnion: '0x01234',
+					vault: '0x01234',
 					chain: 'polygon',
 				}),
 			},
-			expectedErrorMessage: `Invalid Data Union contract address: '0x01234'`,
+			expectedErrorMessage: `Invalid Vault contract address: '0x01234'`,
 		},
 		{
 			name: 'client sends invalid chain name',
 			body: {
 				address: '0x766760C748bcEcf5876a6469a6aed3C642CdA261',
 				request: JSON.stringify({
-					dataUnion: '0x81ed645D344cB2096aBA56B94d336E6dcF80f6C6',
+					vault: '0x81ed645D344cB2096aBA56B94d336E6dcF80f6C6',
 					chain: 'foobar',
 				}),
 			},
 			expectedErrorMessage: `Invalid chain name: 'foobar'`,
 		},
 		{
-			name: 'send join data union request without chain',
+			name: 'send join vault request without chain',
 			body: {
 				address: '0x766760C748bcEcf5876a6469a6aed3C642CdA261',
 				request: JSON.stringify({
-					dataUnion: '0x81ed645D344cB2096aBA56B94d336E6dcF80f6C6',
+					vault: '0x81ed645D344cB2096aBA56B94d336E6dcF80f6C6',
 				}),
 			},
 			expectedErrorMessage: `Invalid chain name: 'undefined'`,

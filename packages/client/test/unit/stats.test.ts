@@ -1,60 +1,58 @@
 import type { Wallet } from '@ethersproject/wallet'
 
-import { DataUnionClient } from '../../src/DataUnionClient'
-import type { DataUnionClientConfig } from '../../src/Config'
+import { RailClient } from '../../src/RailClient'
+import type { RailClientConfig } from '../../src/Config'
 import type { DATAv2 } from '@streamr/data-v2'
-import type { DataUnion } from '../../src/DataUnion'
+import type { Vault } from '../../src/Vault'
 
 import { deployContracts, getWallets } from './setup'
 
-describe('DataUnion stats getters', () => {
+describe('Vault stats getters', () => {
 
     let dao: Wallet
-    let admin: Wallet
-    let member: Wallet
+    let operator: Wallet
+    let beneficiary: Wallet
     let otherMember: Wallet
     let removedMember: Wallet
     let outsider: Wallet
-    let dataUnion: DataUnion
+    let vault: Vault
     let token: DATAv2
-    let clientOptions: Partial<DataUnionClientConfig>
+    let clientOptions: Partial<RailClientConfig>
     beforeAll(async () => {
         [
             dao,
-            admin,
-            member,
+            operator,
+            beneficiary,
             otherMember,
             removedMember,
             outsider,
         ] = getWallets()
         const {
             token: tokenContract,
-            dataUnionFactory,
-            dataUnionTemplate,
+            vaultFactory,
+            vaultTemplate,
             ethereumUrl
         } = await deployContracts(dao)
         token = tokenContract
 
         clientOptions = {
-            auth: { privateKey: member.privateKey },
+            auth: { privateKey: beneficiary.privateKey },
             tokenAddress: token.address,
-            dataUnion: {
-                factoryAddress: dataUnionFactory.address,
-                templateAddress: dataUnionTemplate.address,
-            },
-            network: { rpcs: [{ url: ethereumUrl, timeout: 30 * 1000 }] }
+            factoryAddress: vaultFactory.address,
+            templateAddress: vaultTemplate.address,
+            rpcs: [{ url: ethereumUrl, timeout: 30 * 1000 }]
         }
-        const adminClient = new DataUnionClient({ ...clientOptions, auth: { privateKey: admin.privateKey } })
-        const adminDataUnion = await adminClient.deployDataUnion()
-        await adminDataUnion.addMembers([member.address, otherMember.address, removedMember.address])
-        await adminDataUnion.removeMembers([removedMember.address])
+        const operatorClient = new RailClient({ ...clientOptions, auth: { privateKey: operator.privateKey } })
+        const operatorVault = await operatorClient.deployVault()
+        await operatorVault.addMembers([beneficiary.address, otherMember.address, removedMember.address])
+        await operatorVault.removeMembers([removedMember.address])
 
-        const client = new DataUnionClient(clientOptions)
-        dataUnion = await client.getDataUnion(adminDataUnion.getAddress())
+        const client = new RailClient(clientOptions)
+        vault = await client.getVault(operatorVault.getAddress())
     })
 
-    it('DataUnion stats', async () => {
-        const stats = await dataUnion.getStats()
+    it('Vault stats', async () => {
+        const stats = await vault.getStats()
         expect(stats.activeMemberCount.toString()).toEqual("2")
         expect(stats.inactiveMemberCount.toString()).toEqual("1")
         expect(stats.joinPartAgentCount.toString()).toEqual("2")
@@ -63,35 +61,35 @@ describe('DataUnion stats getters', () => {
         expect(stats.lifetimeMemberEarnings.toString()).toEqual("0")
     })
 
-    it('member stats', async () => {
-        const memberStats = await dataUnion.getMemberStats(member.address)
-        const memberStats2 = await dataUnion.getMemberStats(otherMember.address)
-        const memberStats3 = await dataUnion.getMemberStats(removedMember.address)
-        const memberStats4 = await dataUnion.getMemberStats(outsider.address)
+    it('beneficiary stats', async () => {
+        const beneficiaryStats = await vault.getMemberStats(beneficiary.address)
+        const beneficiaryStats2 = await vault.getMemberStats(otherMember.address)
+        const beneficiaryStats3 = await vault.getMemberStats(removedMember.address)
+        const beneficiaryStats4 = await vault.getMemberStats(outsider.address)
 
-        expect(memberStats.status).toEqual('ACTIVE')
-        expect(memberStats.totalEarnings.toString()).toEqual("0")
-        expect(memberStats.withdrawableEarnings.toString()).toEqual("0")
+        expect(beneficiaryStats.status).toEqual('ACTIVE')
+        expect(beneficiaryStats.totalEarnings.toString()).toEqual("0")
+        expect(beneficiaryStats.withdrawableEarnings.toString()).toEqual("0")
 
-        expect(memberStats2.status).toEqual('ACTIVE')
-        expect(memberStats2.totalEarnings.toString()).toEqual("0")
-        expect(memberStats2.withdrawableEarnings.toString()).toEqual("0")
+        expect(beneficiaryStats2.status).toEqual('ACTIVE')
+        expect(beneficiaryStats2.totalEarnings.toString()).toEqual("0")
+        expect(beneficiaryStats2.withdrawableEarnings.toString()).toEqual("0")
 
-        expect(memberStats3.status).toEqual('INACTIVE')
-        expect(memberStats3.totalEarnings.toString()).toEqual("0")
-        expect(memberStats3.withdrawableEarnings.toString()).toEqual("0")
+        expect(beneficiaryStats3.status).toEqual('INACTIVE')
+        expect(beneficiaryStats3.totalEarnings.toString()).toEqual("0")
+        expect(beneficiaryStats3.withdrawableEarnings.toString()).toEqual("0")
 
-        expect(memberStats4.status).toEqual('NONE')
-        expect(memberStats4.totalEarnings.toString()).toEqual("0")
-        expect(memberStats4.withdrawableEarnings.toString()).toEqual("0")
+        expect(beneficiaryStats4.status).toEqual('NONE')
+        expect(beneficiaryStats4.totalEarnings.toString()).toEqual("0")
+        expect(beneficiaryStats4.withdrawableEarnings.toString()).toEqual("0")
     })
 
-    it('member stats: invalid address', async () => {
-        expect(dataUnion.getMemberStats('invalid-address')).rejects.toThrow(/invalid address/)
+    it('beneficiary stats: invalid address', async () => {
+        expect(vault.getMemberStats('invalid-address')).rejects.toThrow(/invalid address/)
     })
 
-    it('gives DU admin address correctly', async () => {
-        const adminAddress = await dataUnion.getAdminAddress()
-        expect(adminAddress).toEqual(admin.address)
+    it('gives Vault operator address correctly', async () => {
+        const operatorAddress = await vault.getAdminAddress()
+        expect(operatorAddress).toEqual(operator.address)
     })
 })

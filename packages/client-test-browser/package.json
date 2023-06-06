@@ -1,8 +1,8 @@
 {
-  "name": "@dataunions/client-test-browser",
+  "name": "@rail-protocol/client-test-browser",
   "version": "0.0.0",
-  "description": "Data Union Client Browser Tests",
-  "author": "Data Union DAO <contact@dataunions.org>",
+  "description": "Client Browser Tests",
+  "author": "Rail Protocol <contact@rail.dev>",
   "license": "Apache-2.0",
   "private": false,
   "publishConfig": {
@@ -10,13 +10,13 @@
   },
   "repository": {
       "type": "git",
-      "url": "git+https://github.com/dataunions/data-unions.git",
+      "url": "git+https://github.com/vaults/data-unions.git",
       "directory": "packages/client-test-browser"
   },
   "bugs": {
-      "url": "https://github.com/dataunions/data-unions/issues"
+      "url": "https://github.com/rail-protocol/rail/issues"
   },
-  "homepage": "https://github.com/dataunions/data-unions/tree/main/packages/client-test-browser#readme",
+  "homepage": "https://github.com/rail-protocol/rail/tree/main/packages/client-test-browser#readme",
   "main": "test/github.js",
   "scripts": {
     "test": "tsc && nightwatch"

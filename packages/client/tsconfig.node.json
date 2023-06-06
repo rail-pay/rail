@@ -1,5 +1,5 @@
 {
-    "extends": "./tsconfig.node.dataunion.json",
+    "extends": "./tsconfig.node.vault.json",
     "compilerOptions": {
         "composite": true,
         "declarationDir": "dist/types",
@@ -24,11 +24,9 @@
         "package.json",
         "src/**/*",
         "src/**/*.json",
-        "vendor/**/*",
         "src/config.schema.json"
     ],
     "exclude": [
         "src/index-esm.mjs"
-    ],
-    "references": []
+    ]
 }

@@ -1,12 +1,13 @@
 import { parseUnits } from '@ethersproject/units'
-import { DataUnionClient } from '../../src/DataUnionClient'
+import { RailClient } from '../../src/RailClient'
 
 describe("Gas price strategy", () => {
     it("default Gnosis strategy", async () => {
-        const client = new DataUnionClient({
+        const client = new RailClient({
             auth: {
                 privateKey: "0x0000000000000000000000000000000000000000000000000000000000000001"
             },
+            factoryAddress: "0x0000000000000000000000000000000000000000",
             chain: "gnosis"
         })
         client.wallet.provider!.getGasPrice = async () => parseUnits("100", "gwei")

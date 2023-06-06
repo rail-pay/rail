@@ -10,7 +10,7 @@ async function main(argv) {
 	const program = new commander.Command()
 	program
 		.name(programName)
-		.description('Data Union Join Server')
+		.description('Vault Join Server')
 		.version(packageJson.version, '-v', 'print version')
 		.helpOption('-h', 'print help message')
 		.addOption(new commander.Option('-p <number>', 'port number')

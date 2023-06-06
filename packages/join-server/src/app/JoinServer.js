@@ -3,8 +3,8 @@ const express = require('express')
 const cors = require('cors')
 const http = require('http')
 const pino = require('pino')
-const { DataUnionClient } = require('@dataunions/client')
-const config = require('@streamr/config')
+const { RailClient } = require('@rail-protocol/client')
+const config = require('@rail-protocol/config')
 const rest = require('../rest')
 const { JoinRequestService } = require('./JoinRequestService')
 
@@ -34,8 +34,8 @@ class JoinServer {
 		// Used to add custom routes to the HTTP server. The default function does nothing.
 		customRoutes = (/*expressApp*/) => {},
 
-		// Gets called after a member is successfully joined to the Data Union smart contract. The default function does nothing.
-		onMemberJoin = async (/* member, dataUnion, chain */) => {},
+		// Gets called after a beneficiary is successfully joined to the Vault smart contract. The default function does nothing.
+		onMemberJoin = async (/* beneficiary, vault, chain */) => {},
 
 		/**
 		 * These options are primarily intended for advanced use or passing in test mocks
@@ -60,11 +60,10 @@ class JoinServer {
 
 		if (!clients) {
 			clients = new Map()
-			const chains = config.Chains.load()
-			for (const chainName in chains) {
-				for (const contractName in chains[chainName].contracts) {
-					if (contractName === "DataUnionFactory") {
-						clients.set(chainName, this.newDataUnionClient(chains[chainName], privateKey))
+			for (const chainName in config) {
+				for (const contractName in config[chainName]) {
+					if (contractName === "VaultFactory") {
+						clients.set(chainName, this.newRailClient(chainName, privateKey))
 					}
 				}
 			}
@@ -122,18 +121,13 @@ class JoinServer {
 		})
 	}
 
-	newDataUnionClient(chain /* config.Chain */, privateKey /* string */) {
-		const options = {
+	newRailClient(chain, privateKey) {
+		return new RailClient({
 			auth: {
 				privateKey,
 			},
-			network: {
-				name: chain.name,
-				chainId: chain.id,
-				rpcs: chain.rpcEndpoints,
-			}
-		}
-		return new DataUnionClient(options)
+			chain,
+		})
 	}
 
 	routes() {
@@ -155,7 +149,7 @@ class JoinServer {
 		this.authenticatedRoutes.use((req, res, next) => this.signedRequestValidator(req).then(next).catch((err) => next(err)))
 		this.authenticatedRoutes.post('/join', (req, res, next) => new rest.JoinHandler(this.logger, this.joinRequestService, this.customJoinRequestValidator).handle(req, res, next))
 		this.customRoutes(this.authenticatedRoutes, this.clients)
-		
+
 		this.expressApp.use(this.publicRoutes)
 		this.expressApp.use(this.authenticatedRoutes)
 

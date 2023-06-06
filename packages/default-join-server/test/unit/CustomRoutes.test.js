@@ -8,7 +8,7 @@ describe('CustomRoutes', () => {
 	let expressApp
 	let client
 	let db
-	let dataUnion
+	let vault
 
 	beforeEach(() => {
 		expressApp = express()
@@ -18,14 +18,14 @@ describe('CustomRoutes', () => {
 			next()
 		})
 
-		dataUnion = {
+		vault = {
 			getAdminAddress: sinon.stub().resolves('0xabcdef')
 		}
 
 		client = {
-			getDataUnion: sinon.spy(async (dataUnionAddress) => {
-				if (dataUnionAddress === '0x12345') {
-					return dataUnion
+			getVault: sinon.spy(async (vaultAddress) => {
+				if (vaultAddress === '0x12345') {
+					return vault
 				}
 			})
 		}
@@ -52,38 +52,38 @@ describe('CustomRoutes', () => {
 
 	describe('POST /secrets/list', () => {
 
-		it('requires the caller to be the admin', async () => {
+		it('requires the caller to be the operator', async () => {
 			db.listSecrets = sinon.stub().rejects(new Error('db.listSecrets should not be called!'))
 
 			await runTest('/secrets/list', 403, {
-				address: 'not-admin',
+				address: 'not-operator',
 				request: JSON.stringify({
-					dataUnion: '0x12345',
+					vault: '0x12345',
 					chain: 'test-chain',
 				})
 			})
 
-			expect(dataUnion.getAdminAddress.calledOnce).to.be.true
+			expect(vault.getAdminAddress.calledOnce).to.be.true
 			expect(db.listSecrets.called).to.be.false
 		})
 
-		it('fails if the DU is not found', async () => {
+		it('fails if the Vault is not found', async () => {
 			db.listSecrets = sinon.stub().rejects(new Error('db.listSecrets should not be called!'))
 
 			await runTest('/secrets/list', 404, {
 				address: '0xabcdef',
 				request: JSON.stringify({
-					dataUnion: 'not-found',
+					vault: 'not-found',
 					chain: 'test-chain',
 				})
 			})
 
-			expect(client.getDataUnion.calledOnceWith('not-found'))
-			expect(dataUnion.getAdminAddress.calledOnce).to.be.false
+			expect(client.getVault.calledOnceWith('not-found'))
+			expect(vault.getAdminAddress.calledOnce).to.be.false
 			expect(db.listSecrets.called).to.be.false
 		})
 
-		it('list the secrets for a DU', async () => {
+		it('list the secrets for a Vault', async () => {
 			const results = [{
 				foo: 'bar'
 			}]
@@ -92,7 +92,7 @@ describe('CustomRoutes', () => {
 			const res = await runTest('/secrets/list', 200, {
 				address: '0xabcdef',
 				request: JSON.stringify({
-					dataUnion: '0x12345',
+					vault: '0x12345',
 					chain: 'test-chain',
 				})
 			})
@@ -104,35 +104,35 @@ describe('CustomRoutes', () => {
 
 	describe('POST /secrets/create', () => {
 
-		it('requires the caller to be the admin', async () => {
+		it('requires the caller to be the operator', async () => {
 			db.createAppSecret = sinon.stub().rejects(new Error('db.createAppSecret should not be called!'))
 
 			await runTest('/secrets/create', 403, {
-				address: 'not-admin',
+				address: 'not-operator',
 				request: JSON.stringify({
-					dataUnion: '0x12345',
+					vault: '0x12345',
 					chain: 'test-chain',
 					name: 'Test secret',
 				})
 			})
 
-			expect(dataUnion.getAdminAddress.calledOnce).to.be.true
+			expect(vault.getAdminAddress.calledOnce).to.be.true
 			expect(db.createAppSecret.called).to.be.false
 		})
 
-		it('fails if the DU is not found', async () => {
+		it('fails if the Vault is not found', async () => {
 			db.createAppSecret = sinon.stub().rejects(new Error('db.createAppSecret should not be called!'))
 
 			await runTest('/secrets/create', 404, {
 				address: '0xabcdef',
 				request: JSON.stringify({
-					dataUnion: 'not-found',
+					vault: 'not-found',
 					chain: 'test-chain',
 				})
 			})
 
-			expect(client.getDataUnion.calledOnceWith('not-found'))
-			expect(dataUnion.getAdminAddress.calledOnce).to.be.false
+			expect(client.getVault.calledOnceWith('not-found'))
+			expect(vault.getAdminAddress.calledOnce).to.be.false
 			expect(db.createAppSecret.called).to.be.false
 		})
 
@@ -145,7 +145,7 @@ describe('CustomRoutes', () => {
 			const res = await runTest('/secrets/create', 200, {
 				address: '0xabcdef',
 				request: JSON.stringify({
-					dataUnion: '0x12345',
+					vault: '0x12345',
 					chain: 'test-chain',
 					name: 'test-secret',
 				})
@@ -158,38 +158,38 @@ describe('CustomRoutes', () => {
 
 	describe('POST /secrets/delete', () => {
 
-		it('requires the caller to be the admin', async () => {
+		it('requires the caller to be the operator', async () => {
 			db.getAppSecret = sinon.stub().rejects(new Error('db.getAppSecret should not be called!'))
 			db.deleteAppSecret = sinon.stub().rejects(new Error('db.deleteAppSecret should not be called!'))
 
 			await runTest('/secrets/delete', 403, {
-				address: 'not-admin',
+				address: 'not-operator',
 				request: JSON.stringify({
-					dataUnion: '0x12345',
+					vault: '0x12345',
 					chain: 'test-chain',
 					secret: 'test-secret'
 				})
 			})
 
-			expect(dataUnion.getAdminAddress.calledOnce).to.be.true
+			expect(vault.getAdminAddress.calledOnce).to.be.true
 			expect(db.getAppSecret.called).to.be.false
 			expect(db.deleteAppSecret.called).to.be.false
 		})
 
-		it('fails if the DU is not found', async () => {
+		it('fails if the Vault is not found', async () => {
 			db.getAppSecret = sinon.stub().rejects(new Error('db.getAppSecret should not be called!'))
 			db.deleteAppSecret = sinon.stub().rejects(new Error('db.deleteAppSecret should not be called!'))
 
 			await runTest('/secrets/create', 404, {
 				address: '0xabcdef',
 				request: JSON.stringify({
-					dataUnion: 'not-found',
+					vault: 'not-found',
 					chain: 'test-chain',
 				})
 			})
 
-			expect(client.getDataUnion.calledOnceWith('not-found'))
-			expect(dataUnion.getAdminAddress.calledOnce).to.be.false
+			expect(client.getVault.calledOnceWith('not-found'))
+			expect(vault.getAdminAddress.calledOnce).to.be.false
 			expect(db.deleteAppSecret.called).to.be.false
 		})
 
@@ -204,7 +204,7 @@ describe('CustomRoutes', () => {
 			const res = await runTest('/secrets/delete', 200, {
 				address: '0xabcdef',
 				request: JSON.stringify({
-					dataUnion: '0x12345',
+					vault: '0x12345',
 					chain: 'test-chain',
 					secret: 'test-secret',
 				})

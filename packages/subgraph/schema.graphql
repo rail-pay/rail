@@ -1,0 +1,56 @@
+# note on dates:
+#  Int = "A signed 32‐bit integer" according to https://graphql.org/learn/schema/
+#  signed 32 bits can represent numbers up to 2e9
+#  dates are in epoch seconds, so Int is good until https://en.wikipedia.org/wiki/Year_2038_problem
+# In graph-ts objects (such as Block) all numbers are BigInt, including dates, so that should be a good choice for schema types, too
+
+type Vault @entity {
+  id: ID! # this will be the Contract address as all-lowercase string
+  beneficiaries: [Member!]! @derivedFrom(field: "vault")
+  beneficiaryCount: Int!
+  revenueWei: BigInt!
+  creationDate: BigInt!
+  totalWeight: BigDecimal!
+  owner: String! # We need this to be String to enable partial match search
+}
+
+enum MemberStatus {
+  NONE
+  ACTIVE
+  INACTIVE
+}
+
+type Member @entity {
+  id: ID! # this will be the string "0xduaddress-0xbeneficiaryaddress"
+  address: String! # We need this to be String to enable partial match search
+  vault: Vault!
+  status: MemberStatus!
+  joinDate: BigInt!
+  weight: BigDecimal!
+}
+
+enum BucketType {
+  HOUR
+  DAY
+}
+
+type VaultBucket @entity {
+  id: ID!
+  type: BucketType!
+  vault: Vault!
+  startDate: BigInt!
+  endDate: BigInt!
+  beneficiaryCountAtStart: Int!
+  beneficiaryCountChange: Int!
+  revenueAtStartWei: BigInt!
+  revenueChangeWei: BigInt!
+  totalWeightAtStart: BigDecimal!
+  totalWeightChange: BigDecimal!
+}
+
+type RevenueEvent @entity {
+  id: ID! # this will be 0xduaddress-blocknumber-txindex-logindex
+  vault: Vault!
+  date: BigInt!
+  amountWei: BigInt!
+}

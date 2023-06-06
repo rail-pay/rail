@@ -3,7 +3,7 @@ const { expect } = chai
 chai.use(require('chai-as-promised'))
 
 const sinon = require('sinon')
-const { InvalidRequestError } = require('@dataunions/join-server')
+const { InvalidRequestError } = require('@rail-protocol/join-server')
 const createCustomJoinRequestValidator = require('../../src/CustomJoinRequestValidator')
 
 describe('customJoinRequestValidator', async () => {
@@ -17,7 +17,7 @@ describe('customJoinRequestValidator', async () => {
 				if (secret === 'test-secret') {
 					return {
 						secret: 'test-secret',
-						dataUnion: '0xabcdef',
+						vault: '0xabcdef',
 						chain: 'test-chain',
 						name: 'This is a test secret',
 					}
@@ -29,12 +29,12 @@ describe('customJoinRequestValidator', async () => {
 	})
 
 	afterEach(() => {
-		
+
 	})
 
 	it('succeeds if the secret is correct', async () => {
 		await expect(customJoinRequestValidator('0x12345', {
-			dataUnion: '0xABCDEF',
+			vault: '0xABCDEF',
 			chain: 'test-chain',
 			secret: 'test-secret',
 		})).to.be.fulfilled
@@ -43,7 +43,7 @@ describe('customJoinRequestValidator', async () => {
 
 	it('fails if the secret is not provided', async () => {
 		await expect(customJoinRequestValidator('0x12345', {
-			dataUnion: '0xABCDEF',
+			vault: '0xABCDEF',
 			chain: 'test-chain',
 		})).to.be.rejectedWith(InvalidRequestError)
 		expect(db.getAppSecret.calledOnce).to.be.false
@@ -51,7 +51,7 @@ describe('customJoinRequestValidator', async () => {
 
 	it('fails if the secret is not found', async () => {
 		await expect(customJoinRequestValidator('0x12345', {
-			dataUnion: '0xABCDEF',
+			vault: '0xABCDEF',
 			chain: 'test-chain',
 			secret: 'nonexistent',
 		})).to.be.rejectedWith(InvalidRequestError)
@@ -60,7 +60,7 @@ describe('customJoinRequestValidator', async () => {
 
 	it('fails if the contract address does not match', async () => {
 		await expect(customJoinRequestValidator('0x12345', {
-			dataUnion: '0x12345',
+			vault: '0x12345',
 			chain: 'test-chain',
 			secret: 'test-secret',
 		})).to.be.rejectedWith(InvalidRequestError)
@@ -69,7 +69,7 @@ describe('customJoinRequestValidator', async () => {
 
 	it('fails if the chain does not match', async () => {
 		await expect(customJoinRequestValidator('0x12345', {
-			dataUnion: '0xABCDEF',
+			vault: '0xABCDEF',
 			chain: 'wrong-chain',
 			secret: 'test-secret',
 		})).to.be.rejectedWith(InvalidRequestError)

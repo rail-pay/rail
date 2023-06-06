@@ -2,16 +2,16 @@ const StreamrClient = require('streamr-client')
 
 module.exports = (
 	streamrDB,
-	privateKey, 
+	privateKey,
 	streamrClient = new StreamrClient({
 		auth: {
 			privateKey,
 		}
 	}),
 ) => {
-	return async (member, dataUnion, chain) => {
-		// Find Streamr streams belonging to this dataUnion
-		const streams = await streamrDB.getStreamsForDataUnion(dataUnion, chain)
+	return async (beneficiary, vault, chain) => {
+		// Find Streamr streams belonging to this vault
+		const streams = await streamrDB.getStreamsForVault(vault, chain)
 
 		// Check that I have grant permission on the streams
 		const myAddress = await streamrClient.getAddress()
@@ -34,7 +34,7 @@ module.exports = (
 					streamId,
 					assignments: [
 						{
-							user: member,
+							user: beneficiary,
 							permissions: [StreamrClient.StreamPermission.PUBLISH]
 						}
 					]

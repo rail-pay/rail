@@ -14,50 +14,50 @@ class JoinRequestService {
 		this.onMemberJoin = onMemberJoin
 	}
 
-	async create(member, dataUnion, chain) {
-		const dataUnionClient = this.clients.get(chain)
+	async create(beneficiary, vault, chain) {
+		const railClient = this.clients.get(chain)
 		let du
 		try {
-			du = await dataUnionClient.getDataUnion(dataUnion)
+			du = await railClient.getVault(vault)
 		} catch (err) {
-			throw new DataUnionRetrievalError(`Error while retrieving data union ${dataUnion}: ${err.message}`)
+			throw new VaultRetrievalError(`Error while retrieving vault ${vault}: ${err.message}`)
 		}
 
-		if (await du.isMember(member)) {
-			throw new DataUnionJoinError(`Member ${member} is already a member of ${dataUnion}!`)
-		}
-
-		try {
-			await du.addMembers([member])
-		} catch (err) {
-			throw new DataUnionJoinError(`Error while adding member ${member} to data union ${dataUnion}: ${err.message}`)
+		if (await du.isMember(beneficiary)) {
+			throw new VaultJoinError(`Member ${beneficiary} is already a beneficiary of ${vault}!`)
 		}
 
 		try {
-			await this.onMemberJoin(member, dataUnion, chain)
+			await du.addMembers([beneficiary])
 		} catch (err) {
-			throw new DataUnionJoinError(`Error while adding member ${member} to data union ${dataUnion}: ${err.message}`)
+			throw new VaultJoinError(`Error while adding beneficiary ${beneficiary} to vault ${vault}: ${err.message}`)
+		}
+
+		try {
+			await this.onMemberJoin(beneficiary, vault, chain)
+		} catch (err) {
+			throw new VaultJoinError(`Error while adding beneficiary ${beneficiary} to vault ${vault}: ${err.message}`)
 		}
 
 		return {
-			member,
-			dataUnion,
+			beneficiary,
+			vault,
 			chain: chain,
 		}
 	}
 
 	close() {
-		this.clients.forEach((dataUnionClient) => {
-			dataUnionClient.close()
+		this.clients.forEach((railClient) => {
+			railClient.close()
 		})
 	}
 }
 
-class DataUnionRetrievalError extends Error {}
-class DataUnionJoinError extends Error {}
+class VaultRetrievalError extends Error {}
+class VaultJoinError extends Error {}
 
 module.exports = {
 	JoinRequestService,
-	DataUnionRetrievalError,
-	DataUnionJoinError,
+	VaultRetrievalError,
+	VaultJoinError,
 }

@@ -1,24 +1,30 @@
 {
-    "name": "@dataunions/contracts",
-    "version": "3.0.8",
-    "description": "Smart contracts for Data Union with sidechain accounting",
-    "author": "Data Union DAO <contact@dataunions.org>",
+    "name": "@rail-protocol/contracts",
+    "version": "0.0.1",
+    "description": "Smart contracts for the Rail Protocol",
+    "author": "Rail Protocol <contact@rail.dev>",
     "license": "UNLICENSED",
+    "files": [
+        "dist",
+        "contracts"
+    ],
+    "main": "./dist/src/exports.js",
+    "types": "./dist/src/exports.d.ts",
     "private": false,
     "publishConfig": {
         "access": "public"
     },
     "repository": {
         "type": "git",
-        "url": "git+https://github.com/dataunions/data-unions.git",
+        "url": "git+https://github.com/vaults/data-unions.git",
         "directory": "packages/contracts"
     },
     "bugs": {
-        "url": "https://github.com/dataunions/data-unions/issues"
+        "url": "https://github.com/rail-protocol/rail/issues"
     },
-    "homepage": "https://github.com/dataunions/data-unions/tree/main/packages/contracts#readme",
+    "homepage": "https://github.com/rail-protocol/rail/tree/main/packages/contracts#readme",
     "scripts": {
-        "build": "hardhat compile",
+        "build": "rm -rf artifacts && hardhat compile && rm -rf dist && tsc -p tsconfig.build.json",
         "clean": "rm -rf artifacts cache coverage typechain deployments",
         "coverage": "hardhat coverage --testfiles 'test/contracts/*'",
         "lint": "eslint test/**/*.ts scripts/*.ts && solhint contracts/*/*.sol",
@@ -28,39 +34,19 @@
         "unit-test-old": "hardhat test test/contracts/du2/*.test.ts",
         "test": "npm run unit-test"
     },
-    "files": [
-        "contracts/**/*",
-        "typechain/**/*",
-        "artifacts/contracts/**/*",
-        "index.*"
-    ],
     "devDependencies": {
-        "@nomiclabs/hardhat-ethers": "2.1.1",
-        "@nomiclabs/hardhat-waffle": "2.0.3",
+        "@nomicfoundation/hardhat-chai-matchers": "^1.0.0",
+        "@nomicfoundation/hardhat-toolbox": "2.0.0",
+        "hardhat": "^2.14.1",
         "@openzeppelin/contracts": "4.7.3",
         "@openzeppelin/contracts-upgradeable": "4.7.3",
         "@openzeppelin/hardhat-upgrades": "^1.20.0",
-        "@streamr/config": "2.5.1",
-        "@typechain/ethers-v5": "6.0.5",
+        "@rail-protocol/config": "*",
         "@types/chai": "4.3.3",
         "@types/debug": "4.1.7",
         "@types/mocha": "9.1.1",
         "@types/node": "18.7.14",
-        "chai": "4.3.6",
-        "chai-bignumber": "3.0.0",
         "debug": "4.3.4",
-        "eslint": "8.23.0",
-        "ethereum-waffle": "3.4.4",
-        "ethers": "5.7.0",
-        "hardhat": "2.10.2",
-        "hardhat-typechain": "0.3.5",
-        "prettier": "2.7.1",
-        "prettier-plugin-solidity": "1.0.0-beta.24",
-        "solhint": "3.3.7",
-        "solhint-plugin-prettier": "0.0.5",
-        "solidity-coverage": "0.8.2",
-        "ts-node": "10.9.1",
-        "typechain": "4.0.3",
-        "typescript": "4.7.4"
+        "solhint": "3.4.1"
     }
 }

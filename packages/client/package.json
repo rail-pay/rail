@@ -1,8 +1,8 @@
 {
-    "name": "@dataunions/client",
-    "version": "3.0.11",
-    "description": "JavaScript/TypeScript client library for DataUnions",
-    "author": "Data Union DAO <contact@dataunions.org>",
+    "name": "@rail-protocol/client",
+    "version": "0.0.1",
+    "description": "JavaScript/TypeScript client library for accessing and using the Rail Protocol",
+    "author": "Rail Protocol <contact@rail.dev>",
     "license": "Apache-2.0",
     "private": false,
     "publishConfig": {
@@ -10,13 +10,13 @@
     },
     "repository": {
         "type": "git",
-        "url": "git+https://github.com/dataunions/data-unions.git",
+        "url": "git+https://github.com/rail-protocol/rail.git",
         "directory": "packages/client"
     },
     "bugs": {
-        "url": "https://github.com/dataunions/data-unions/issues"
+        "url": "https://github.com/rail-protocol/rail/issues"
     },
-    "homepage": "https://github.com/dataunions/data-unions/tree/main/packages/client#readme",
+    "homepage": "https://github.com/rail-protocol/rail/tree/main/packages/client#readme",
     "types": "./dist/types/src/index.d.ts",
     "main": "./dist/src/index.js",
     "browser": "./dist/web/index.js",
@@ -33,7 +33,7 @@
         "build-browser": "npm run build-browser-iife -- --outdir=dist/web && npm run build-browser-esm",
         "build-browser-base": "esbuild src/index.ts --bundle --sourcemap --target=chrome101 --tsconfig=tsconfig.browser.json --legal-comments=linked --define:process.env.NODE_ENV=\\\"${NODE_ENV:-development}\\\" --inject:./process-shim.js",
         "build-browser-esm": "npm run build-browser-base -- --outfile=dist/web/index.esm.js --format=esm",
-        "build-browser-iife": "npm run build-browser-base -- --format=iife --global-name=DataUnions",
+        "build-browser-iife": "npm run build-browser-base -- --format=iife --global-name=RailClient",
         "build-node": "npm run bootstrap-dist && tsc --build ./tsconfig.node.json",
         "build-production": "npm run clean; npm run bootstrap-dist && NODE_ENV=production npm run build && NODE_ENV=production npm run build-browser",
         "check": "tsc -p ./tsconfig.json --noEmit",
@@ -84,7 +84,8 @@
         "util": "0.12.4"
     },
     "dependencies": {
-        "@dataunions/contracts": "3.0.8",
+        "@rail-protocol/contracts": "0.0.1",
+        "@rail-protocol/config": "*",
         "@ethersproject/abi": "5.7.0",
         "@ethersproject/abstract-signer": "5.7.0",
         "@ethersproject/address": "5.7.0",
@@ -95,7 +96,6 @@
         "@ethersproject/units": "5.7.0",
         "@ethersproject/wallet": "5.7.0",
         "@ethersproject/web": "5.7.0",
-        "@streamr/config": "2.5.1",
         "debug": "4.3.4",
         "node-fetch": "2.6.7",
         "readable-stream": "4.1.0",

@@ -1,4 +1,4 @@
-const { InvalidRequestError } = require('@dataunions/join-server')
+const { InvalidRequestError } = require('@rail-protocol/join-server')
 
 module.exports = (db) => {
 	return async (address, joinRequest) => {
@@ -7,8 +7,8 @@ module.exports = (db) => {
 		}
 
 		const secret = await db.getAppSecret(joinRequest.secret)
-		if (!secret 
-            || secret.dataUnion.toLowerCase() !== joinRequest.dataUnion.toLowerCase()
+		if (!secret
+            || secret.vault.toLowerCase() !== joinRequest.vault.toLowerCase()
             || secret.chain !== joinRequest.chain) {
 			throw new InvalidRequestError(`Invalid app secret provided by ${address}`)
 		}

@@ -1,8 +1,8 @@
 {
-  "name": "@dataunions/default-join-server",
-  "version": "3.0.3",
+  "name": "@rail-protocol/default-join-server",
+  "version": "0.0.1",
   "description": "A join server that extends the base join server by adding app secret validation and Streamr-awareness",
-  "author": "Data Union DAO <contact@dataunions.org>",
+  "author": "Rail Protocol <contact@rail.dev>",
   "license": "AGPL-3.0-or-later",
   "private": false,
   "publishConfig": {
@@ -10,16 +10,16 @@
   },
   "repository": {
     "type": "git",
-    "url": "git+https://github.com/dataunions/data-unions.git",
+    "url": "git+https://github.com/vaults/data-unions.git",
     "directory": "packages/default-join-server"
   },
   "files": [
     "src"
   ],
   "bugs": {
-    "url": "https://github.com/dataunions/data-unions/issues"
+    "url": "https://github.com/rail-protocol/rail/issues"
   },
-  "homepage": "https://github.com/dataunions/data-unions/tree/main/packages/default-join-server#readme",
+  "homepage": "https://github.com/rail-protocol/rail/tree/main/packages/default-join-server#readme",
   "main": "src/DefaultJoinServer.js",
   "scripts": {
     "lint": "npx eslint .",
@@ -32,8 +32,8 @@
     "default-join-server": "src/cmd/index.js"
   },
   "dependencies": {
-    "@dataunions/client": "3.0.8",
-    "@dataunions/join-server": "3.0.3",
+    "@rail-protocol/client": "0.0.1",
+    "@rail-protocol/join-server": "0.0.1",
     "dotenv": "16.0.2",
     "mysql2": "2.3.3",
     "sequelize": "6.23.2",

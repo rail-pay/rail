@@ -1,0 +1,50 @@
+{
+    "name": "@rail-protocol/subgraph",
+    "version": "0.0.1",
+    "description": "Subgraph definitions for vaults",
+    "author": "Rail Protocol <contact@rail.dev>",
+    "license": "UNLICENSED",
+    "private": true,
+    "publishConfig": {
+        "access": "restricted"
+    },
+    "scripts": {
+        "clean": "rm -rf build generated",
+        "build": "graph codegen subgraph.gnosis.production.yaml && graph codegen subgraph.development.yaml && graph build subgraph.development.yaml",
+        "build-production": "graph codegen subgraph.yaml && graph build subgraph.yaml",
+        "lint": "eslint ./src/*.ts",
+        "integration-test": "npx mocha --require ts-node/register --timeout 100000 test/integration.ts",
+        "docker:build": "npm run build && docker build . -t streamr/graph-deploy-vault-subgraph:dev",
+        "docker:publish": "docker image push streamr/graph-deploy-vault-subgraph:dev",
+        "create-docker-dev": "graph create streamr-dev/vault --node http://streamr-dev-thegraph-node:8020 subgraph.development.yaml",
+        "deploy-docker-dev": "graph deploy streamr-dev/vault --version-label v0.0.1 --ipfs http://streamr-dev-ipfs:5001 --node http://streamr-dev-thegraph-node:8020 subgraph.development.yaml",
+        "create-local": "graph create streamr-dev/vault --node http://localhost:8020 subgraph.development.yaml",
+        "deploy-local": "graph deploy streamr-dev/vault --version-label v0.0.1 --ipfs http://localhost:5001 --node http://localhost:8020 subgraph.development.yaml",
+        "deploy-production-gnosis": "cp subgraph.gnosis.production.yaml subgraph.yaml && npm run build-production && graph deploy vaults/data-unions-gnosis",
+        "deploy-production-polygon": "cp subgraph.polygon.production.yaml subgraph.yaml && npm run build-production && graph deploy vaults/data-unions-polygon",
+        "doAll": "npm run build && npm run create-local && npm run deploy-local",
+        "doAll-inside-docker-dev": "npm run build && npm run create-docker-dev && npm run deploy-docker-dev"
+    },
+    "devDependencies": {
+        "@rail-protocol/client": "0.0.1",
+        "@graphprotocol/graph-cli": "0.51.0",
+        "@humanwhocodes/gitignore-to-minimatch": "1.0.2",
+        "@streamr/data-v2": "1.0.2",
+        "@typescript-eslint/eslint-plugin": "5.36.1",
+        "@typescript-eslint/parser": "5.36.1",
+        "debug": "4.3.4",
+        "eslint": "8.23.0",
+        "eslint-config-streamr-ts": "4.1.0",
+        "eslint-plugin-chai-friendly": "0.7.2",
+        "eslint-plugin-import": "2.26.0",
+        "eslint-plugin-promise": "6.0.1",
+        "mocha": "10.0.0",
+        "chai": "4.3.6",
+        "node-fetch": "2.6.7",
+        "typescript": "4.7.4"
+    },
+    "dependencies": {
+        "@graphprotocol/graph-ts": "0.27.0",
+        "lodash.merge": "4.6.2"
+    }
+}

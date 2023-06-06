@@ -20,19 +20,19 @@ class JoinHandler {
 	}
 
 	async handle(req, res, _next) {
-		let member
+		let beneficiary
 		try {
-			member = new domain.Address(req.body.address)
+			beneficiary = new domain.Address(req.body.address)
 		} catch (err) {
-			this.sendJsonError(res, 400, `Invalid member address: '${err.address}'`)
+			this.sendJsonError(res, 400, `Invalid beneficiary address: '${err.address}'`)
 			return
 		}
 
-		let dataUnion
+		let vault
 		try {
-			dataUnion = new domain.Address(req.validatedRequest.dataUnion)
+			vault = new domain.Address(req.validatedRequest.vault)
 		} catch (err) {
-			this.sendJsonError(res, 400, `Invalid Data Union contract address: '${err.address}'`)
+			this.sendJsonError(res, 400, `Invalid Vault contract address: '${err.address}'`)
 			return
 		}
 
@@ -52,7 +52,7 @@ class JoinHandler {
 		}
 
 		try {
-			const joinResponse = await this.joinRequestService.create(member.toString(), dataUnion.toString(), chain.toString())
+			const joinResponse = await this.joinRequestService.create(beneficiary.toString(), vault.toString(), chain.toString())
 			this.logger.info(joinResponse)
 			this.sendJsonResponse(res, 200, joinResponse)
 		} catch (err) {
