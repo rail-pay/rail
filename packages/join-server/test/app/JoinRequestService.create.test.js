@@ -36,10 +36,10 @@ describe('JoinRequestService', () => {
 	})
 
 	describe('create', () => {
-		it('adds members using the RailClient', async () => {
+		it('adds beneficiaries using the RailClient', async () => {
 			const response = await joinRequestService.create(MEMBER_ADDRESS, VAULT_ADDRESS, CHAIN)
 			assert.isTrue(vaultObject.addMembers.calledWith([MEMBER_ADDRESS]))
-			assert.equal(response.member, MEMBER_ADDRESS)
+			assert.equal(response.beneficiary, MEMBER_ADDRESS)
 			assert.equal(response.vault, VAULT_ADDRESS)
 			assert.equal(response.chain, CHAIN)
 		})
@@ -49,7 +49,7 @@ describe('JoinRequestService', () => {
 			await expect(joinRequestService.create(MEMBER_ADDRESS, VAULT_ADDRESS, CHAIN)).to.be.rejectedWith(VaultRetrievalError)
 		})
 
-		it('rejects if the member is already a member', async () => {
+		it('rejects if the beneficiary is already a beneficiary', async () => {
 			vaultObject.isMember = sinon.stub().resolves(true),
 			await expect(joinRequestService.create(MEMBER_ADDRESS, VAULT_ADDRESS, CHAIN)).to.be.rejectedWith(VaultJoinError)
 		})

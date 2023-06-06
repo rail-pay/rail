@@ -1,12 +1,12 @@
 # Vault Join Server
 
-This is a gatekeeper HTTP server for requiring Vault members to fulfil certain requirements in order to join a Vault. Example use cases are limiting members to users of a certain application by requiring an application secret to be passed along with the join request, or preventing bots by requiring users to complete a CAPTCHA.
+This is a gatekeeper HTTP server for requiring Vault beneficiaries to fulfil certain requirements in order to join a Vault. Example use cases are limiting beneficiaries to users of a certain application by requiring an application secret to be passed along with the join request, or preventing bots by requiring users to complete a CAPTCHA.
 
 The process of joining a Vault is generally as follows:
-- At Vault creation time, a `joinPartAgent` Ethereum address is configured on the Vault smart contract. The `joinPartAgent` is able to add members to the Vault.
+- At Vault creation time, a `joinPartAgent` Ethereum address is configured on the Vault smart contract. The `joinPartAgent` is able to add beneficiaries to the Vault.
 - This Vault join server is configured with the private key for the `joinPartAgent` address.
-- When a member wants to join via the Vault application, a HTTP request is sent to this join server.
-- The join server validates the join request (by validating app secret, captcha, or whatever is needed), and then makes a blockchain transaction to add the member to the Vault.
+- When a beneficiary wants to join via the Vault application, a HTTP request is sent to this join server.
+- The join server validates the join request (by validating app secret, captcha, or whatever is needed), and then makes a blockchain transaction to add the beneficiary to the Vault.
 
 Vault builder teams can easily [extend](#extending) the validation logic and run their own join server. Implementing any kind of join request validation logic is possible.
 
@@ -42,9 +42,9 @@ srv.listen()
 
 That's exactly what's happening in the [default join server](https://github.com/vaults/default-join-server). Forking that may be a faster starting point for your own customizations, or you can study this readme to start your customizations from scratch.
 
-Note that this base join server does not grant the joining member permissions to any data backend, it just adds the member to the smart contract. In your join server, you should grant the joining member the ability to share their data via whatever data backend/protocol your Vault is using via using the `onMemberJoin` hook (see [Options](#options)).
+Note that this base join server does not grant the joining beneficiary permissions to any data backend, it just adds the beneficiary to the smart contract. In your join server, you should grant the joining beneficiary the ability to share their data via whatever data backend/protocol your Vault is using via using the `onMemberJoin` hook (see [Options](#options)).
 
-The [default join server](https://github.com/vaults/default-join-server) hosted by the Rail Protocol is [Streamr](https://streamr.network)-aware, meaning that it grants new members publish permission to Streamr streams associated with that Vault. If you're using a different data protocol/backend, you need to grant access to your data backend to your new Vault members (unless of course your backend accepts data from anyone, not just Vault members).
+The [default join server](https://github.com/vaults/default-join-server) hosted by the Rail Protocol is [Streamr](https://streamr.network)-aware, meaning that it grants new beneficiaries publish permission to Streamr streams associated with that Vault. If you're using a different data protocol/backend, you need to grant access to your data backend to your new Vault beneficiaries (unless of course your backend accepts data from anyone, not just Vault beneficiaries).
 
 ### Options
 
@@ -67,8 +67,8 @@ new JoinServer({
     // Used to add custom routes to the HTTP server. The default function does nothing.
     customRoutes: (expressApp) => {},
 
-	// Gets called after a member is successfully joined to the Vault smart contract. The default function does nothing.
-	onMemberJoin = async (/* member, vault, chain */) => {},
+	// Gets called after a beneficiary is successfully joined to the Vault smart contract. The default function does nothing.
+	onMemberJoin = async (/* beneficiary, vault, chain */) => {},
 
     // By default public RPCs are used for each chain, but you can pass this option to override
     customRPCs: {
@@ -95,7 +95,7 @@ The functionality of the join server can be extended by vault teams in two impor
 
 ### Adding custom fields to join requests
 
-In many cases, you'll want to pass some additional information from the end-user app to the join server, such as CAPTCHA responses or other information used to accept the new member. In that case, the join request will have the `vault` and `chain` keys plus your custom ones for which you can choose any names you want:
+In many cases, you'll want to pass some additional information from the end-user app to the join server, such as CAPTCHA responses or other information used to accept the new beneficiary. In that case, the join request will have the `vault` and `chain` keys plus your custom ones for which you can choose any names you want:
 
 ```
 {
@@ -201,7 +201,7 @@ or in other words, the full signed HTTP request body would be:
 }
 ```
 
-Such a request would join `address` (`0xabcdef`) as member of the Vault at smart contract address `0x12345`, to be found on the Polygon chain.
+Such a request would join `address` (`0xabcdef`) as beneficiary of the Vault at smart contract address `0x12345`, to be found on the Polygon chain.
 
 The join request can contain arbitrary additional fields, which are validated by passing to the server a `customJoinRequestValidator` function - see below for information about extending and customizing the server.
 
@@ -209,7 +209,7 @@ The response sent by the server has the form:
 
 ```
 {
-    "member": "0xabcdef",
+    "beneficiary": "0xabcdef",
     "vault": "0x12345",
 	"chain": "polygon"
 }

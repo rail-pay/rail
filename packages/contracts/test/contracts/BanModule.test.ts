@@ -20,7 +20,7 @@ const {
 
 describe("BanModule", () => {
     let creator: Wallet
-    let member0: Wallet
+    let beneficiary0: Wallet
     let joinPartAgent: Wallet
     let dao: Wallet
     let others: Wallet[]
@@ -30,13 +30,13 @@ describe("BanModule", () => {
 
     let banModule: BanModule
 
-    async function selectBannedMembers(members: EthereumAddress[]): Promise<EthereumAddress[]> {
-        const banBits = await banModule.areBanned(members)
-        return members.filter((_, i) => banBits.shr(i).and(1).eq(1))
+    async function selectBannedMembers(beneficiaries: EthereumAddress[]): Promise<EthereumAddress[]> {
+        const banBits = await banModule.areBanned(beneficiaries)
+        return beneficiaries.filter((_, i) => banBits.shr(i).and(1).eq(1))
     }
 
     before(async () => {
-        [creator, member0, joinPartAgent, dao, ...others] = await getSigners() as unknown as Wallet[]
+        [creator, beneficiary0, joinPartAgent, dao, ...others] = await getSigners() as unknown as Wallet[]
 
         testToken = await (await getContractFactory("TestToken", { signer: creator })).deploy("name", "symbol") as TestToken
         await testToken.deployed()
@@ -76,20 +76,20 @@ describe("BanModule", () => {
         log("BanModule %s set up successfully", banModule.address)
 
         await vault.addJoinPartAgent(joinPartAgent.address)
-        await vault.connect(joinPartAgent).addMember(member0.address)
-        log("Member %s was added to vault", member0.address)
+        await vault.connect(joinPartAgent).addMember(beneficiary0.address)
+        log("Member %s was added to vault", beneficiary0.address)
     })
 
-    it("doesn't let previously banned members re-join", async () => {
+    it("doesn't let previously banned beneficiaries re-join", async () => {
         const m = others[0].address
         await expect(vault.connect(joinPartAgent).addMember(m)).to.emit(vault, "MemberJoined")
         await expect(banModule.connect(joinPartAgent).ban(m)).to.emit(banModule, "MemberBanned")
         expect(await vault.isMember(m)).to.equal(false)
         expect(await banModule.isBanned(m)).to.equal(true)
-        await expect(vault.connect(joinPartAgent).addMember(m)).to.be.revertedWith("error_memberBanned")
+        await expect(vault.connect(joinPartAgent).addMember(m)).to.be.revertedWith("error_beneficiaryBanned")
     })
 
-    it("allows previously banned members to be restored", async () => {
+    it("allows previously banned beneficiaries to be restored", async () => {
         const m = others[1].address
         await expect(banModule.connect(joinPartAgent).ban(m)).to.emit(banModule, "MemberBanned")
         expect(await banModule.isBanned(m)).to.equal(true)
@@ -98,19 +98,19 @@ describe("BanModule", () => {
         expect(await vault.isMember(m)).to.equal(true)
     })
 
-    it("allows previously banned members to re-join after the ban period runs out", async () => {
+    it("allows previously banned beneficiaries to re-join after the ban period runs out", async () => {
         const m = others[2].address
         await expect(banModule.connect(joinPartAgent).banSeconds(m, "1000")).to.emit(banModule, "MemberBanned")
-        await expect(vault.connect(joinPartAgent).addMember(m)).to.be.revertedWith("error_memberBanned")
+        await expect(vault.connect(joinPartAgent).addMember(m)).to.be.revertedWith("error_beneficiaryBanned")
         await provider.send("evm_increaseTime", [100])
         await provider.send("evm_mine", [])
-        await expect(vault.connect(joinPartAgent).addMember(m)).to.be.revertedWith("error_memberBanned")
+        await expect(vault.connect(joinPartAgent).addMember(m)).to.be.revertedWith("error_beneficiaryBanned")
         await provider.send("evm_increaseTime", [1000])
         await provider.send("evm_mine", [])
         await expect(vault.connect(joinPartAgent).addMember(m)).to.emit(vault, "MemberJoined")
     })
 
-    it("can ban many members in one batch", async () => {
+    it("can ban many beneficiaries in one batch", async () => {
         const m0 = others[3].address
         const m1 = others[4].address
         await expect(banModule.connect(joinPartAgent).banMembers([m0, m1])).to.emit(banModule, "MemberBanned")
@@ -118,7 +118,7 @@ describe("BanModule", () => {
         expect(await vault.isMember(m1)).to.equal(false)
     })
 
-    it("can ban many members in one batch for specific amounts of seconds", async () => {
+    it("can ban many beneficiaries in one batch for specific amounts of seconds", async () => {
         const m0 = others[5].address
         const m1 = others[6].address
         const m2 = others[7].address

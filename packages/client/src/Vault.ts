@@ -31,13 +31,13 @@ export interface VaultDeployOptions {
 }
 
 export interface JoinResponse {
-    member: string
+    beneficiary: string
     vault: EthereumAddress
     chain: string
 }
 
 export interface VaultStats {
-    // new stat added in the member weights feature, will be equal to activeMemberCount for Vaults that don't modify weights
+    // new stat added in the beneficiary weights feature, will be equal to activeMemberCount for Vaults that don't modify weights
     totalWeight: number,
 
     // new stats added in 2.2 (fees)
@@ -64,7 +64,7 @@ export interface MemberStats {
     status: MemberStatus
     totalEarnings: BigNumber
     withdrawableEarnings: BigNumber
-    weight?: number // will be 1 if not modified, and missing for non-active members
+    weight?: number // will be 1 if not modified, and missing for non-active beneficiaries
 }
 
 export interface SecretsResponse {
@@ -145,8 +145,8 @@ export class Vault {
     }
 
     /**
-    * Inactive members are members that got removed by a joinPartAgent or left the vault
-    * @returns all members of the vault
+    * Inactive beneficiaries are beneficiaries that got removed by a joinPartAgent or left the vault
+    * @returns all beneficiaries of the vault
     */
     async getActiveMemberCount(): Promise<number> {
         return this.contract.activeMemberCount().then((x) => x.toNumber())
@@ -175,8 +175,8 @@ export class Vault {
 
     /**
     * The default stipend is 0 and can be set by setNewMemberStipend()
-    * The stipend exists to enable members not to pay a transaction fee when withdrawing earnings
-    * @returns the amount of ETH/native tokens every member gets when they first join
+    * The stipend exists to enable beneficiaries not to pay a transaction fee when withdrawing earnings
+    * @returns the amount of ETH/native tokens every beneficiary gets when they first join
     */
     async getNewMemberStipend(): Promise<BigNumber> {
         return this.contract.newMemberEth()
@@ -219,10 +219,10 @@ export class Vault {
             totalRevenue, totalEarnings, totalAdminFees, totalProtocolFees, totalWithdrawn,
             activeMemberCount, inactiveMemberCount, lifetimeMemberEarnings, joinPartAgentCount
         ]] = defaultAbiCoder.decode(['uint256[9]'], getStatsResponse) as BigNumber[][]
-        // add totalWeight if it's available, otherwise just assume equal weight 1.0/member
+        // add totalWeight if it's available, otherwise just assume equal weight 1.0/beneficiary
         const totalWeightBN = await this.contract.totalWeight().catch(() => parseEther(activeMemberCount.toString()))
         return {
-            totalRevenue, // == earnings (that go to members) + adminFees + protocolFees
+            totalRevenue, // == earnings (that go to beneficiaries) + adminFees + protocolFees
             totalAdminFees,
             totalProtocolFees,
             totalEarnings,
@@ -237,23 +237,23 @@ export class Vault {
 
     /**
     * Open {@link https://docs.rail.dev/main-concepts/data-union/data-union-observation our docs} to get more information about the stats
-    * @returns stats of a single vault member
+    * @returns stats of a single vault beneficiary
     */
-    async getMemberStats(memberAddress: EthereumAddress): Promise<MemberStats> {
-        const address = getAddress(memberAddress)
+    async getMemberStats(beneficiaryAddress: EthereumAddress): Promise<MemberStats> {
+        const address = getAddress(beneficiaryAddress)
         const [
             [statusCode, , , withdrawnEarnings], // ignore lmeAtJoin and earningsBeforeLastJoin, their meanings changed with the weights feature
             totalEarnings,
             weightBN,
         ] = await Promise.all([
-            this.contract.memberData(address),
+            this.contract.beneficiaryData(address),
             this.contract.getEarnings(address).catch(() => parseEther("0")),
-            this.contract.memberWeight(address).catch(() => parseEther("1")),
+            this.contract.beneficiaryWeight(address).catch(() => parseEther("1")),
         ])
         const withdrawable = totalEarnings.gt(withdrawnEarnings) ? totalEarnings.sub(withdrawnEarnings) : parseEther("0")
         const statusStrings = [MemberStatus.NONE, MemberStatus.ACTIVE, MemberStatus.INACTIVE]
 
-        // add weight to the MemberStats if member is active (non-zero weight), set to 1 if the contract doesn't have the weights feature
+        // add weight to the MemberStats if beneficiary is active (non-zero weight), set to 1 if the contract doesn't have the weights feature
         const maybeWeight: { weight?: number } = statusCode === 1 ? { weight: Number(formatEther(weightBN)) } : {}
         return {
             status: statusStrings[statusCode],
@@ -264,12 +264,12 @@ export class Vault {
     }
 
     /**
-     * @returns the amount of tokens the member would get from a successful withdraw
+     * @returns the amount of tokens the beneficiary would get from a successful withdraw
      */
-    async getWithdrawableEarnings(memberAddress: EthereumAddress): Promise<BigNumber> {
-        return this.contract.getWithdrawableEarnings(getAddress(memberAddress)).catch((error) => {
+    async getWithdrawableEarnings(beneficiaryAddress: EthereumAddress): Promise<BigNumber> {
+        return this.contract.getWithdrawableEarnings(getAddress(beneficiaryAddress)).catch((error) => {
             if (error.message.includes('error_notMember')) {
-                throw new Error(`${memberAddress} is not a member of this Vault`)
+                throw new Error(`${beneficiaryAddress} is not a beneficiary of this Vault`)
             }
             throw error
         })
@@ -289,19 +289,19 @@ export class Vault {
     }
 
     /**
-     * A member can voluntarily leave the vault by calling `part()`.
+     * A beneficiary can voluntarily leave the vault by calling `part()`.
      * @returns transaction receipt
      */
     async part(): Promise<ContractReceipt> {
-        const memberAddress = await this.client.getAddress()
-        return this.removeMembers([memberAddress])
+        const beneficiaryAddress = await this.client.getAddress()
+        return this.removeMembers([beneficiaryAddress])
     }
 
-    async isMember(memberAddress?: EthereumAddress): Promise<boolean> {
-        const address = memberAddress ? getAddress(memberAddress) : await this.client.getAddress()
-        const memberData = await this.contract.memberData(address)
-        const [ state ] = memberData
-        const ACTIVE = 1 // memberData[0] is enum ActiveStatus {None, Active, Inactive}
+    async isMember(beneficiaryAddress?: EthereumAddress): Promise<boolean> {
+        const address = beneficiaryAddress ? getAddress(beneficiaryAddress) : await this.client.getAddress()
+        const beneficiaryData = await this.contract.beneficiaryData(address)
+        const [ state ] = beneficiaryData
+        const ACTIVE = 1 // beneficiaryData[0] is enum ActiveStatus {None, Active, Inactive}
         return (state === ACTIVE)
     }
 
@@ -310,9 +310,9 @@ export class Vault {
      * @returns the transaction receipt
      */
     async withdrawAll(): Promise<ContractReceipt> {
-        const memberAddress = await this.client.getAddress()
+        const beneficiaryAddress = await this.client.getAddress()
         const ethersOverrides = await this.client.getOverrides()
-        const tx = await this.contract.withdrawAll(memberAddress, false, ethersOverrides)
+        const tx = await this.contract.withdrawAll(beneficiaryAddress, false, ethersOverrides)
         return tx.wait()
     }
 
@@ -336,7 +336,7 @@ export class Vault {
      *   invalidated by the first withdraw after signing it. In other words, any signature can be invalidated
      *   by making a "normal" withdraw e.g. `await streamrClient.withdrawAll()`
      * Admin can execute the withdraw using this signature: ```
-     *   await adminRailClient.withdrawAllToSigned(memberAddress, recipientAddress, signature)
+     *   await adminRailClient.withdrawAllToSigned(beneficiaryAddress, recipientAddress, signature)
      * ```
      * @param recipientAddress - the address authorized to receive the tokens
      * @returns signature authorizing withdrawing all earnings to given recipientAddress
@@ -360,8 +360,8 @@ export class Vault {
         const to = getAddress(recipientAddress) // throws if bad address
         const signer = this.client.wallet
         const address = await signer.getAddress()
-        const [activeStatus, , , withdrawn] = await this.contract.memberData(address)
-        if (activeStatus == 0) { throw new Error(`${address} is not a member in Vault (${this.contract.address})`) }
+        const [activeStatus, , , withdrawn] = await this.contract.beneficiaryData(address)
+        if (activeStatus == 0) { throw new Error(`${address} is not a beneficiary in Vault (${this.contract.address})`) }
         return this._createWithdrawSignature(amountTokenWei, to, withdrawn, signer)
     }
 
@@ -381,16 +381,16 @@ export class Vault {
     }
 
     /**
-     * Transfer an amount of earnings to another member in Vault
-     * @param memberAddress - the other member who gets their tokens out of the Vault
-     * @param amountTokenWei - the amount that want to add to the member
+     * Transfer an amount of earnings to another beneficiary in Vault
+     * @param beneficiaryAddress - the other beneficiary who gets their tokens out of the Vault
+     * @param amountTokenWei - the amount that want to add to the beneficiary
      * @returns receipt once transfer transaction is confirmed
      */
     async transferWithinContract(
-        memberAddress: EthereumAddress,
+        beneficiaryAddress: EthereumAddress,
         amountTokenWei: BigNumber | number | string
     ): Promise<ContractReceipt> {
-        const address = getAddress(memberAddress) // throws if bad address
+        const address = getAddress(beneficiaryAddress) // throws if bad address
         const ethersOverrides = await this.client.getOverrides()
         const tx = await this.contract.transferWithinContract(address, amountTokenWei, ethersOverrides)
         return waitOrRetryTx(tx)
@@ -401,7 +401,7 @@ export class Vault {
     ///////////////////////////////
 
     /**
-     * Admin: Add a new vault secret to enable members to join without specific approval using this secret.
+     * Admin: Add a new vault secret to enable beneficiaries to join without specific approval using this secret.
      * For vaults that use the default-join-server
      */
     async createSecret(name: string = 'Untitled Secret'): Promise<SecretsResponse> {
@@ -419,85 +419,85 @@ export class Vault {
     }
 
     /**
-     * JoinPartAgents: Add given Ethereum addresses as vault members
-     * @param memberAddressList - list of Ethereum addresses to add as members
+     * JoinPartAgents: Add given Ethereum addresses as vault beneficiaries
+     * @param beneficiaryAddressList - list of Ethereum addresses to add as beneficiaries
      */
-    async addMembers(memberAddressList: EthereumAddress[]): Promise<ContractReceipt> {
-        const members = memberAddressList.map(getAddress) // throws if there are bad addresses
+    async addMembers(beneficiaryAddressList: EthereumAddress[]): Promise<ContractReceipt> {
+        const beneficiaries = beneficiaryAddressList.map(getAddress) // throws if there are bad addresses
         const ethersOverrides = await this.client.getOverrides()
-        const tx = await this.contract.addMembers(members, ethersOverrides)
+        const tx = await this.contract.addMembers(beneficiaries, ethersOverrides)
         // TODO ETH-93: wrap promise for better error reporting in case tx fails (parse reason, throw proper error)
         return waitOrRetryTx(tx)
     }
 
     /**
-     * JoinPartAgents: Add given Ethereum addresses as vault members with weights (instead of the default 1.0)
-     * @param memberAddressList - list of Ethereum addresses to add as members, may NOT be already in the Vault
-     * @param weights - list of (non-zero) weights to assign to the new members (will be converted same way as ETH or tokens, multiplied by 10^18)
+     * JoinPartAgents: Add given Ethereum addresses as vault beneficiaries with weights (instead of the default 1.0)
+     * @param beneficiaryAddressList - list of Ethereum addresses to add as beneficiaries, may NOT be already in the Vault
+     * @param weights - list of (non-zero) weights to assign to the new beneficiaries (will be converted same way as ETH or tokens, multiplied by 10^18)
      */
-    async addMembersWithWeights(memberAddressList: EthereumAddress[], weights: number[]): Promise<ContractReceipt> {
-        const members = memberAddressList.map(getAddress) // throws if there are bad addresses
-        const ethersOverrides = await this.client.getOverrides()
-        const weightsBN = weights.map((w) => parseEther(w.toString()))
-        const tx = await this.contract.addMembersWithWeights(members, weightsBN, ethersOverrides)
-        // TODO ETH-93: wrap promise for better error reporting in case tx fails (parse reason, throw proper error)
-        return waitOrRetryTx(tx)
-    }
-
-    /**
-     * JoinPartAgents: Set weights for given Ethereum addresses as vault members; zero weight means "remove member"
-     * This function can be used to simultaneously add and remove members in one transaction:
-     *  - add a member by setting their weight to non-zero
-     *  - remove a member by setting their weight to zero
-     *  - change a member's weight by setting it to a non-zero value
-     * @param memberAddressList - list of Ethereum addresses
-     * @param weights - list of weights to assign to the members (will be converted same way as ETH or tokens, multiplied by 10^18)
-     */
-    async setMemberWeights(memberAddressList: EthereumAddress[], weights: number[]): Promise<ContractReceipt> {
-        const members = memberAddressList.map(getAddress) // throws if there are bad addresses
+    async addMembersWithWeights(beneficiaryAddressList: EthereumAddress[], weights: number[]): Promise<ContractReceipt> {
+        const beneficiaries = beneficiaryAddressList.map(getAddress) // throws if there are bad addresses
         const ethersOverrides = await this.client.getOverrides()
         const weightsBN = weights.map((w) => parseEther(w.toString()))
-        const tx = await this.contract.setMemberWeights(members, weightsBN, ethersOverrides)
+        const tx = await this.contract.addMembersWithWeights(beneficiaries, weightsBN, ethersOverrides)
         // TODO ETH-93: wrap promise for better error reporting in case tx fails (parse reason, throw proper error)
         return waitOrRetryTx(tx)
     }
 
     /**
-     * JoinPartAgents: Remove given members from vault
+     * JoinPartAgents: Set weights for given Ethereum addresses as vault beneficiaries; zero weight means "remove beneficiary"
+     * This function can be used to simultaneously add and remove beneficiaries in one transaction:
+     *  - add a beneficiary by setting their weight to non-zero
+     *  - remove a beneficiary by setting their weight to zero
+     *  - change a beneficiary's weight by setting it to a non-zero value
+     * @param beneficiaryAddressList - list of Ethereum addresses
+     * @param weights - list of weights to assign to the beneficiaries (will be converted same way as ETH or tokens, multiplied by 10^18)
      */
-    async removeMembers(memberAddressList: EthereumAddress[]): Promise<ContractReceipt> {
-        const members = memberAddressList.map(getAddress) // throws if there are bad addresses
+    async setMemberWeights(beneficiaryAddressList: EthereumAddress[], weights: number[]): Promise<ContractReceipt> {
+        const beneficiaries = beneficiaryAddressList.map(getAddress) // throws if there are bad addresses
         const ethersOverrides = await this.client.getOverrides()
-        const tx = await this.contract.partMembers(members, ethersOverrides)
+        const weightsBN = weights.map((w) => parseEther(w.toString()))
+        const tx = await this.contract.setMemberWeights(beneficiaries, weightsBN, ethersOverrides)
         // TODO ETH-93: wrap promise for better error reporting in case tx fails (parse reason, throw proper error)
         return waitOrRetryTx(tx)
     }
 
     /**
-     * Admin: withdraw earnings (pay gas) on behalf of a member
-     * @param memberAddress - the other member who gets their tokens out of the Vault
+     * JoinPartAgents: Remove given beneficiaries from vault
+     */
+    async removeMembers(beneficiaryAddressList: EthereumAddress[]): Promise<ContractReceipt> {
+        const beneficiaries = beneficiaryAddressList.map(getAddress) // throws if there are bad addresses
+        const ethersOverrides = await this.client.getOverrides()
+        const tx = await this.contract.partMembers(beneficiaries, ethersOverrides)
+        // TODO ETH-93: wrap promise for better error reporting in case tx fails (parse reason, throw proper error)
+        return waitOrRetryTx(tx)
+    }
+
+    /**
+     * Admin: withdraw earnings (pay gas) on behalf of a beneficiary
+     * @param beneficiaryAddress - the other beneficiary who gets their tokens out of the Vault
      */
     async withdrawAllToMember(
-        memberAddress: EthereumAddress,
+        beneficiaryAddress: EthereumAddress,
     ): Promise<ContractReceipt> {
-        const address = getAddress(memberAddress) // throws if bad address
+        const address = getAddress(beneficiaryAddress) // throws if bad address
         const ethersOverrides = await this.client.getOverrides()
         const tx = await this.contract.withdrawAll(address, false, ethersOverrides)
         return waitOrRetryTx(tx)
     }
 
     /**
-     * Admin: Withdraw a member's earnings to another address, signed by the member
-     * @param memberAddress - the member whose earnings are sent out
+     * Admin: Withdraw a beneficiary's earnings to another address, signed by the beneficiary
+     * @param beneficiaryAddress - the beneficiary whose earnings are sent out
      * @param recipientAddress - the address to receive the tokens in mainnet
-     * @param signature - from member, produced using signWithdrawAllTo
+     * @param signature - from beneficiary, produced using signWithdrawAllTo
      */
     async withdrawAllToSigned(
-        memberAddress: EthereumAddress,
+        beneficiaryAddress: EthereumAddress,
         recipientAddress: EthereumAddress,
         signature: string,
     ): Promise<ContractReceipt> {
-        const from = getAddress(memberAddress) // throws if bad address
+        const from = getAddress(beneficiaryAddress) // throws if bad address
         const to = getAddress(recipientAddress)
         const ethersOverrides = await this.client.getOverrides()
         const tx = await this.contract.withdrawAllToSigned(from, to, false, signature, ethersOverrides)
@@ -505,18 +505,18 @@ export class Vault {
     }
 
     /**
-     * Admin: Withdraw a specific amount member's earnings to another address, signed by the member
-     * @param memberAddress - the member whose earnings are sent out
+     * Admin: Withdraw a specific amount beneficiary's earnings to another address, signed by the beneficiary
+     * @param beneficiaryAddress - the beneficiary whose earnings are sent out
      * @param recipientAddress - the address to receive the tokens in mainnet
-     * @param signature - from member, produced using signWithdrawAllTo
+     * @param signature - from beneficiary, produced using signWithdrawAllTo
      */
     async withdrawAmountToSigned(
-        memberAddress: EthereumAddress,
+        beneficiaryAddress: EthereumAddress,
         recipientAddress: EthereumAddress,
         amountTokenWei: BigNumber | number | string,
         signature: string,
     ): Promise<ContractReceipt> {
-        const from = getAddress(memberAddress) // throws if bad address
+        const from = getAddress(beneficiaryAddress) // throws if bad address
         const to = getAddress(recipientAddress)
         const amount = BigNumber.from(amountTokenWei)
         const ethersOverrides = await this.client.getOverrides()
@@ -572,21 +572,21 @@ export class Vault {
 
     /**
      * Transfer amount to specific other beneficiary in Vault
-     * @param memberAddress - target member who gets the tokens added to their earnings in the the Vault
-     * @param amountTokenWei - the amount that want to add to the member
+     * @param beneficiaryAddress - target beneficiary who gets the tokens added to their earnings in the the Vault
+     * @param amountTokenWei - the amount that want to add to the beneficiary
      * @returns receipt once transfer transaction is confirmed
      */
     async transferToMemberInContract(
-        memberAddress: EthereumAddress,
+        beneficiaryAddress: EthereumAddress,
         amountTokenWei: BigNumber | number | string
     ): Promise<ContractReceipt> {
-        const address = getAddress(memberAddress) // throws if bad address
+        const address = getAddress(beneficiaryAddress) // throws if bad address
         const amount = BigNumber.from(amountTokenWei)
         const myAddress = await this.client.getAddress()
         const ethersOverrides = await this.client.getOverrides()
 
-        // TODO: implement as ERC677 transfer with data=memberAddress, after this feature is deployed
-        // const tx = await this.client.token.transferAndCall(this.contract.address, amount, memberAddress, ethersOverrides)
+        // TODO: implement as ERC677 transfer with data=beneficiaryAddress, after this feature is deployed
+        // const tx = await this.client.token.transferAndCall(this.contract.address, amount, beneficiaryAddress, ethersOverrides)
         // TODO: all things below can then be removed until the "return" line, also delete the 2-step test
 
         // check first that we have enough allowance to do the transferFrom within the transferToMemberInContract

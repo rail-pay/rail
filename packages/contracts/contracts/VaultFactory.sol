@@ -52,7 +52,7 @@ contract VaultFactory is Initializable, OwnableUpgradeable, UUPSUpgradeable {
         vault = _vault;
     }
 
-    // contract is payable so it can receive and hold the new member eth stipends
+    // contract is payable so it can receive and hold the new beneficiary eth stipends
     receive() external payable {}
 
     function setNewVaultInitialEth(uint initialEthWei) public onlyOwner {

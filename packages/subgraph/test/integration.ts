@@ -54,53 +54,53 @@ describe('Subgraph', () => {
         await until(async () => (await query(`{ vault(id: "${vaultAddress.toLowerCase()}") { id } }`)).vault != null, 10000, 2000)
     })
 
-    it('detects member joins and parts (MemberJoined, MemberParted)', async function () {
+    it('detects beneficiary joins and parts (MemberJoined, MemberParted)', async function () {
         // this.timeout(100000)
         const vaultId = vault.getAddress().toLowerCase()
         async function getMemberCount(): Promise<number> {
-            const res = await query(`{ vault(id: "${vaultId}") { memberCount } }`)
-            return res.vault.memberCount
+            const res = await query(`{ vault(id: "${vaultId}") { beneficiaryCount } }`)
+            return res.vault.beneficiaryCount
         }
 
         async function getMemberBuckets(): Promise<Array<any>> {
             const res = await query(`{
                 vaultBuckets(where: {vault: "${vaultId}"}) {
-                    memberCountAtStart
-                    memberCountChange
+                    beneficiaryCountAtStart
+                    beneficiaryCountChange
                     type
                   }
             }`)
             return res.vaultBuckets
         }
 
-        const memberCountAtStart = await getMemberCount()
+        const beneficiaryCountAtStart = await getMemberCount()
         expect(await getMemberBuckets()).to.deep.equal([])
 
         await vault.addMembers(['0x1234567890123456789012345678901234567890', '0x1234567890123456789012345678901234567891'])
-        await until(async () => await getMemberCount() == memberCountAtStart + 2, 10000, 2000)
+        await until(async () => await getMemberCount() == beneficiaryCountAtStart + 2, 10000, 2000)
         expect(await getMemberBuckets()).to.deep.equal([
-            { type: 'DAY', memberCountAtStart, memberCountChange: 2 },
-            { type: 'HOUR', memberCountAtStart, memberCountChange: 2 },
+            { type: 'DAY', beneficiaryCountAtStart, beneficiaryCountChange: 2 },
+            { type: 'HOUR', beneficiaryCountAtStart, beneficiaryCountChange: 2 },
         ])
 
         await vault.removeMembers(['0x1234567890123456789012345678901234567890'])
-        await until(async () => await getMemberCount() == memberCountAtStart + 1, 10000, 2000)
+        await until(async () => await getMemberCount() == beneficiaryCountAtStart + 1, 10000, 2000)
         expect(await getMemberBuckets()).to.deep.equal([
-            { type: 'DAY', memberCountAtStart, memberCountChange: 1 },
-            { type: 'HOUR', memberCountAtStart, memberCountChange: 1 },
+            { type: 'DAY', beneficiaryCountAtStart, beneficiaryCountChange: 1 },
+            { type: 'HOUR', beneficiaryCountAtStart, beneficiaryCountChange: 1 },
         ])
 
         await vault.removeMembers(['0x1234567890123456789012345678901234567891'])
-        await until(async () => await getMemberCount() == memberCountAtStart, 10000, 2000)
+        await until(async () => await getMemberCount() == beneficiaryCountAtStart, 10000, 2000)
         expect(await getMemberBuckets()).to.deep.equal([
-            { type: 'DAY', memberCountAtStart, memberCountChange: 0 },
-            { type: 'HOUR', memberCountAtStart, memberCountChange: 0 },
+            { type: 'DAY', beneficiaryCountAtStart, beneficiaryCountChange: 0 },
+            { type: 'HOUR', beneficiaryCountAtStart, beneficiaryCountChange: 0 },
         ])
     })
 
     it('detects RevenueReceived events', async function () {
         // this.timeout(100000)
-        // revenue won't show up unless there are members in the Vault
+        // revenue won't show up unless there are beneficiaries in the Vault
         await vault.addMembers(['0x1234567890123456789012345678901234567892', '0x1234567890123456789012345678901234567893'])
 
         const vaultId = vault.getAddress().toLowerCase()
@@ -146,7 +146,7 @@ describe('Subgraph', () => {
         expect(revenueBefore).to.equal('0.0')
         expect(revenueAfter1).to.equal('100.0')
         expect(revenueAfter2).to.equal('300.0')
-        // revenueBucketsBefore exists because of the member joins in the previous test, in independent tests it would be []
+        // revenueBucketsBefore exists because of the beneficiary joins in the previous test, in independent tests it would be []
         expect(revenueBucketsBefore).to.deep.equal([{
             revenueAtStartWei: '0',
             revenueChangeWei: '0',

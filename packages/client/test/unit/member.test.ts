@@ -7,11 +7,11 @@ import { deployContracts, getWallets } from './setup'
 import type { DATAv2 } from '@streamr/data-v2'
 import type { Vault } from '../../src/Vault'
 
-describe('Vault member', () => {
+describe('Vault beneficiary', () => {
 
     let dao: Wallet
     let admin: Wallet
-    let member: Wallet
+    let beneficiary: Wallet
     let otherMember: Wallet
     let token: DATAv2
     let vault: Vault
@@ -20,7 +20,7 @@ describe('Vault member', () => {
         [
             dao,
             admin,
-            member,
+            beneficiary,
             otherMember,
         ] = getWallets()
         const {
@@ -32,7 +32,7 @@ describe('Vault member', () => {
         token = tokenContract
 
         const clientOptions = {
-            auth: { privateKey: member.privateKey },
+            auth: { privateKey: beneficiary.privateKey },
             tokenAddress: token.address,
             factoryAddress: vaultFactory.address,
             templateAddress: vaultTemplate.address,
@@ -41,7 +41,7 @@ describe('Vault member', () => {
 
         const adminClient = new RailClient({ ...clientOptions, auth: { privateKey: admin.privateKey } })
         adminVault = await adminClient.deployVault()
-        await adminVault.addMembers([member.address, otherMember.address])
+        await adminVault.addMembers([beneficiary.address, otherMember.address])
 
         const client = new RailClient(clientOptions)
         vault = await client.getVault(adminVault.getAddress())
@@ -53,28 +53,28 @@ describe('Vault member', () => {
     })
 
     it('can part from the vault', async () => {
-        const memberCountBefore = await vault.getActiveMemberCount()
+        const beneficiaryCountBefore = await vault.getActiveMemberCount()
         const isMemberBefore = await vault.isMember()
         await vault.part()
         const isMemberAfter = await vault.isMember()
-        const memberCountAfter = await vault.getActiveMemberCount()
+        const beneficiaryCountAfter = await vault.getActiveMemberCount()
 
         expect(isMemberBefore).toBe(true)
         expect(isMemberAfter).toBe(false)
-        expect(memberCountAfter).toEqual(memberCountBefore - 1)
+        expect(beneficiaryCountAfter).toEqual(beneficiaryCountBefore - 1)
     })
 
     it('can be added by admin', async () => {
         const userAddress = Wallet.createRandom().address
-        const memberCountBefore = await vault.getActiveMemberCount()
+        const beneficiaryCountBefore = await vault.getActiveMemberCount()
         const isMemberBefore = await vault.isMember(userAddress)
         await adminVault.addMembers([userAddress])
         const isMemberAfter = await vault.isMember(userAddress)
-        const memberCountAfter = await vault.getActiveMemberCount()
+        const beneficiaryCountAfter = await vault.getActiveMemberCount()
 
         expect(isMemberBefore).toBe(false)
         expect(isMemberAfter).toBe(true)
-        expect(memberCountAfter).toEqual(memberCountBefore + 1)
+        expect(beneficiaryCountAfter).toEqual(beneficiaryCountBefore + 1)
     })
 
     it('can be removed by admin', async () => {
@@ -86,26 +86,26 @@ describe('Vault member', () => {
     it('can be added with weights', async () => {
         const userAddress = Wallet.createRandom().address
         const user2Address = Wallet.createRandom().address
-        const memberCountBefore = await vault.getActiveMemberCount()
+        const beneficiaryCountBefore = await vault.getActiveMemberCount()
         const { totalWeight: totalWeightBefore } = await vault.getStats()
         const isMemberBefore = await vault.isMember(userAddress)
 
         await adminVault.addMembersWithWeights([userAddress], [2])
         const isMemberAfter1 = await vault.isMember(userAddress)
-        const memberCountAfter1 = await vault.getActiveMemberCount()
+        const beneficiaryCountAfter1 = await vault.getActiveMemberCount()
         const { totalWeight: totalWeightAfter1 } = await vault.getStats()
 
         await adminVault.setMemberWeights([userAddress, user2Address], [0, 3])
         const isMemberAfter2 = await vault.isMember(userAddress)
-        const memberCountAfter2 = await vault.getActiveMemberCount()
+        const beneficiaryCountAfter2 = await vault.getActiveMemberCount()
         const { totalWeight: totalWeightAfter2 } = await vault.getStats()
 
         expect(isMemberBefore).toBe(false)
         expect(isMemberAfter1).toBe(true)
         expect(isMemberAfter2).toBe(false)
-        expect(memberCountAfter1).toEqual(memberCountBefore + 1)
+        expect(beneficiaryCountAfter1).toEqual(beneficiaryCountBefore + 1)
         expect(totalWeightAfter1).toEqual(totalWeightBefore! + 2)
-        expect(memberCountAfter2).toEqual(memberCountBefore + 1)
+        expect(beneficiaryCountAfter2).toEqual(beneficiaryCountBefore + 1)
         expect(totalWeightAfter2).toEqual(totalWeightBefore! + 3)
     })
 

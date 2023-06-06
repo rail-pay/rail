@@ -18,11 +18,11 @@ describe('JoinServer', async () => {
 		joinRequestService = new app.JoinRequestService(
 			unitTestLogger,
 			new Map(), // clients
-			function(_member, _vault, _chain) {}, // onMemberJoin
+			function(_beneficiary, _vault, _chain) {}, // onMemberJoin
 		)
-		joinRequestService.create = sinon.spy((member, vault, chain) => {
+		joinRequestService.create = sinon.spy((beneficiary, vault, chain) => {
 			return {
-				member,
+				beneficiary,
 				vault,
 				chain,
 			}

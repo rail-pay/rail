@@ -12,11 +12,11 @@ describe('POST /join', async () => {
 		// JoinRequestService with mocked create()
 		const logger = unitTestLogger
 		const clients = new Map()
-		const onMemberJoin = function(_member, _vault, _chain) {}
+		const onMemberJoin = function(_beneficiary, _vault, _chain) {}
 		const joinRequestService = new app.JoinRequestService(logger, clients, onMemberJoin)
-		joinRequestService.create = sinon.spy((member, vault, chain) => {
+		joinRequestService.create = sinon.spy((beneficiary, vault, chain) => {
 			return {
-				member,
+				beneficiary,
 				vault,
 				chain,
 			}
@@ -66,7 +66,7 @@ describe('POST /join', async () => {
 
 			const joinRequest = JSON.parse(tc.body.request)
 			const expectedBody = {
-				member: tc.body.address,
+				beneficiary: tc.body.address,
 				vault: joinRequest.vault,
 			}
 			if (joinRequest.chain) {
@@ -78,7 +78,7 @@ describe('POST /join', async () => {
 
 	const testCases = [
 		{
-			name: 'client sends invalid member address',
+			name: 'client sends invalid beneficiary address',
 			body: {
 				address: '0x00000',
 				request: JSON.stringify({
@@ -86,7 +86,7 @@ describe('POST /join', async () => {
 					chain: 'polygon',
 				}),
 			},
-			expectedErrorMessage: `Invalid member address: '0x00000'`,
+			expectedErrorMessage: `Invalid beneficiary address: '0x00000'`,
 		},
 		{
 			name: 'client sends invalid vault address',

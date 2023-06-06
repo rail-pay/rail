@@ -14,7 +14,7 @@ class JoinRequestService {
 		this.onMemberJoin = onMemberJoin
 	}
 
-	async create(member, vault, chain) {
+	async create(beneficiary, vault, chain) {
 		const railClient = this.clients.get(chain)
 		let du
 		try {
@@ -23,24 +23,24 @@ class JoinRequestService {
 			throw new VaultRetrievalError(`Error while retrieving vault ${vault}: ${err.message}`)
 		}
 
-		if (await du.isMember(member)) {
-			throw new VaultJoinError(`Member ${member} is already a member of ${vault}!`)
+		if (await du.isMember(beneficiary)) {
+			throw new VaultJoinError(`Member ${beneficiary} is already a beneficiary of ${vault}!`)
 		}
 
 		try {
-			await du.addMembers([member])
+			await du.addMembers([beneficiary])
 		} catch (err) {
-			throw new VaultJoinError(`Error while adding member ${member} to vault ${vault}: ${err.message}`)
+			throw new VaultJoinError(`Error while adding beneficiary ${beneficiary} to vault ${vault}: ${err.message}`)
 		}
 
 		try {
-			await this.onMemberJoin(member, vault, chain)
+			await this.onMemberJoin(beneficiary, vault, chain)
 		} catch (err) {
-			throw new VaultJoinError(`Error while adding member ${member} to vault ${vault}: ${err.message}`)
+			throw new VaultJoinError(`Error while adding beneficiary ${beneficiary} to vault ${vault}: ${err.message}`)
 		}
 
 		return {
-			member,
+			beneficiary,
 			vault,
 			chain: chain,
 		}

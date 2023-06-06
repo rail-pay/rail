@@ -33,14 +33,14 @@ describe('StreamrAwareJoinHook', () => {
 	})
 
 	it('grants PUBLISH permissions to streams in the given Vault', async () => {
-		await onMemberJoin('member', 'vault', 'chain')
+		await onMemberJoin('beneficiary', 'vault', 'chain')
 		expect(streamrDB.getStreamsForVault.calledOnceWith('vault', 'chain')).to.be.true
 		expect(streamrClient.setPermissions.calledOnceWith([
 			{
 				streamId: 'streamId1',
 				assignments: [
 					{
-						user: 'member',
+						user: 'beneficiary',
 						permissions: [StreamrClient.StreamPermission.PUBLISH]
 					}
 				]
@@ -49,7 +49,7 @@ describe('StreamrAwareJoinHook', () => {
 				streamId: 'streamId2',
 				assignments: [
 					{
-						user: 'member',
+						user: 'beneficiary',
 						permissions: [StreamrClient.StreamPermission.PUBLISH]
 					}
 				]
@@ -65,13 +65,13 @@ describe('StreamrAwareJoinHook', () => {
 			}
 		})
 
-		await expect(onMemberJoin('member', 'vault', 'chain')).to.be.rejectedWith(Error)
+		await expect(onMemberJoin('beneficiary', 'vault', 'chain')).to.be.rejectedWith(Error)
 		expect(streamrClient.setPermissions.called).to.be.false
 	})
 
 	it('does nothing if no streams are associated with the vault', async () => {
 		streamrDB.getStreamsForVault = sinon.mock().resolves([])
-		await onMemberJoin('member', 'vault', 'chain')
+		await onMemberJoin('beneficiary', 'vault', 'chain')
 		expect(streamrClient.setPermissions.called).to.be.false
 	})
 

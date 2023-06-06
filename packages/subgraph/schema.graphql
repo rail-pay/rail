@@ -6,8 +6,8 @@
 
 type Vault @entity {
   id: ID! # this will be the Contract address as all-lowercase string
-  members: [Member!]! @derivedFrom(field: "vault")
-  memberCount: Int!
+  beneficiaries: [Member!]! @derivedFrom(field: "vault")
+  beneficiaryCount: Int!
   revenueWei: BigInt!
   creationDate: BigInt!
   totalWeight: BigDecimal!
@@ -21,7 +21,7 @@ enum MemberStatus {
 }
 
 type Member @entity {
-  id: ID! # this will be the string "0xduaddress-0xmemberaddress"
+  id: ID! # this will be the string "0xduaddress-0xbeneficiaryaddress"
   address: String! # We need this to be String to enable partial match search
   vault: Vault!
   status: MemberStatus!
@@ -40,8 +40,8 @@ type VaultBucket @entity {
   vault: Vault!
   startDate: BigInt!
   endDate: BigInt!
-  memberCountAtStart: Int!
-  memberCountChange: Int!
+  beneficiaryCountAtStart: Int!
+  beneficiaryCountChange: Int!
   revenueAtStartWei: BigInt!
   revenueChangeWei: BigInt!
   totalWeightAtStart: BigDecimal!

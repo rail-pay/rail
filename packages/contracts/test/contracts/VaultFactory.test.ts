@@ -31,7 +31,7 @@ describe("VaultFactory", (): void => {
     let protocolBeneficiary: Wallet
 
     let agents: EthereumAddress[]
-    let members: EthereumAddress[]
+    let beneficiaries: EthereumAddress[]
 
     let factory: VaultFactory
     let vaultTemplate: Vault
@@ -40,7 +40,7 @@ describe("VaultFactory", (): void => {
     before(async () => {
         [creator, a1, a2, a3, m1, m2, m3, o1, o2, protocolBeneficiary] = await getSigners() as unknown as Wallet[]
         agents = [a1, a2, a3].map(a => a.address)
-        members = [m1, m2, m3].map(m => m.address)
+        beneficiaries = [m1, m2, m3].map(m => m.address)
 
         testToken = await (await getContractFactory("TestToken", { signer: creator })).deploy("name", "symbol") as TestToken
         await testToken.deployed()
@@ -117,18 +117,18 @@ describe("VaultFactory", (): void => {
         const creatorBalanceChange = (await provider.getBalance(creator.address)).sub(creatorBalanceBefore)
         expect(creatorBalanceChange).not.equal(0)
 
-        // 1st added member should have been given newMemberEth
+        // 1st added beneficiary should have been given newMemberEth
         const balanceBefore1 = await provider.getBalance(m1.address)
-        await expect(newVault.connect(a1).addMembers(members)).to.emit(newVault.connect(a1), "MemberJoined")
+        await expect(newVault.connect(a1).addMembers(beneficiaries)).to.emit(newVault.connect(a1), "MemberJoined")
         const balanceChange1 = (await provider.getBalance(m1.address)).sub(balanceBefore1)
         expect(balanceChange1).to.equal(newMemberEth)
 
-        // change the setting from within Vault. check member Eth
+        // change the setting from within Vault. check beneficiary Eth
         const newMemberEth2 = parseEther("0.2")
         await expect(newVault.connect(o1).setNewMemberEth(newMemberEth2)).to.be.reverted
         await expect(newVault.connect(creator).setNewMemberEth(newMemberEth2)).to.emit(newVault.connect(creator), "NewMemberEthChanged")
 
-        // 2nd added member should have been given newMemberEth
+        // 2nd added beneficiary should have been given newMemberEth
         const balanceBefore2 = await provider.getBalance(o1.address)
         await expect(newVault.connect(a1).addMembers([o1.address, o2.address])).to.emit(newVault.connect(a1), "MemberJoined")
         const balanceChange2 = (await provider.getBalance(o1.address)).sub(balanceBefore2)

@@ -9,13 +9,13 @@ describe('Vault metadata', () => {
 
     let dao: Wallet
     let admin: Wallet
-    let member: Wallet
+    let beneficiary: Wallet
     let clientOptions: Partial<RailClientConfig>
     beforeAll(async () => {
         [
             dao,
             admin,
-            member,
+            beneficiary,
         ] = getWallets()
         const {
             token,
@@ -25,7 +25,7 @@ describe('Vault metadata', () => {
         } = await deployContracts(dao)
 
         clientOptions = {
-            auth: { privateKey: member.privateKey },
+            auth: { privateKey: beneficiary.privateKey },
             tokenAddress: token.address,
             factoryAddress: vaultFactory.address,
             templateAddress: vaultTemplate.address,
@@ -36,7 +36,7 @@ describe('Vault metadata', () => {
     async function deployVault() {
         const adminClient = new RailClient({ ...clientOptions, auth: { privateKey: admin.privateKey } })
         const adminVault = await adminClient.deployVault()
-        await adminVault.addMembers([member.address])
+        await adminVault.addMembers([beneficiary.address])
         const client = new RailClient(clientOptions)
         const vault = await client.getVault(adminVault.getAddress())
         return { adminVault, vault }

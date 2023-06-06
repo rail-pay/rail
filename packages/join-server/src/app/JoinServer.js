@@ -34,8 +34,8 @@ class JoinServer {
 		// Used to add custom routes to the HTTP server. The default function does nothing.
 		customRoutes = (/*expressApp*/) => {},
 
-		// Gets called after a member is successfully joined to the Vault smart contract. The default function does nothing.
-		onMemberJoin = async (/* member, vault, chain */) => {},
+		// Gets called after a beneficiary is successfully joined to the Vault smart contract. The default function does nothing.
+		onMemberJoin = async (/* beneficiary, vault, chain */) => {},
 
 		/**
 		 * These options are primarily intended for advanced use or passing in test mocks

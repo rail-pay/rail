@@ -14,7 +14,7 @@ export type RailClientConfig = {
 
     /**
      * Authentication: identity used by this RailClient instance.
-     * Can contain member privateKey or (window.)ethereum
+     * Can contain beneficiary privateKey or (window.)ethereum
      */
     auth: AuthConfig
 

@@ -21,28 +21,28 @@ export function handleOwnershipTransferred(event: OwnershipTransferred): void {
 
 export function handleMemberJoined(event: MemberJoined): void {
     let vaultAddress = event.address
-    let memberAddress = event.params.member
-    log.warning('handleMemberJoined: member={} vaultAddress={}', [memberAddress.toHexString(), vaultAddress.toHexString()])
+    let beneficiaryAddress = event.params.beneficiary
+    log.warning('handleMemberJoined: beneficiary={} vaultAddress={}', [beneficiaryAddress.toHexString(), vaultAddress.toHexString()])
 
-    let member = getMember(memberAddress, vaultAddress)
-    member.address = memberAddress.toHexString()
-    member.vault = vaultAddress.toHexString()
-    member.joinDate = event.block.timestamp
-    member.status = 'ACTIVE'
-    member.weight = BigDecimal.fromString('1')
-    member.save()
+    let beneficiary = getMember(beneficiaryAddress, vaultAddress)
+    beneficiary.address = beneficiaryAddress.toHexString()
+    beneficiary.vault = vaultAddress.toHexString()
+    beneficiary.joinDate = event.block.timestamp
+    beneficiary.status = 'ACTIVE'
+    beneficiary.weight = BigDecimal.fromString('1')
+    beneficiary.save()
 
     updateVault(vaultAddress, event.block.timestamp, 1)
 }
 
 export function handleMemberParted(event: MemberParted): void {
     let vaultAddress = event.address
-    let memberAddress = event.params.member
-    log.warning('handleMemberParted: member={} vaultAddress={}', [memberAddress.toHexString(), vaultAddress.toHexString()])
+    let beneficiaryAddress = event.params.beneficiary
+    log.warning('handleMemberParted: beneficiary={} vaultAddress={}', [beneficiaryAddress.toHexString(), vaultAddress.toHexString()])
 
-    let member = getMember(memberAddress, vaultAddress)
-    member.status = 'INACTIVE'
-    member.save()
+    let beneficiary = getMember(beneficiaryAddress, vaultAddress)
+    beneficiary.status = 'INACTIVE'
+    beneficiary.save()
 
     updateVault(vaultAddress, event.block.timestamp, -1)
 }
@@ -69,18 +69,18 @@ export function handleRevenueReceived(event: RevenueReceived): void {
 
 export function handleMemberWeightChanged(event: MemberWeightChanged): void {
     let vaultAddress = event.address
-    let memberAddress = event.params.member
+    let beneficiaryAddress = event.params.beneficiary
     let oldWeightWei = event.params.oldWeight
     let weightWei = event.params.newWeight
     let weight = weightWei.toBigDecimal().div(BigDecimal.fromString('1000000000000000000'))
     let weightChange = weightWei.minus(oldWeightWei).toBigDecimal().div(BigDecimal.fromString('1000000000000000000'))
-    log.warning('handleMemberWeightChanged: member={} vaultAddress={} weight={} (+ {})', [
-        memberAddress.toHexString(), vaultAddress.toHexString(), weight.toString(), weightChange.toString()
+    log.warning('handleMemberWeightChanged: beneficiary={} vaultAddress={} weight={} (+ {})', [
+        beneficiaryAddress.toHexString(), vaultAddress.toHexString(), weight.toString(), weightChange.toString()
     ])
 
-    let member = getMember(memberAddress, vaultAddress)
-    member.weight = weight
-    member.save()
+    let beneficiary = getMember(beneficiaryAddress, vaultAddress)
+    beneficiary.weight = weight
+    beneficiary.save()
 
     updateVault(vaultAddress, event.block.timestamp, 0, weightChange)
 }
@@ -88,7 +88,7 @@ export function handleMemberWeightChanged(event: MemberWeightChanged): void {
 function updateVault(
     vaultAddress: Address,
     timestamp: BigInt,
-    memberCountChange: i32,
+    beneficiaryCountChange: i32,
     totalWeightChange: BigDecimal = BigDecimal.zero(),
     revenueChangeWei: BigInt = BigInt.zero()
 ): void {
@@ -96,19 +96,19 @@ function updateVault(
 
     // buckets must be done first so that *AtStart values are correct for newly created buckets
     let hourBucket = getBucket('HOUR', timestamp, vaultAddress)
-    hourBucket.memberCountChange += memberCountChange
+    hourBucket.beneficiaryCountChange += beneficiaryCountChange
     hourBucket.revenueChangeWei += revenueChangeWei
     hourBucket.totalWeightChange += totalWeightChange
     hourBucket.save()
 
     let dayBucket = getBucket('DAY', timestamp, vaultAddress)
-    dayBucket.memberCountChange += memberCountChange
+    dayBucket.beneficiaryCountChange += beneficiaryCountChange
     dayBucket.revenueChangeWei += revenueChangeWei
     dayBucket.totalWeightChange += totalWeightChange
     dayBucket.save()
 
     let vault = getVault(vaultAddress)
-    vault.memberCount += memberCountChange
+    vault.beneficiaryCount += beneficiaryCountChange
     vault.revenueWei += revenueChangeWei
     vault.totalWeight += totalWeightChange
     vault.save()
@@ -130,13 +130,13 @@ function getVault(vaultAddress: Address): Vault {
     return vault
 }
 
-function getMember(memberAddress: Address, vaultAddress: Address): Member {
-    let memberId = memberAddress.toHexString() + '-' + vaultAddress.toHexString()
-    let member = Member.load(memberId)
-    if (member == null) {
-        member = new Member(memberId)
+function getMember(beneficiaryAddress: Address, vaultAddress: Address): Member {
+    let beneficiaryId = beneficiaryAddress.toHexString() + '-' + vaultAddress.toHexString()
+    let beneficiary = Member.load(beneficiaryId)
+    if (beneficiary == null) {
+        beneficiary = new Member(beneficiaryId)
     }
-    return member
+    return beneficiary
 }
 
 function getBucket(length: string, timestamp: BigInt, vaultAddress: Address): VaultBucket {
@@ -164,11 +164,11 @@ function getBucket(length: string, timestamp: BigInt, vaultAddress: Address): Va
         bucket.endDate = bucketStartDate.plus(bucketSeconds)
 
         let vault = getVault(vaultAddress)
-        bucket.memberCountAtStart = vault.memberCount
+        bucket.beneficiaryCountAtStart = vault.beneficiaryCount
         bucket.revenueAtStartWei = vault.revenueWei
         bucket.totalWeightAtStart = vault.totalWeight
 
-        bucket.memberCountChange = 0
+        bucket.beneficiaryCountChange = 0
         bucket.revenueChangeWei = BigInt.zero()
         bucket.totalWeightChange = BigDecimal.zero()
     }

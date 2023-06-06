@@ -7,9 +7,9 @@ import "../LeaveConditionCode.sol";
 
 interface IVault {
     function owner() external returns (address);
-    function removeMember(address member, LeaveConditionCode leaveCondition) external;
+    function removeMember(address beneficiary, LeaveConditionCode leaveCondition) external;
     function addMember(address newMember) external;
-    function isMember(address member) external view returns (bool);
+    function isMember(address beneficiary) external view returns (bool);
     function isJoinPartAgent(address agent) external view returns (bool) ;
 }
 

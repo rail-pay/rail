@@ -33,22 +33,22 @@ describe('Client on Polygon on default settings', () => {
     })
     const vaultAddress = "0x1165652fe95513a07d3c9688b5521961598ffe91" // created using the above test case
 
-    it.skip('Can add member', async () => {
+    it.skip('Can add beneficiary', async () => {
         const client = new RailClient({
             auth: { privateKey: wallet.privateKey }
         })
         const du = await client.getVault(vaultAddress)
-        const tr = await du.addMembers([memberAddress])
+        const tr = await du.addMembers([beneficiaryAddress])
         log("addMembers -> %o", tr.events?.map((e) => e.event))
     })
-    const memberAddress = "0xa2aE6C7a1C85a8f5Bb948a30C0AD2dB95e09057C" // added using the above test case
+    const beneficiaryAddress = "0xa2aE6C7a1C85a8f5Bb948a30C0AD2dB95e09057C" // added using the above test case
 
     it('Can send tokens', async () => {
         const client = new RailClient({
             auth: { privateKey: wallet.privateKey }
         })
         const du = await client.getVault(vaultAddress)
-        const tr = await du.transferToMemberInContract(memberAddress, parseEther("0.01"))
+        const tr = await du.transferToMemberInContract(beneficiaryAddress, parseEther("0.01"))
         log("transferToMemberInContract -> %o", tr.events?.map((e) => e.event))
     })
 

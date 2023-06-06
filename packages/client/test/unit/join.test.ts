@@ -22,7 +22,7 @@ import { deployContracts, getWallets } from './setup'
 describe('Vault joining using join-server', () => {
 
     let admin: Wallet
-    let member: Wallet
+    let beneficiary: Wallet
     let joinPartAgent: Wallet
     let vaultAddress: string
     let token: DATAv2
@@ -31,7 +31,7 @@ describe('Vault joining using join-server', () => {
     beforeAll(async () => {
         [
             admin,
-            member,
+            beneficiary,
             joinPartAgent,
         ] = getWallets()
         const {
@@ -44,7 +44,7 @@ describe('Vault joining using join-server', () => {
 
         clientOptions = {
             auth: {
-                privateKey: member.privateKey
+                privateKey: beneficiary.privateKey
             },
             joinServerUrl: "http://localhost:5678",
             chain: "testrpc",
@@ -69,7 +69,7 @@ describe('Vault joining using join-server', () => {
         server = new JoinServer({
             privateKey: joinPartAgent.privateKey,
             port: 5678,
-            customJoinRequestValidator: async (_memberAddress, request) => {
+            customJoinRequestValidator: async (_beneficiaryAddress, request) => {
                 if (request.extra) {
                     throw new Error("Denied!")
                 }
@@ -95,7 +95,7 @@ describe('Vault joining using join-server', () => {
         const response = await vault.join()
         await until(() => vault.isMember(), 30000, 1000)
         expect(response).toEqual({
-            member: member.address,
+            beneficiary: beneficiary.address,
             chain: "testrpc",
             vault: vault.getAddress(),
         })

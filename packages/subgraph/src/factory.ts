@@ -14,7 +14,7 @@ export function handleVaultCreated(event: VaultCreated): void {
 
 export function createVault(vaultAddress: Address, initialOwner: Address, creationDate: BigInt): void {
     let vault = new VaultDatabaseObject(vaultAddress.toHexString())
-    vault.memberCount = 0
+    vault.beneficiaryCount = 0
     vault.revenueWei = BigInt.zero()
     vault.creationDate = creationDate
     vault.owner = initialOwner.toHexString()

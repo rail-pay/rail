@@ -18,16 +18,16 @@ import "./IPurchaseListener.sol";
  * Do NOT expect to find anything interesting in this contract address' state/storage!
  **/
 contract Vault is Ownable, IERC677Receiver, IPurchaseListener {
-    // Used to describe both members and join part agents
+    // Used to describe both beneficiaries and join part agents
     enum ActiveStatus {NONE, ACTIVE, INACTIVE}
 
     // Members
-    event MemberJoined(address indexed member);
-    event MemberParted(address indexed member, LeaveConditionCode indexed leaveConditionCode);
+    event MemberJoined(address indexed beneficiary);
+    event MemberParted(address indexed beneficiary, LeaveConditionCode indexed leaveConditionCode);
     event JoinPartAgentAdded(address indexed agent);
     event JoinPartAgentRemoved(address indexed agent);
     event NewMemberEthSent(uint amountWei);
-    event MemberWeightChanged(address indexed member, uint oldWeight, uint newWeight);
+    event MemberWeightChanged(address indexed beneficiary, uint oldWeight, uint newWeight);
 
     // Revenue handling: earnings = revenue - admin fee - du fee
     event RevenueReceived(uint256 amount);
@@ -36,7 +36,7 @@ contract Vault is Ownable, IERC677Receiver, IPurchaseListener {
     event NewWeightedEarnings(uint256 earningsPerUnitWeight, uint256 totalWeightWei, uint256 activeMemberCount);
 
     // Withdrawals
-    event EarningsWithdrawn(address indexed member, uint256 amount);
+    event EarningsWithdrawn(address indexed beneficiary, uint256 amount);
 
     // Modules and hooks
     event WithdrawModuleChanged(IWithdrawModule indexed withdrawModule);
@@ -57,7 +57,7 @@ contract Vault is Ownable, IERC677Receiver, IPurchaseListener {
     struct MemberInfo {
         ActiveStatus status;
         uint256 earningsBeforeLastJoin;
-        uint256 lmeAtJoin; // Lifetime Member Earnings (sum of earnings per _totalWeight_, scaled up by 1e18) at join, used to calculate member's own earnings
+        uint256 lmeAtJoin; // Lifetime Member Earnings (sum of earnings per _totalWeight_, scaled up by 1e18) at join, used to calculate beneficiary's own earnings
         uint256 withdrawnEarnings;
     }
 
@@ -88,9 +88,9 @@ contract Vault is Ownable, IERC677Receiver, IPurchaseListener {
     uint256 public joinPartAgentCount;
     uint256 public totalWeight; // default will be 1e18, or "1 ether"
 
-    mapping(address => MemberInfo) public memberData;
+    mapping(address => MemberInfo) public beneficiaryData;
     mapping(address => ActiveStatus) public joinPartAgents;
-    mapping(address => uint) public memberWeight;
+    mapping(address => uint) public beneficiaryWeight;
 
     function version() public pure returns (uint256) { return 400; } // Vault = 1, 2, 3
 
@@ -130,8 +130,8 @@ contract Vault is Ownable, IERC677Receiver, IPurchaseListener {
     function getStats() public view returns (uint256[9] memory) {
         uint256 cleanedInactiveMemberCount = inactiveMemberCount;
         address protocolBeneficiary = protocolFeeOracle.beneficiary();
-        if (memberData[owner].status == ActiveStatus.INACTIVE) { cleanedInactiveMemberCount -= 1; }
-        if (memberData[protocolBeneficiary].status == ActiveStatus.INACTIVE) { cleanedInactiveMemberCount -= 1; }
+        if (beneficiaryData[owner].status == ActiveStatus.INACTIVE) { cleanedInactiveMemberCount -= 1; }
+        if (beneficiaryData[protocolBeneficiary].status == ActiveStatus.INACTIVE) { cleanedInactiveMemberCount -= 1; }
         return [
             totalRevenue,
             totalEarnings,
@@ -221,7 +221,7 @@ contract Vault is Ownable, IERC677Receiver, IPurchaseListener {
      * ERC677 callback function, see https://github.com/ethereum/EIPs/issues/677
      * Receives the tokens arriving through bridge
      * Only the token contract is authorized to call this function
-     * @param data if given an address, then these tokens are allocated to that member's address; otherwise they are added as Vault revenue
+     * @param data if given an address, then these tokens are allocated to that beneficiary's address; otherwise they are added as Vault revenue
      */
     function onTokenTransfer(address, uint256 amount, bytes calldata data) override external {
         require(msg.sender == address(token), "error_onlyTokenContract");
@@ -260,27 +260,27 @@ contract Vault is Ownable, IERC677Receiver, IPurchaseListener {
     // EARNINGS VIEW FUNCTIONS
     //------------------------------------------------------------
 
-    function getEarnings(address member) public view returns (uint256) {
-        MemberInfo storage info = memberData[member];
+    function getEarnings(address beneficiary) public view returns (uint256) {
+        MemberInfo storage info = beneficiaryData[beneficiary];
         require(info.status != ActiveStatus.NONE, "error_notMember");
         if (info.status == ActiveStatus.ACTIVE) {
             // lifetimeMemberEarnings is scaled up by 1e18, remove that scaling in the end to get token amounts
-            uint newEarnings = (lifetimeMemberEarnings - info.lmeAtJoin) * memberWeight[member] / (1 ether);
+            uint newEarnings = (lifetimeMemberEarnings - info.lmeAtJoin) * beneficiaryWeight[beneficiary] / (1 ether);
             return info.earningsBeforeLastJoin + newEarnings;
         }
         return info.earningsBeforeLastJoin;
     }
 
-    function getWithdrawn(address member) public view returns (uint256) {
-        MemberInfo storage info = memberData[member];
+    function getWithdrawn(address beneficiary) public view returns (uint256) {
+        MemberInfo storage info = beneficiaryData[beneficiary];
         require(info.status != ActiveStatus.NONE, "error_notMember");
         return info.withdrawnEarnings;
     }
 
-    function getWithdrawableEarnings(address member) public view returns (uint256) {
-        uint maxWithdraw = getEarnings(member) - getWithdrawn(member);
+    function getWithdrawableEarnings(address beneficiary) public view returns (uint256) {
+        uint maxWithdraw = getEarnings(beneficiary) - getWithdrawn(beneficiary);
         if (address(withdrawModule) != address(0)) {
-            uint moduleLimit = withdrawModule.getWithdrawLimit(member, maxWithdraw);
+            uint moduleLimit = withdrawModule.getWithdrawLimit(beneficiary, maxWithdraw);
             if (moduleLimit < maxWithdraw) { maxWithdraw = moduleLimit; }
         }
         return maxWithdraw;
@@ -295,8 +295,8 @@ contract Vault is Ownable, IERC677Receiver, IPurchaseListener {
     // MEMBER MANAGEMENT / VIEW FUNCTIONS
     //------------------------------------------------------------
 
-    function isMember(address member) public view returns (bool) {
-        return memberData[member].status == ActiveStatus.ACTIVE;
+    function isMember(address beneficiary) public view returns (bool) {
+        return beneficiaryData[beneficiary].status == ActiveStatus.ACTIVE;
     }
 
     function isJoinPartAgent(address agent) public view returns (bool) {
@@ -333,7 +333,7 @@ contract Vault is Ownable, IERC677Receiver, IPurchaseListener {
     }
 
     function addMemberWithWeight(address payable newMember, uint initialWeight) public onlyJoinPartAgent {
-        MemberInfo storage info = memberData[newMember];
+        MemberInfo storage info = beneficiaryData[newMember];
         require(initialWeight > 0, "error_zeroWeight");
         require(!isMember(newMember), "error_alreadyMember");
         if (info.status == ActiveStatus.INACTIVE) {
@@ -345,13 +345,13 @@ contract Vault is Ownable, IERC677Receiver, IPurchaseListener {
         emit MemberJoined(newMember);
         _setMemberWeight(newMember, initialWeight); // also updates lmeAtJoin
 
-        // listeners get a chance to reject the new member by reverting
+        // listeners get a chance to reject the new beneficiary by reverting
         for (uint i = 0; i < joinListeners.length; i++) {
             address listener = joinListeners[i];
             IJoinListener(listener).onJoin(newMember); // may revert
         }
 
-        // give new members ETH. continue even if transfer fails
+        // give new beneficiaries ETH. continue even if transfer fails
         if (sendEth) {
             if (newMember.send(newMemberEth)) {
                 emit NewMemberEthSent(newMemberEth);
@@ -360,94 +360,94 @@ contract Vault is Ownable, IERC677Receiver, IPurchaseListener {
         refreshRevenue();
     }
 
-    function removeMember(address member, LeaveConditionCode leaveConditionCode) public {
-        require(msg.sender == member || joinPartAgents[msg.sender] == ActiveStatus.ACTIVE, "error_notPermitted");
-        require(isMember(member), "error_notActiveMember");
+    function removeMember(address beneficiary, LeaveConditionCode leaveConditionCode) public {
+        require(msg.sender == beneficiary || joinPartAgents[msg.sender] == ActiveStatus.ACTIVE, "error_notPermitted");
+        require(isMember(beneficiary), "error_notActiveMember");
 
-        _setMemberWeight(member, 0); // also updates earningsBeforeLastJoin
-        memberData[member].status = ActiveStatus.INACTIVE;
+        _setMemberWeight(beneficiary, 0); // also updates earningsBeforeLastJoin
+        beneficiaryData[beneficiary].status = ActiveStatus.INACTIVE;
         activeMemberCount -= 1;
         inactiveMemberCount += 1;
-        emit MemberParted(member, leaveConditionCode);
+        emit MemberParted(beneficiary, leaveConditionCode);
 
         // listeners do NOT get a chance to prevent parting by reverting
         for (uint i = 0; i < partListeners.length; i++) {
             address listener = partListeners[i];
-            try IPartListener(listener).onPart(member, leaveConditionCode) { } catch { }
+            try IPartListener(listener).onPart(beneficiary, leaveConditionCode) { } catch { }
         }
 
         refreshRevenue();
     }
 
     // access checked in removeMember
-    function partMember(address member) public {
-        removeMember(member, msg.sender == member ? LeaveConditionCode.SELF : LeaveConditionCode.AGENT);
+    function partMember(address beneficiary) public {
+        removeMember(beneficiary, msg.sender == beneficiary ? LeaveConditionCode.SELF : LeaveConditionCode.AGENT);
     }
 
     // access checked in addMember
-    function addMembers(address payable[] calldata members) external {
-        for (uint256 i = 0; i < members.length; i++) {
-            addMember(members[i]);
+    function addMembers(address payable[] calldata beneficiaries) external {
+        for (uint256 i = 0; i < beneficiaries.length; i++) {
+            addMember(beneficiaries[i]);
         }
     }
 
     // access checked in removeMember
-    function partMembers(address[] calldata members) external {
-        for (uint256 i = 0; i < members.length; i++) {
-            partMember(members[i]);
+    function partMembers(address[] calldata beneficiaries) external {
+        for (uint256 i = 0; i < beneficiaries.length; i++) {
+            partMember(beneficiaries[i]);
         }
     }
 
-    function addMembersWithWeights(address payable[] calldata members, uint[] calldata weights) external onlyJoinPartAgent {
-        require(members.length == weights.length, "error_lengthMismatch");
-        for (uint256 i = 0; i < members.length; i++) {
-            addMemberWithWeight(members[i], weights[i]);
+    function addMembersWithWeights(address payable[] calldata beneficiaries, uint[] calldata weights) external onlyJoinPartAgent {
+        require(beneficiaries.length == weights.length, "error_lengthMismatch");
+        for (uint256 i = 0; i < beneficiaries.length; i++) {
+            addMemberWithWeight(beneficiaries[i], weights[i]);
         }
     }
 
     /**
-     * @param member address to set
+     * @param beneficiary address to set
      * @param newWeight will be used when allocating future incoming revenues
      */
-    function setMemberWeight(address member, uint newWeight) public onlyJoinPartAgent {
-        require(isMember(member), "error_notMember");
+    function setMemberWeight(address beneficiary, uint newWeight) public onlyJoinPartAgent {
+        require(isMember(beneficiary), "error_notMember");
         require(newWeight > 0, "error_zeroWeight");
         refreshRevenue();
-        _setMemberWeight(member, newWeight);
+        _setMemberWeight(beneficiary, newWeight);
     }
 
     /**
-     * @dev When member weight is set, the lmeAtJoin/earningsBeforeLastJoin reference points must be reset
-     * @dev It will seem as if the member was parted then joined with a new weight
+     * @dev When beneficiary weight is set, the lmeAtJoin/earningsBeforeLastJoin reference points must be reset
+     * @dev It will seem as if the beneficiary was parted then joined with a new weight
      **/
-    function _setMemberWeight(address member, uint newWeight) internal {
-        MemberInfo storage info = memberData[member];
-        info.earningsBeforeLastJoin = getEarnings(member);
+    function _setMemberWeight(address beneficiary, uint newWeight) internal {
+        MemberInfo storage info = beneficiaryData[beneficiary];
+        info.earningsBeforeLastJoin = getEarnings(beneficiary);
         info.lmeAtJoin = lifetimeMemberEarnings;
 
-        uint oldWeight = memberWeight[member];
-        memberWeight[member] = newWeight;
+        uint oldWeight = beneficiaryWeight[beneficiary];
+        beneficiaryWeight[beneficiary] = newWeight;
         totalWeight = (totalWeight + newWeight) - oldWeight;
-        emit MemberWeightChanged(member, oldWeight, newWeight);
+        emit MemberWeightChanged(beneficiary, oldWeight, newWeight);
     }
 
     /**
-     * Add/remove members and set their weights in a single transaction
-     * Setting weight to zero removes the member
-     * Setting a non-member's weight to non-zero adds the member
+     * Add/remove beneficiaries and set their weights in a single transaction
+     * Setting weight to zero removes the beneficiary
+     * Setting a non-beneficiary's weight to non-zero adds the beneficiary
      */
-    function setMemberWeights(address[] calldata members, uint[] calldata newWeights) external onlyJoinPartAgent {
-        require(members.length == newWeights.length, "error_lengthMismatch");
-        for (uint i = 0; i < members.length; i++) {
-            address member = members[i];
+    function setMemberWeights(address[] calldata beneficiaries, uint[] calldata newWeights) external onlyJoinPartAgent {
+        require(beneficiaries.length == newWeights.length, "error_lengthMismatch");
+        for (uint i = 0; i < beneficiaries.length; i++) {
+            address beneficiary = beneficiaries[i];
             uint weight = newWeights[i];
-            bool alreadyMember = isMember(member);
+            bool alreadyMember = isMember(beneficiary);
             if (alreadyMember && weight == 0) {
-                partMember(member);
+                partMember(beneficiary);
             } else if (!alreadyMember && weight > 0) {
-                addMemberWithWeight(payable(member), weight);
+                addMemberWithWeight(payable(beneficiary), weight);
             } else if (alreadyMember && weight > 0) {
-                setMemberWeight(members[i], weight);
+                setMemberWeight(beneficiaries[i], weight);
             }
         }
     }
@@ -461,7 +461,7 @@ contract Vault is Ownable, IERC677Receiver, IPurchaseListener {
      */
     function transferToMemberInContract(address recipient, uint amount) public {
         // this is done first, so that in case token implementation calls the onTokenTransfer in its transferFrom (which by ERC677 it should NOT),
-        //   transferred tokens will still not count as earnings (distributed to all) but a simple earnings increase to this particular member
+        //   transferred tokens will still not count as earnings (distributed to all) but a simple earnings increase to this particular beneficiary
         _increaseBalance(recipient, amount);
         totalRevenue += amount;
         emit TransferToAddressInContract(msg.sender, recipient, amount);
@@ -482,8 +482,8 @@ contract Vault is Ownable, IERC677Receiver, IPurchaseListener {
      * @param amount how much withdrawable earnings is transferred
      */
     function transferWithinContract(address recipient, uint amount) public {
-        require(getWithdrawableEarnings(msg.sender) >= amount, "error_insufficientBalance");    // reverts with "error_notMember" msg.sender not member
-        MemberInfo storage info = memberData[msg.sender];
+        require(getWithdrawableEarnings(msg.sender) >= amount, "error_insufficientBalance");    // reverts with "error_notMember" msg.sender not beneficiary
+        MemberInfo storage info = beneficiaryData[msg.sender];
         info.withdrawnEarnings = info.withdrawnEarnings + amount;
         _increaseBalance(recipient, amount);
         emit TransferWithinContract(msg.sender, recipient, amount);
@@ -491,10 +491,10 @@ contract Vault is Ownable, IERC677Receiver, IPurchaseListener {
     }
 
     /**
-     * Hack to add to single member's balance without affecting lmeAtJoin
+     * Hack to add to single beneficiary's balance without affecting lmeAtJoin
      */
-    function _increaseBalance(address member, uint amount) internal {
-        MemberInfo storage info = memberData[member];
+    function _increaseBalance(address beneficiary, uint amount) internal {
+        MemberInfo storage info = beneficiaryData[beneficiary];
         info.earningsBeforeLastJoin = info.earningsBeforeLastJoin + amount;
 
         // allow seeing and withdrawing earnings
@@ -511,13 +511,13 @@ contract Vault is Ownable, IERC677Receiver, IPurchaseListener {
     /**
      * @param sendToMainnet Deprecated
      */
-    function withdrawMembers(address[] calldata members, bool sendToMainnet)
+    function withdrawMembers(address[] calldata beneficiaries, bool sendToMainnet)
         external
         returns (uint256)
     {
         uint256 withdrawn = 0;
-        for (uint256 i = 0; i < members.length; i++) {
-            withdrawn = withdrawn + (withdrawAll(members[i], sendToMainnet));
+        for (uint256 i = 0; i < beneficiaries.length; i++) {
+            withdrawn = withdrawn + (withdrawAll(beneficiaries[i], sendToMainnet));
         }
         return withdrawn;
     }
@@ -525,23 +525,23 @@ contract Vault is Ownable, IERC677Receiver, IPurchaseListener {
     /**
      * @param sendToMainnet Deprecated
      */
-    function withdrawAll(address member, bool sendToMainnet)
+    function withdrawAll(address beneficiary, bool sendToMainnet)
         public
         returns (uint256)
     {
         refreshRevenue();
-        return withdraw(member, getWithdrawableEarnings(member), sendToMainnet);
+        return withdraw(beneficiary, getWithdrawableEarnings(beneficiary), sendToMainnet);
     }
 
     /**
      * @param sendToMainnet Deprecated
      */
-    function withdraw(address member, uint amount, bool sendToMainnet)
+    function withdraw(address beneficiary, uint amount, bool sendToMainnet)
         public
         returns (uint256)
     {
-        require(msg.sender == member || msg.sender == owner, "error_notPermitted");
-        return _withdraw(member, member, amount, sendToMainnet);
+        require(msg.sender == beneficiary || msg.sender == owner, "error_notPermitted");
+        return _withdraw(beneficiary, beneficiary, amount, sendToMainnet);
     }
 
     /**
@@ -566,7 +566,7 @@ contract Vault is Ownable, IERC677Receiver, IPurchaseListener {
     }
 
     /**
-     * Check signature from a member authorizing withdrawing its earnings to another account.
+     * Check signature from a beneficiary authorizing withdrawing its earnings to another account.
      * Throws if the signature is badly formatted or doesn't match the given signer and amount.
      * Signature has parts the act as replay protection:
      * 1) `address(this)`: signature can't be used for other contracts;
@@ -577,7 +577,7 @@ contract Vault is Ownable, IERC677Receiver, IPurchaseListener {
      * @param recipient of the tokens
      * @param amount how much is authorized for withdraw, or zero for unlimited (withdrawAll)
      * @param signature byte array from `web3.eth.accounts.sign`
-     * @return isValid true iff signer of the authorization (member whose earnings are going to be withdrawn) matches the signature
+     * @return isValid true iff signer of the authorization (beneficiary whose earnings are going to be withdrawn) matches the signature
      */
     function signatureIsValid(
         address signer,
@@ -602,7 +602,7 @@ contract Vault is Ownable, IERC677Receiver, IPurchaseListener {
         }
         require(v == 27 || v == 28, "error_badSignatureVersion");
 
-        // When changing the message, remember to double-check that message length is correct!
+        // When changing the message, rebeneficiary to double-check that message length is correct!
         bytes32 messageHash = keccak256(abi.encodePacked(
             "\x19Ethereum Signed Message:\n104", recipient, amount, address(this), getWithdrawn(signer)));
         address calculatedSigner = ecrecover(messageHash, v, r, s);
@@ -612,14 +612,14 @@ contract Vault is Ownable, IERC677Receiver, IPurchaseListener {
 
     /**
      * Do an "unlimited donate withdraw" on behalf of someone else, to an address they've specified.
-     * Sponsored withdraw is paid by admin, but target account could be whatever the member specifies.
+     * Sponsored withdraw is paid by admin, but target account could be whatever the beneficiary specifies.
      * The signature gives a "blank cheque" for admin to withdraw all tokens to `recipient` in the future,
      *   and it's valid until next withdraw (and so can be nullified by withdrawing any amount).
      * A new signature needs to be obtained for each subsequent future withdraw.
      * @param fromSigner whose earnings are being withdrawn
      * @param to the address the tokens will be sent to (instead of `msg.sender`)
      * @param sendToMainnet Deprecated
-     * @param signature from the member, see `signatureIsValid` how signature generated for unlimited amount
+     * @param signature from the beneficiary, see `signatureIsValid` how signature generated for unlimited amount
      */
     function withdrawAllToSigned(
         address fromSigner,
@@ -637,13 +637,13 @@ contract Vault is Ownable, IERC677Receiver, IPurchaseListener {
 
     /**
      * Do a "donate withdraw" on behalf of someone else, to an address they've specified.
-     * Sponsored withdraw is paid by admin, but target account could be whatever the member specifies.
+     * Sponsored withdraw is paid by admin, but target account could be whatever the beneficiary specifies.
      * The signature is valid only for given amount of tokens that may be different from maximum withdrawable tokens.
      * @param fromSigner whose earnings are being withdrawn
      * @param to the address the tokens will be sent to (instead of `msg.sender`)
      * @param amount of tokens to withdraw
      * @param sendToMainnet Deprecated
-     * @param signature from the member, see `signatureIsValid` how signature generated for unlimited amount
+     * @param signature from the beneficiary, see `signatureIsValid` how signature generated for unlimited amount
      */
     function withdrawToSigned(
         address fromSigner,
@@ -670,7 +670,7 @@ contract Vault is Ownable, IERC677Receiver, IPurchaseListener {
         if (amount == 0) { return 0; }
         refreshRevenue();
         require(amount <= getWithdrawableEarnings(from), "error_insufficientBalance");
-        MemberInfo storage info = memberData[from];
+        MemberInfo storage info = beneficiaryData[from];
         info.withdrawnEarnings += amount;
         totalWithdrawn += amount;
 
@@ -696,7 +696,7 @@ contract Vault is Ownable, IERC677Receiver, IPurchaseListener {
         // transferAndCall also enables transfers over another token bridge
         //   in this case to=another bridge's tokenMediator, and from=recipient on the other chain
         // this follows the tokenMediator API: data will contain the recipient address, which is the same as sender but on the other chain
-        // in case transferAndCall recipient is not a tokenMediator, the data can be ignored (it contains the Vault member's address)
+        // in case transferAndCall recipient is not a tokenMediator, the data can be ignored (it contains the Vault beneficiary's address)
         require(token.transferAndCall(to, amount, abi.encodePacked(from)), "error_transfer");
     }
 

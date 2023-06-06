@@ -194,8 +194,8 @@ export class RailClient {
         //   just giving a read-only vault contract here, then .connect(wallet) in withdraw functions
         const contract = this.getTemplate(contractAddress, this.wallet)
 
-        // memberData throws an error <=> not a Vault contract (probably...)
-        const looksLikeVault = await contract.memberData("0x0000000000000000000000000000000000000000").then(() => true).catch(() => false)
+        // beneficiaryData throws an error <=> not a Vault contract (probably...)
+        const looksLikeVault = await contract.beneficiaryData("0x0000000000000000000000000000000000000000").then(() => true).catch(() => false)
         if (!looksLikeVault) {
             throw new Error(`${contractAddress} is not a Vault!`)
         }

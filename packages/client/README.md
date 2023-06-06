@@ -46,9 +46,9 @@ const vault = await rail.getVault('0x12345...')
 
 Executing the admin functions generate transactions and as such require having enough of the native token to pay the gas on the chain you deployed on. To get some native token, you can reach out on the [Vault Discord](https://discord.gg/AY7kDBEtkr). We can send you some to get started. Transactions usually cost a fraction of a cent in Polygon, and Gnosis has historically been especially cheap.
 
-Adding members using admin functions is not at feature parity with the member function `join`. The newly added member will not automatically be granted publish permissions to the streams inside the Vault. This will need to be done manually using the StreamrClient, see `StreamrClient.grantPermissions()`. Similarly, after removing a member using the admin function `removeMembers`, the publish permissions will need to be removed in a secondary step using `StreamrClient.revokePermissions()`. This is because the member function `join` relies on Vault DAO hosted infrastructure, while the admin functions are completely self-sufficient (in fact, the Vault DAO hosted server uses these very admin functions :).
+Adding beneficiaries using admin functions is not at feature parity with the beneficiary function `join`. The newly added beneficiary will not automatically be granted publish permissions to the streams inside the Vault. This will need to be done manually using the StreamrClient, see `StreamrClient.grantPermissions()`. Similarly, after removing a beneficiary using the admin function `removeMembers`, the publish permissions will need to be removed in a secondary step using `StreamrClient.revokePermissions()`. This is because the beneficiary function `join` relies on Vault DAO hosted infrastructure, while the admin functions are completely self-sufficient (in fact, the Vault DAO hosted server uses these very admin functions :).
 
-Adding members (joinPart agent only, [read here more about the roles](https://docs.rail.dev/main-concepts/roles-and-responsibilities/joinpart-agents)):
+Adding beneficiaries (joinPart agent only, [read here more about the roles](https://docs.rail.dev/main-concepts/roles-and-responsibilities/joinpart-agents)):
 ```js
 const receipt = await vault.addMembers([
     '0x11111...',
@@ -56,7 +56,7 @@ const receipt = await vault.addMembers([
     '0x33333...',
 ])
 ```
-Removing members (joinPart agent only (usually the admin is also a joinPart agent) read more [here](https://docs.rail.dev/main-concepts/roles-and-responsibilities/joinpart-agents)):
+Removing beneficiaries (joinPart agent only (usually the admin is also a joinPart agent) read more [here](https://docs.rail.dev/main-concepts/roles-and-responsibilities/joinpart-agents)):
 ```js
 const receipt = await vault.removeMembers([
     '0x11111...',
@@ -64,7 +64,7 @@ const receipt = await vault.removeMembers([
     '0x33333...',
 ])
 ```
-New Vaults have the "member weights" feature, it can be used to give some members different share of revenues. The weights are relative to each other, so if you have e.g. 3 members with weights `1.5, 1.5, 3`, then the first two members will get 25% each, and the third member will get 50% of the future revenues. The weights can be set when adding members:
+New Vaults have the "beneficiary weights" feature, it can be used to give some beneficiaries different share of revenues. The weights are relative to each other, so if you have e.g. 3 beneficiaries with weights `1.5, 1.5, 3`, then the first two beneficiaries will get 25% each, and the third beneficiary will get 50% of the future revenues. The weights can be set when adding beneficiaries:
 ```js
 const receipt = await vault.addMembersWithWeights([
     ['0x11111...', 1.5],
@@ -72,12 +72,12 @@ const receipt = await vault.addMembersWithWeights([
     ['0x33333...', 3],
 ])
 ```
-The weights can be changed later with the `setMemberWeights` function, which additionally allows adding and removing members in the same transaction:
+The weights can be changed later with the `setMemberWeights` function, which additionally allows adding and removing beneficiaries in the same transaction:
 ```js
 const receipt = await vault.setMemberWeights([
     ['0x11111...', 3], // change the weight
-    ['0x22222...', 0], // remove member
-    ['0x44444...', 3], // add new member
+    ['0x22222...', 0], // remove beneficiary
+    ['0x44444...', 3], // add new beneficiary
 ])
 ```
 The users can part with the vault themselves
@@ -90,29 +90,29 @@ Checking if an address belongs to the Vault:
 const isMember = await vault.isMember('0x12345...')
 ```
 
-Send all withdrawable earnings to the member's address:
+Send all withdrawable earnings to the beneficiary's address:
 ```js
 const receipt = await vault.withdrawAllToMember('0x12345...')
 ```
 
-Send all withdrawable earnings to the address signed off by the member:
+Send all withdrawable earnings to the address signed off by the beneficiary:
 ```js
 const recipientAddress = '0x22222...'
 
 const signature = await vault.signWithdrawAllTo(recipientAddress)
 const receipt = await vault.withdrawAllToSigned(
-    '0x11111...', // member address
+    '0x11111...', // beneficiary address
     recipientAddress,
     signature
 )
 ```
 
-Send only some of the withdrawable earnings to the address signed off by the member
+Send only some of the withdrawable earnings to the address signed off by the beneficiary
 ```js
 const oneEth = "1000000000000000000" // amounts in wei
 const signature = await vault.signWithdrawAmountTo(recipientAddress, oneEth)
 const receipt = await vault.withdrawAmountToSigned(
-    '0x12345...', // member address
+    '0x12345...', // beneficiary address
     recipientAddress,
     oneEth,
     signature
@@ -134,7 +134,7 @@ const receipt = await vault.setMetadata(
 const metadata = await vault.getMetadata();
 ```
 
-If the Vault is set up to use the [default join server](https://github.com/rail-protocol/rail/tree/main/packages/default-join-server) then members can join the Vault by giving a correct secret.
+If the Vault is set up to use the [default join server](https://github.com/rail-protocol/rail/tree/main/packages/default-join-server) then beneficiaries can join the Vault by giving a correct secret.
 
 Admin can add secrets that allow anyone to join, as well as revoke those secrets, using the following functions:
 ```js
@@ -154,7 +154,7 @@ The `vault.createSecret()` response will look like the following:
 }
 ```
 
-The member can then join using that same response object, or simply an object with the correct field "secret":
+The beneficiary can then join using that same response object, or simply an object with the correct field "secret":
 ```js
 await vault.join(secretResponse)
 await vault.join({ secret: "0fc6b4d6-6558-4c04-b42e-49a8ae5b5ebf" })
@@ -167,11 +167,11 @@ Get Vault's statistics:
 ```js
 const stats = await vault.getStats()
 ```
-Get a member's stats:
+Get a beneficiary's stats:
 ```js
-const memberStats = await vault.getMemberStats('0x12345...')
+const beneficiaryStats = await vault.getMemberStats('0x12345...')
 ```
-Get the withdrawable DATA tokens in the Vault for a member:
+Get the withdrawable DATA tokens in the Vault for a beneficiary:
 ```js
 // Returns a BigNumber
 const balance = await vault.getWithdrawableEarnings('0x12345...')
@@ -199,7 +199,7 @@ const version = await vault.getVersion()
 const deploymentOptions = {
     adminAddress: "0x123...", // If omitted, defaults to the deployer. Will be the admin of the newly created vault
     adminFee: 0.3, // Share of revenue allocated to the adminAddress. Must be between 0...1
-    joinPartAgents: ["0x123..."], // Addresses that can join and part members. If omitted, set by default to include the admin as well as the default join server hosted by Rail Protocol
+    joinPartAgents: ["0x123..."], // Addresses that can join and part beneficiaries. If omitted, set by default to include the admin as well as the default join server hosted by Rail Protocol
     metadata: { // optional
         "information": "related to your vault",
         "canBe": ["", "anything"]
@@ -211,7 +211,7 @@ const vault = await rail.deployVault({
 })
 ```
 
-The [Default Join Server](https://github.com/vaults/default-join-server) hosted by the Rail Protocol is added as a `joinPartAgent` by default so that joining with secret works using the member function `join`. If you plan to run your own join server, include its address in the `joinPartAgents`:
+The [Default Join Server](https://github.com/vaults/default-join-server) hosted by the Rail Protocol is added as a `joinPartAgent` by default so that joining with secret works using the beneficiary function `join`. If you plan to run your own join server, include its address in the `joinPartAgents`:
 ```js
 const vault = await rail.deployVault({
     joinPartAgents: [adminAddress, myJoinServerAddress],

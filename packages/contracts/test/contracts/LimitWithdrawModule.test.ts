@@ -18,7 +18,7 @@ const {
 
 describe("LimitWithdrawModule", () => {
     let creator: Wallet
-    let member0: Wallet
+    let beneficiary0: Wallet
     let dao: Wallet
     let others: Wallet[]
 
@@ -29,7 +29,7 @@ describe("LimitWithdrawModule", () => {
     let limitWithdrawModuleArgs: [string, number, number, BigNumber, BigNumber]
 
     before(async () => {
-        [creator, member0, dao, ...others] = await getSigners() as unknown as Wallet[]
+        [creator, beneficiary0, dao, ...others] = await getSigners() as unknown as Wallet[]
 
         testToken = await (await getContractFactory("TestToken", { signer: creator })).deploy("name", "symbol") as TestToken
         await testToken.deployed()
@@ -84,19 +84,19 @@ describe("LimitWithdrawModule", () => {
         log("LimitWithdrawModule %s set up successfully", limitWithdrawModule.address)
 
         await vault.addJoinPartAgent(creator.address)
-        await vault.addMember(member0.address)
+        await vault.addMember(beneficiary0.address)
         await provider.send("evm_increaseTime", [+await limitWithdrawModule.requiredMemberAgeSeconds()])
         await provider.send("evm_mine", [])
-        log("Member %s was added to vault and is now 'old' enough to withdraw", member0.address)
+        log("Member %s was added to vault and is now 'old' enough to withdraw", beneficiary0.address)
     })
 
-    it("only lets members withdraw after they've been in the Vault long enough", async () => {
+    it("only lets beneficiaries withdraw after they've been in the Vault long enough", async () => {
         const newMembers = others.slice(0, 2).map(w => w.address)
         await expect(vault.addMembers(newMembers)).to.emit(vault, "MemberJoined")
         await expect(testToken.transferAndCall(vault.address, parseEther("10"), "0x")).to.emit(vault, "RevenueReceived")
 
-        await expect(vault.withdrawAll(newMembers[0], false)).to.be.revertedWith("error_memberTooNew")
-        await expect(vault.connect(others[1]).withdrawAllTo(others[2].address, false)).to.be.revertedWith("error_memberTooNew")
+        await expect(vault.withdrawAll(newMembers[0], false)).to.be.revertedWith("error_beneficiaryTooNew")
+        await expect(vault.connect(others[1]).withdrawAllTo(others[2].address, false)).to.be.revertedWith("error_beneficiaryTooNew")
 
         await provider.send("evm_increaseTime", [+await limitWithdrawModule.requiredMemberAgeSeconds()])
         await provider.send("evm_mine", [])
@@ -110,40 +110,40 @@ describe("LimitWithdrawModule", () => {
     it("only lets vault contract call the methods", async () => {
         await expect(limitWithdrawModule.onJoin(others[0].address)).to.be.revertedWith("error_onlyVaultContract")
         await expect(limitWithdrawModule.onPart(others[0].address, "0")).to.be.revertedWith("error_onlyVaultContract")
-        await expect(limitWithdrawModule.onWithdraw(member0.address, others[0].address, testToken.address, "0")).to.be.revertedWith("error_onlyVaultContract")
+        await expect(limitWithdrawModule.onWithdraw(beneficiary0.address, others[0].address, testToken.address, "0")).to.be.revertedWith("error_onlyVaultContract")
     })
 
     it("only lets admin reset the module", async () => {
-        await expect(limitWithdrawModule.connect(member0).setParameters(...limitWithdrawModuleArgs)).to.be.revertedWith("error_onlyOwner")
+        await expect(limitWithdrawModule.connect(beneficiary0).setParameters(...limitWithdrawModuleArgs)).to.be.revertedWith("error_onlyOwner")
         await expect(limitWithdrawModule.setParameters(...limitWithdrawModuleArgs)).to.emit(limitWithdrawModule, "ModuleReset")
     })
 
     it("only accepts withdraws > minimumWithdrawTokenWei", async () => {
         await expect(testToken.transferAndCall(vault.address, parseEther("10"), "0x")).to.emit(vault, "RevenueReceived")
-        await expect(vault.withdraw(member0.address, parseEther("0.1"), false)).to.be.revertedWith("error_withdrawAmountBelowMinimum")
-        await expect(vault.connect(member0).withdraw(member0.address, parseEther("0.1"), false)).to.be.revertedWith("error_withdrawAmountBelowMinimum")
+        await expect(vault.withdraw(beneficiary0.address, parseEther("0.1"), false)).to.be.revertedWith("error_withdrawAmountBelowMinimum")
+        await expect(vault.connect(beneficiary0).withdraw(beneficiary0.address, parseEther("0.1"), false)).to.be.revertedWith("error_withdrawAmountBelowMinimum")
     })
 
     it("limits the amount of withdraws within withdrawLimitPeriodSeconds", async () => {
         await expect(testToken.transferAndCall(vault.address, parseEther("1000"), "0x")).to.emit(vault, "RevenueReceived")
-        await expect(vault.withdraw(member0.address, parseEther("200"), false)).to.be.revertedWith("error_withdrawLimit")
+        await expect(vault.withdraw(beneficiary0.address, parseEther("200"), false)).to.be.revertedWith("error_withdrawLimit")
 
-        await expect(vault.withdraw(member0.address, parseEther("50"), false)).to.emit(vault, "EarningsWithdrawn")
-        await expect(vault.connect(member0).withdrawTo(others[2].address, parseEther("50"), false)).to.emit(vault, "EarningsWithdrawn")
-        await expect(vault.withdraw(member0.address, parseEther("1"), false)).to.be.revertedWith("error_withdrawLimit")
+        await expect(vault.withdraw(beneficiary0.address, parseEther("50"), false)).to.emit(vault, "EarningsWithdrawn")
+        await expect(vault.connect(beneficiary0).withdrawTo(others[2].address, parseEther("50"), false)).to.emit(vault, "EarningsWithdrawn")
+        await expect(vault.withdraw(beneficiary0.address, parseEther("1"), false)).to.be.revertedWith("error_withdrawLimit")
 
         // can not yet withdraw again
         await provider.send("evm_increaseTime", [60])
         await provider.send("evm_mine", [])
-        await expect(vault.withdraw(member0.address, parseEther("1"), false)).to.be.revertedWith("error_withdrawLimit")
+        await expect(vault.withdraw(beneficiary0.address, parseEther("1"), false)).to.be.revertedWith("error_withdrawLimit")
 
         // can withdraw again after withdrawLimitPeriodSeconds
         await provider.send("evm_increaseTime", [+await limitWithdrawModule.withdrawLimitPeriodSeconds()])
         await provider.send("evm_mine", [])
-        await expect(vault.withdraw(member0.address, parseEther("100"), false)).to.emit(vault, "EarningsWithdrawn")
+        await expect(vault.withdraw(beneficiary0.address, parseEther("100"), false)).to.emit(vault, "EarningsWithdrawn")
     })
 
-    it("denies withdraw from those members withdraw who have been banned", async () => {
+    it("denies withdraw from those beneficiaries withdraw who have been banned", async () => {
         await vault.addMember(others[3].address)
         await expect(testToken.transferAndCall(vault.address, parseEther("10"), "0x")).to.emit(vault, "RevenueReceived")
         await provider.send("evm_increaseTime", [+await limitWithdrawModule.requiredMemberAgeSeconds()])
@@ -157,7 +157,7 @@ describe("LimitWithdrawModule", () => {
         expect(+balanceIncrease).to.eq(0)
     })
 
-    it("lets those members withdraw who have left (without getting banned)", async () => {
+    it("lets those beneficiaries withdraw who have left (without getting banned)", async () => {
         await vault.addMember(others[4].address)
         await expect(testToken.transferAndCall(vault.address, parseEther("10"), "0x")).to.emit(vault, "RevenueReceived")
         await provider.send("evm_increaseTime", [+await limitWithdrawModule.requiredMemberAgeSeconds()])
@@ -167,13 +167,13 @@ describe("LimitWithdrawModule", () => {
         await expect(vault.withdrawAll(others[4].address, false)).to.emit(vault, "EarningsWithdrawn")
     })
 
-    it("lets those members withdraw who have been restored after getting banned", async () => {
+    it("lets those beneficiaries withdraw who have been restored after getting banned", async () => {
         await vault.addMember(others[5].address)
         await expect(testToken.transferAndCall(vault.address, parseEther("10"), "0x")).to.emit(vault, "RevenueReceived")
 
         await expect(vault.removeMember(others[5].address, "2")).to.emit(vault, "MemberParted")
 
-        // "restoring" means removing the ban and re-adding the member. See what BanModule does.
+        // "restoring" means removing the ban and re-adding the beneficiary. See what BanModule does.
         await vault.addMember(others[5].address)
         await provider.send("evm_increaseTime", [+await limitWithdrawModule.requiredMemberAgeSeconds()])
         await provider.send("evm_mine", [])

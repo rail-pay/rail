@@ -13,7 +13,7 @@ describe('Vault withdrawX functions', () => {
 
     let dao: Wallet
     let admin: Wallet
-    let member: Wallet
+    let beneficiary: Wallet
     let otherMember: Wallet
     let token: DATAv2
     let vault: Vault
@@ -24,7 +24,7 @@ describe('Vault withdrawX functions', () => {
         [
             dao,
             admin,
-            member,
+            beneficiary,
             otherMember,
             outsider
         ] = getWallets()
@@ -37,7 +37,7 @@ describe('Vault withdrawX functions', () => {
         token = tokenContract
 
         clientOptions = {
-            auth: { privateKey: member.privateKey },
+            auth: { privateKey: beneficiary.privateKey },
             tokenAddress: token.address,
             factoryAddress: vaultFactory.address,
             templateAddress: vaultTemplate.address,
@@ -47,7 +47,7 @@ describe('Vault withdrawX functions', () => {
         // deploy a Vault with admin fee 9% + Vault fee 1% = total 10% fees
         const adminClient = new RailClient({ ...clientOptions, auth: { privateKey: admin.privateKey } })
         const adminVault = await adminClient.deployVault({ adminFee: 0.09 })
-        await adminVault.addMembers([member.address, otherMember.address])
+        await adminVault.addMembers([beneficiary.address, otherMember.address])
 
         const client = new RailClient(clientOptions)
         vault = await client.getVault(adminVault.getAddress())
@@ -61,12 +61,12 @@ describe('Vault withdrawX functions', () => {
         await (await token.transferAndCall(vault.getAddress(), parseEther(tokens.toFixed(10)), '0x')).wait()
     }
 
-    describe('by the member itself', () => {
+    describe('by the beneficiary itself', () => {
         it('to itself', async () => {
-            const balanceBefore = await token.balanceOf(member.address)
+            const balanceBefore = await token.balanceOf(beneficiary.address)
             await fundVault(1)
             await vault.withdrawAll()
-            const balanceChange = (await token.balanceOf(member.address)).sub(balanceBefore)
+            const balanceChange = (await token.balanceOf(beneficiary.address)).sub(balanceBefore)
             expect(formatEther(balanceChange)).toEqual("0.45") // 0.5 - 10% fees
         })
 
@@ -79,36 +79,36 @@ describe('Vault withdrawX functions', () => {
         })
     })
 
-    describe('by someone else on the member\'s behalf', () => {
+    describe('by someone else on the beneficiary\'s behalf', () => {
 
         // TODO: for some reason this is actually blocked in the smart contract. Why? It used to be possible.
-        it.skip('to a member without signature', async () => {
-            const balanceBefore = await token.balanceOf(member.address)
+        it.skip('to a beneficiary without signature', async () => {
+            const balanceBefore = await token.balanceOf(beneficiary.address)
             await fundVault(1)
-            await otherVault.withdrawAllToMember(member.address)
-            const balanceChange = (await token.balanceOf(member.address)).sub(balanceBefore)
+            await otherVault.withdrawAllToMember(beneficiary.address)
+            const balanceChange = (await token.balanceOf(beneficiary.address)).sub(balanceBefore)
 
             expect(formatEther(balanceChange)).toEqual("0.45") // 0.5 - 10% fees
         })
 
-        it("to anyone with member's signature", async () => {
+        it("to anyone with beneficiary's signature", async () => {
             const signature = await vault.signWithdrawAllTo(outsider.address)
 
             const balanceBefore = await token.balanceOf(outsider.address)
             await fundVault(1)
-            await otherVault.withdrawAllToSigned(member.address, outsider.address, signature)
+            await otherVault.withdrawAllToSigned(beneficiary.address, outsider.address, signature)
             const balanceChange = (await token.balanceOf(outsider.address)).sub(balanceBefore)
 
             expect(formatEther(balanceChange)).toEqual("0.45") // 0.5 - 10% fees
         })
 
-        it("to anyone a specific amount with member's signature", async () => {
+        it("to anyone a specific amount with beneficiary's signature", async () => {
             const withdrawAmount = parseEther("0.1")
             const signature = await vault.signWithdrawAmountTo(outsider.address, withdrawAmount)
 
             const balanceBefore = await token.balanceOf(outsider.address)
             await fundVault(1)
-            await otherVault.withdrawAmountToSigned(member.address, outsider.address, withdrawAmount, signature)
+            await otherVault.withdrawAmountToSigned(beneficiary.address, outsider.address, withdrawAmount, signature)
             const balanceChange = (await token.balanceOf(outsider.address)).sub(balanceBefore)
 
             expect(formatEther(balanceChange)).toEqual(formatEther(withdrawAmount))

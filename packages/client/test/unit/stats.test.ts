@@ -11,7 +11,7 @@ describe('Vault stats getters', () => {
 
     let dao: Wallet
     let admin: Wallet
-    let member: Wallet
+    let beneficiary: Wallet
     let otherMember: Wallet
     let removedMember: Wallet
     let outsider: Wallet
@@ -22,7 +22,7 @@ describe('Vault stats getters', () => {
         [
             dao,
             admin,
-            member,
+            beneficiary,
             otherMember,
             removedMember,
             outsider,
@@ -36,7 +36,7 @@ describe('Vault stats getters', () => {
         token = tokenContract
 
         clientOptions = {
-            auth: { privateKey: member.privateKey },
+            auth: { privateKey: beneficiary.privateKey },
             tokenAddress: token.address,
             factoryAddress: vaultFactory.address,
             templateAddress: vaultTemplate.address,
@@ -44,7 +44,7 @@ describe('Vault stats getters', () => {
         }
         const adminClient = new RailClient({ ...clientOptions, auth: { privateKey: admin.privateKey } })
         const adminVault = await adminClient.deployVault()
-        await adminVault.addMembers([member.address, otherMember.address, removedMember.address])
+        await adminVault.addMembers([beneficiary.address, otherMember.address, removedMember.address])
         await adminVault.removeMembers([removedMember.address])
 
         const client = new RailClient(clientOptions)
@@ -61,30 +61,30 @@ describe('Vault stats getters', () => {
         expect(stats.lifetimeMemberEarnings.toString()).toEqual("0")
     })
 
-    it('member stats', async () => {
-        const memberStats = await vault.getMemberStats(member.address)
-        const memberStats2 = await vault.getMemberStats(otherMember.address)
-        const memberStats3 = await vault.getMemberStats(removedMember.address)
-        const memberStats4 = await vault.getMemberStats(outsider.address)
+    it('beneficiary stats', async () => {
+        const beneficiaryStats = await vault.getMemberStats(beneficiary.address)
+        const beneficiaryStats2 = await vault.getMemberStats(otherMember.address)
+        const beneficiaryStats3 = await vault.getMemberStats(removedMember.address)
+        const beneficiaryStats4 = await vault.getMemberStats(outsider.address)
 
-        expect(memberStats.status).toEqual('ACTIVE')
-        expect(memberStats.totalEarnings.toString()).toEqual("0")
-        expect(memberStats.withdrawableEarnings.toString()).toEqual("0")
+        expect(beneficiaryStats.status).toEqual('ACTIVE')
+        expect(beneficiaryStats.totalEarnings.toString()).toEqual("0")
+        expect(beneficiaryStats.withdrawableEarnings.toString()).toEqual("0")
 
-        expect(memberStats2.status).toEqual('ACTIVE')
-        expect(memberStats2.totalEarnings.toString()).toEqual("0")
-        expect(memberStats2.withdrawableEarnings.toString()).toEqual("0")
+        expect(beneficiaryStats2.status).toEqual('ACTIVE')
+        expect(beneficiaryStats2.totalEarnings.toString()).toEqual("0")
+        expect(beneficiaryStats2.withdrawableEarnings.toString()).toEqual("0")
 
-        expect(memberStats3.status).toEqual('INACTIVE')
-        expect(memberStats3.totalEarnings.toString()).toEqual("0")
-        expect(memberStats3.withdrawableEarnings.toString()).toEqual("0")
+        expect(beneficiaryStats3.status).toEqual('INACTIVE')
+        expect(beneficiaryStats3.totalEarnings.toString()).toEqual("0")
+        expect(beneficiaryStats3.withdrawableEarnings.toString()).toEqual("0")
 
-        expect(memberStats4.status).toEqual('NONE')
-        expect(memberStats4.totalEarnings.toString()).toEqual("0")
-        expect(memberStats4.withdrawableEarnings.toString()).toEqual("0")
+        expect(beneficiaryStats4.status).toEqual('NONE')
+        expect(beneficiaryStats4.totalEarnings.toString()).toEqual("0")
+        expect(beneficiaryStats4.withdrawableEarnings.toString()).toEqual("0")
     })
 
-    it('member stats: invalid address', async () => {
+    it('beneficiary stats: invalid address', async () => {
         expect(vault.getMemberStats('invalid-address')).rejects.toThrow(/invalid address/)
     })
 

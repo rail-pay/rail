@@ -56,7 +56,7 @@ describe("Vault", () => {
     let m3: Wallet
     let otherWallets: Wallet[]
     let agents: EthereumAddress[]
-    let members: EthereumAddress[]
+    let beneficiaries: EthereumAddress[]
     let others: EthereumAddress[]
 
     let testToken: TestToken
@@ -68,7 +68,7 @@ describe("Vault", () => {
     before(async () => {
         [dao, admin, a1, a2, a3, m1, m2, m3, ...otherWallets] = await getSigners() as unknown as Wallet[]
         agents = [a1, a2, a3].map(a => a.address)
-        members = [m1, m2, m3].map(m => m.address)
+        beneficiaries = [m1, m2, m3].map(m => m.address)
         others = otherWallets.map(o => o.address)
 
         testToken = await (await getContractFactory("TestToken", { signer: dao })).deploy("name", "symbol") as TestToken
@@ -84,7 +84,7 @@ describe("Vault", () => {
         log("  dao: %s", dao.address)
         log("  admin: %s", admin.address)
         log("  agents: %o", agents)
-        log("  members: %o", members)
+        log("  beneficiaries: %o", beneficiaries)
         log("  outsider addresses used in tests: %o", others)
     })
 
@@ -113,7 +113,7 @@ describe("Vault", () => {
             feeOracle.address,
             "{}"
         )
-        await vaultFromAgent.addMembers(members)
+        await vaultFromAgent.addMembers(beneficiaries)
 
         log(`Vault initialized at ${vault.address}`)
     })
@@ -122,7 +122,7 @@ describe("Vault", () => {
         const randomOutsider = otherWallets[1]
         const newMember = otherWallets[0]
 
-        // send and distribute a batch of revenue to members
+        // send and distribute a batch of revenue to beneficiaries
         await expect(testToken.transfer(vault.address, "3000")).to.emit(testToken, "Transfer(address,address,uint256)")
         await expect(vault.connect(randomOutsider).refreshRevenue()).to.emit(vault, "RevenueReceived")
 
@@ -138,7 +138,7 @@ describe("Vault", () => {
         expect(await vault.getEarnings(m2.address)).to.equal(900)
         expect(await vault.getEarnings(m3.address)).to.equal(900)
 
-        // drop a member, send more tokens, check accounting
+        // drop a beneficiary, send more tokens, check accounting
         await expect(vaultFromAgent.partMember(m1.address)).to.emit(vault, "MemberParted")
         expect(await vault.getEarnings(m1.address)).to.equal(900)
         await testToken.transfer(vault.address, "2000")
@@ -153,7 +153,7 @@ describe("Vault", () => {
         expect(await vault.getEarnings(m3.address)).to.equal(1800)
         await expect(vaultFromAgent.addMember(m1.address)).to.emit(vault, "MemberJoined")
 
-        // add a member, send tokens, check accounting
+        // add a beneficiary, send tokens, check accounting
         await expect(vaultFromAgent.addMember(newMember.address)).to.emit(vault, "MemberJoined")
         await testToken.transfer(vault.address, "4000")
         await vault.connect(randomOutsider).refreshRevenue()
@@ -171,15 +171,15 @@ describe("Vault", () => {
 
     it("addMembers partMembers", async function () {
         this.timeout(1000000)
-        const memberCountBeforeBN = await vault.activeMemberCount()
-        expect(memberCountBeforeBN).to.equal(members.length)
+        const beneficiaryCountBeforeBN = await vault.activeMemberCount()
+        expect(beneficiaryCountBeforeBN).to.equal(beneficiaries.length)
 
         // add all "others" to vault
         await expect(vault.addMembers(others)).to.be.revertedWith("error_onlyJoinPartAgent")
         await expect(vaultFromAgent.addMembers(others)).to.emit(vault, "MemberJoined")
         await expect(vaultFromAgent.addMembers(others)).to.be.revertedWith("error_alreadyMember")
-        const memberCountAfterJoinBN = await vault.activeMemberCount()
-        expect(+memberCountBeforeBN + others.length).to.equal(memberCountAfterJoinBN)
+        const beneficiaryCountAfterJoinBN = await vault.activeMemberCount()
+        expect(+beneficiaryCountBeforeBN + others.length).to.equal(beneficiaryCountAfterJoinBN)
         expect(await vault.inactiveMemberCount()).to.equal(0)
 
         // part all "others" from vault
@@ -187,8 +187,8 @@ describe("Vault", () => {
         await expect(vault.connect(otherWallets[0]).partMember(others[0])).to.emit(vault, "MemberParted")
         await expect(vaultFromAgent.partMembers(others)).to.be.revertedWith("error_notActiveMember") // even one non-existing makes the whole tx fail
         await expect(vaultFromAgent.partMembers(others.slice(1))).to.emit(vault, "MemberParted")
-        const memberCountAfterPartBN = await vault.activeMemberCount()
-        expect(memberCountBeforeBN).to.equal(memberCountAfterPartBN)
+        const beneficiaryCountAfterPartBN = await vault.activeMemberCount()
+        expect(beneficiaryCountBeforeBN).to.equal(beneficiaryCountAfterPartBN)
         expect(await vault.inactiveMemberCount()).to.equal(others.length)
 
         //re-add and check that inactiveMemberCount decreased
@@ -245,23 +245,23 @@ describe("Vault", () => {
         }))
     }
 
-    it("withdrawMembers: batch withdraw many members", async () => {
-        const balances = await getBalances(members)
+    it("withdrawMembers: batch withdraw many beneficiaries", async () => {
+        const balances = await getBalances(beneficiaries)
         await testToken.transfer(vault.address, "3000")
         await vault.refreshRevenue()
-        await expect(vault.withdrawMembers(members, false)).to.emit(vault, "EarningsWithdrawn")
-        expect(await getBalanceIncrements(members, balances)).to.deep.equal([ 900, 900, 900 ])
+        await expect(vault.withdrawMembers(beneficiaries, false)).to.emit(vault, "EarningsWithdrawn")
+        expect(await getBalanceIncrements(beneficiaries, balances)).to.deep.equal([ 900, 900, 900 ])
     })
 
     it("withdrawAll", async () => {
-        const balances = await getBalances(members)
+        const balances = await getBalances(beneficiaries)
         await testToken.transfer(vault.address, "3000")
         await vault.refreshRevenue()
         await expect(vault.connect(otherWallets[0]).withdrawAll(m1.address, false)).to.be.revertedWith("error_notPermitted")
         await expect(vaultFromMember0.withdrawAll(m1.address, false)).to.emit(vault, "EarningsWithdrawn")
         await expect(vault.withdrawAll(m2.address, false)).to.emit(vault, "EarningsWithdrawn")
         await vault.withdrawAll(m2.address, false)    // this should do nothing, also not revert
-        expect(await getBalanceIncrements(members, balances)).to.deep.equal([ 900, 900, 0 ])
+        expect(await getBalanceIncrements(beneficiaries, balances)).to.deep.equal([ 900, 900, 0 ])
     })
 
     it("withdrawAllTo", async () => {
@@ -350,7 +350,7 @@ describe("Vault", () => {
         await testToken.transfer(vault.address, "3000")
         await vault.refreshRevenue()
         await expect(vault.connect(otherWallets[0]).transferWithinContract(m2.address, "100")).to.be.revertedWith("error_notMember")
-        // change after sidechain fees / ETH-141: admin receives fees and so becomes an INACTIVE member by _increaseBalance
+        // change after sidechain fees / ETH-141: admin receives fees and so becomes an INACTIVE beneficiary by _increaseBalance
         // await expect(vaultSidechain.transferWithinContract(m2.address, "100")).to.be.revertedWith("error_notMember")
         await expect(vaultFromMember0.transferWithinContract(m2.address, "100")).to.emit(vault, "TransferWithinContract")
         await expect(vaultFromMember0.transferWithinContract(others[1], "100")).to.emit(vault, "TransferWithinContract")
@@ -358,11 +358,11 @@ describe("Vault", () => {
         expect(await vault.getWithdrawableEarnings(m2.address)).to.equal(1000) // = 900 + 100
         expect(await vault.getWithdrawableEarnings(m3.address)).to.equal(900)  // no changes
         expect(await vault.getWithdrawableEarnings(others[1])).to.equal(100)
-        // those who received some in-contract balance but aren't members should be marked inactive by _increaseBalance
+        // those who received some in-contract balance but aren't beneficiaries should be marked inactive by _increaseBalance
         expect(await vault.inactiveMemberCount()).to.equal(3)
-        expect((await vault.memberData(others[1])).status).to.equal(2)
-        expect((await vault.memberData(dao.address)).status).to.equal(2)
-        expect((await vault.memberData(admin.address)).status).to.equal(2)
+        expect((await vault.beneficiaryData(others[1])).status).to.equal(2)
+        expect((await vault.beneficiaryData(dao.address)).status).to.equal(2)
+        expect((await vault.beneficiaryData(admin.address)).status).to.equal(2)
     })
 
     it.skip("getStats", async () => {
@@ -476,14 +476,14 @@ describe("Vault", () => {
     })
 
     it.skip("lets only admin change the metadata", async () => {
-        await expect(vault.connect(members[0]).setMetadata("foo")).to.be.revertedWith("error_onlyOwner")
+        await expect(vault.connect(beneficiaries[0]).setMetadata("foo")).to.be.revertedWith("error_onlyOwner")
         expect(await vault.metadataJsonString()).to.equal("{}")
         await expect(vault.connect(admin).setMetadata("foo")).to.emit(vault, "MetadataChanged")
         expect(await vault.metadataJsonString()).to.equal("foo")
     })
 
     it.skip("lets only admin change the admin fee", async () => {
-        await expect(vault.connect(members[0]).setAdminFee(parseEther("0.5"))).to.be.revertedWith("error_onlyOwner")
+        await expect(vault.connect(beneficiaries[0]).setAdminFee(parseEther("0.5"))).to.be.revertedWith("error_onlyOwner")
         expect(await vault.adminFeeFraction()).to.equal(parseEther("0.09"))
         await expect(vault.connect(admin).setAdminFee(parseEther("0.5"))).to.emit(vault, "AdminFeeChanged")
         expect(await vault.adminFeeFraction()).to.equal(parseEther("0.5"))
@@ -506,11 +506,11 @@ describe("Vault", () => {
 
     it("lets only joinPartAgent set weights", async () => {
         await expect(vault.setMemberWeight(m1.address, parseEther("1"))).to.be.revertedWith("error_onlyJoinPartAgent")
-        await expect(vault.setMemberWeights(members, ["1", "2", "3"])).to.be.revertedWith("error_onlyJoinPartAgent")
+        await expect(vault.setMemberWeights(beneficiaries, ["1", "2", "3"])).to.be.revertedWith("error_onlyJoinPartAgent")
         await expect(vaultFromMember0.setMemberWeight(m1.address, parseEther("1"))).to.be.revertedWith("error_onlyJoinPartAgent")
-        await expect(vaultFromMember0.setMemberWeights(members, ["1", "2", "3"])).to.be.revertedWith("error_onlyJoinPartAgent")
+        await expect(vaultFromMember0.setMemberWeights(beneficiaries, ["1", "2", "3"])).to.be.revertedWith("error_onlyJoinPartAgent")
         await expect(vaultFromAgent.setMemberWeight(m1.address, parseEther("2"))).to.emit(vault, "MemberWeightChanged")
-        await expect(vaultFromAgent.setMemberWeights(members, ["1", "2", "3"])).to.emit(vault, "MemberWeightChanged")
+        await expect(vaultFromAgent.setMemberWeights(beneficiaries, ["1", "2", "3"])).to.emit(vault, "MemberWeightChanged")
     })
 
     it.skip("calculates revenue correctly after weights are changed", async () => {
@@ -522,7 +522,7 @@ describe("Vault", () => {
         expect(await vault.getEarnings(m3.address)).to.equal(parseEther("3"))
 
         // ...even when the weights are scaled in a funny way (not using parseEther)
-        await expect(vaultFromAgent.setMemberWeights(members, ["1", "2", "3"])).to.emit(vault, "MemberWeightChanged")
+        await expect(vaultFromAgent.setMemberWeights(beneficiaries, ["1", "2", "3"])).to.emit(vault, "MemberWeightChanged")
         expect(await vault.totalWeight()).to.equal("6")
         await testToken.transferAndCall(vault.address, parseEther("20"), "0x")
         expect(await vault.totalEarnings()).to.equal(parseEther("27")) // 9 + 20 - 2 (=10% fees)
@@ -531,7 +531,7 @@ describe("Vault", () => {
         expect(await vault.getEarnings(m3.address)).to.equal(parseEther("12")) // 3 + 9 (=3/6 of 18)
 
         // scale more "normally" using parseEther
-        await expect(vaultFromAgent.setMemberWeights(members, [parseEther("3"), parseEther("2"), parseEther("1")])).to.emit(vault, "MemberWeightChanged")
+        await expect(vaultFromAgent.setMemberWeights(beneficiaries, [parseEther("3"), parseEther("2"), parseEther("1")])).to.emit(vault, "MemberWeightChanged")
         expect(await vault.totalWeight()).to.equal(parseEther("6"))
         await testToken.transferAndCall(vault.address, parseEther("20"), "0x")
         expect(await vault.totalEarnings()).to.equal(parseEther("45")) // 27 + 20 - 2 (=10% fees)
@@ -545,34 +545,34 @@ describe("Vault", () => {
         await expect(vaultFromAgent.addMemberWithWeight(m1.address, parseEther("1"))).to.be.revertedWith("error_alreadyMember")
         await expect(vaultFromAgent.addMemberWithWeight(newMember, parseEther("0"))).to.be.revertedWith("error_zeroWeight")
 
-        expect(await vault.memberWeight(newMember)).to.equal(0)
+        expect(await vault.beneficiaryWeight(newMember)).to.equal(0)
         await expect(vaultFromAgent.addMemberWithWeight(newMember, parseEther("3"))).to.emit(vault, "MemberJoined")
-        expect(await vault.memberWeight(newMember)).to.equal(parseEther("3"))
+        expect(await vault.beneficiaryWeight(newMember)).to.equal(parseEther("3"))
 
         await expect(vaultFromAgent.addMemberWithWeight(newMember, parseEther("1"))).to.be.revertedWith("error_alreadyMember")
 
         await expect(vaultFromAgent.partMember(newMember)).to.emit(vault, "MemberParted")
-        expect(await vault.memberWeight(newMember)).to.equal(0)
+        expect(await vault.beneficiaryWeight(newMember)).to.equal(0)
     })
 
     it("addMembersWithWeights", async function () {
         this.timeout(1000000)
-        await expect(vaultFromAgent.addMembersWithWeights(members, ["1", "2", "3"])).to.be.revertedWith("error_alreadyMember")
+        await expect(vaultFromAgent.addMembersWithWeights(beneficiaries, ["1", "2", "3"])).to.be.revertedWith("error_alreadyMember")
         await expect(vaultFromAgent.addMembersWithWeights(others.slice(0, 3), [parseEther("0"), parseEther("4"), parseEther("5")]))
             .to.be.revertedWith("error_zeroWeight")
 
-        expect(await vault.memberWeight(others[0])).to.equal(0)
+        expect(await vault.beneficiaryWeight(others[0])).to.equal(0)
         await expect(vaultFromAgent.addMembersWithWeights(others.slice(0, 3), [parseEther("3"), parseEther("4"), parseEther("5")]))
             .to.emit(vault, "MemberJoined")
-        expect(await vault.memberWeight(others[0])).to.equal(parseEther("3"))
+        expect(await vault.beneficiaryWeight(others[0])).to.equal(parseEther("3"))
 
         await expect(vaultFromAgent.addMembersWithWeights(others.slice(0, 1), [parseEther("1")])).to.be.revertedWith("error_alreadyMember")
 
         await expect(vaultFromAgent.partMembers(others.slice(0, 3))).to.emit(vault, "MemberParted")
-        expect(await vault.memberWeight(others[0])).to.equal(0)
+        expect(await vault.beneficiaryWeight(others[0])).to.equal(0)
     })
 
-    it("can add and remove members with setMemberWeights", async () => {
+    it("can add and remove beneficiaries with setMemberWeights", async () => {
         await expect(vaultFromAgent.setMemberWeights([m1.address, m2.address, others[0]], [parseEther("0"), parseEther("2"), parseEther("2")]))
             .to.emit(vault, "MemberJoined")
             .and.to.emit(vault, "MemberWeightChanged")
