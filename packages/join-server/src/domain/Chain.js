@@ -26,7 +26,7 @@ class Chain {
 		if (chain === undefined) {
 			throw new Error(`Chain name is unknown: '${name}'`)
 		}
-		return new Chain(chain.toString())
+		return new Chain(name.toLowerCase())
 	}
 }
 

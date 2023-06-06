@@ -36,8 +36,8 @@ describe('Chain', () => {
 
 	})
 	it('fromName() loads Chain instance from given string', () => {
-		assert.equal(domain.Chain.fromName('Ethereum').toString(), 'ethereum')
-		assert.equal(domain.Chain.fromName('ethereum').toString(), 'ethereum')
+		assert.equal(domain.Chain.fromName('Docker').toString(), 'docker')
+		assert.equal(domain.Chain.fromName('docker').toString(), 'docker')
 		assert.equal(domain.Chain.fromName('Polygon').toString(), 'polygon')
 	})
 	it('fromName() returns undefined on unknown chain', () => {
