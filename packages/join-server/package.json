@@ -1,7 +1,7 @@
 {
   "name": "@rail-protocol/join-server",
   "version": "0.0.1",
-  "description": "Data Union join server base implementation",
+  "description": "Vault join server base implementation",
   "author": "Rail Protocol <contact@rail.dev>",
   "license": "AGPL-3.0-or-later",
   "private": false,

@@ -1,4 +1,4 @@
-# DU client requires the types generated from DU contracts
+# client requires the types generated from contracts
 unit-test: ../contracts/typechain
 	npx ganache -q -p 3456 -m testrpc &
 	npx jest --testTimeout 30000 --runInBand test/unit

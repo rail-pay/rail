@@ -4,7 +4,7 @@ const cors = require('cors')
 const http = require('http')
 const pino = require('pino')
 const { RailClient } = require('@rail-protocol/client')
-const config = require('@streamr/config')
+const config = require('@rail-protocol/config')
 const rest = require('../rest')
 const { JoinRequestService } = require('./JoinRequestService')
 
@@ -34,7 +34,7 @@ class JoinServer {
 		// Used to add custom routes to the HTTP server. The default function does nothing.
 		customRoutes = (/*expressApp*/) => {},
 
-		// Gets called after a member is successfully joined to the Data Union smart contract. The default function does nothing.
+		// Gets called after a member is successfully joined to the Vault smart contract. The default function does nothing.
 		onMemberJoin = async (/* member, vault, chain */) => {},
 
 		/**
@@ -60,11 +60,10 @@ class JoinServer {
 
 		if (!clients) {
 			clients = new Map()
-			const chains = config.Chains.load()
-			for (const chainName in chains) {
-				for (const contractName in chains[chainName].contracts) {
+			for (const chainName in config) {
+				for (const contractName in config[chainName]) {
 					if (contractName === "VaultFactory") {
-						clients.set(chainName, this.newRailClient(chains[chainName], privateKey))
+						clients.set(chainName, this.newRailClient(config[chainName], chainName, privateKey))
 					}
 				}
 			}
@@ -122,15 +121,15 @@ class JoinServer {
 		})
 	}
 
-	newRailClient(chain /* config.Chain */, privateKey /* string */) {
+	newRailClient(chain, chainName, privateKey) {
 		const options = {
 			auth: {
 				privateKey,
 			},
 			network: {
-				name: chain.name,
+				name: chainName,
 				chainId: chain.id,
-				rpcs: chain.rpcEndpoints,
+				rpcs: [chain.rpcUrl],
 			}
 		}
 		return new RailClient(options)

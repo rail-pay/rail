@@ -6,7 +6,7 @@ import "../IERC677.sol";
 
 interface IWithdrawModule {
     /**
-     * When a withdraw happens in the DU, tokens are transferred to the withdrawModule, then onWithdraw function is called.
+     * When a withdraw happens in the Vault, tokens are transferred to the withdrawModule, then onWithdraw function is called.
      * The withdrawModule is then free to manage those tokens as it pleases.
      */
     function onWithdraw(address member, address to, IERC677 token, uint amountWei) external;

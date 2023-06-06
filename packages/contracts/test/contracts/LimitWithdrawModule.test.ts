@@ -90,7 +90,7 @@ describe("LimitWithdrawModule", () => {
         log("Member %s was added to data union and is now 'old' enough to withdraw", member0.address)
     })
 
-    it("only lets members withdraw after they've been in the DU long enough", async () => {
+    it("only lets members withdraw after they've been in the Vault long enough", async () => {
         const newMembers = others.slice(0, 2).map(w => w.address)
         await expect(vault.addMembers(newMembers)).to.emit(vault, "MemberJoined")
         await expect(testToken.transferAndCall(vault.address, parseEther("10"), "0x")).to.emit(vault, "RevenueReceived")

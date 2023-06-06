@@ -53,7 +53,7 @@
         "type": "address"
       }
     ],
-    "name": "DUCreated",
+    "name": "VaultCreated",
     "type": "event"
   },
   {
@@ -66,7 +66,7 @@
         "type": "uint256"
       }
     ],
-    "name": "DUInitialEthSent",
+    "name": "VaultInitialEthSent",
     "type": "event"
   },
   {

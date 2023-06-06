@@ -12,8 +12,7 @@ import { until } from '../../client/test/until'
 import debug from 'debug'
 const log = debug('vaults/subgraph:test')
 
-import { Chains } from '@streamr/config'
-const config = Chains.load().dev1
+import * as chainConfig from '@rail-protocol/config'
 
 async function query(query: string) {
     log('Sending query "%s"', query)
@@ -27,14 +26,14 @@ async function query(query: string) {
     return resJson.data
 }
 
-describe('DU subgraph', () => {
-    const provider = new providers.JsonRpcProvider(config.rpcEndpoints[0].url)
+describe('Subgraph', () => {
+    const provider = new providers.JsonRpcProvider(chainConfig.docker.rpcUrl)
     const tokenAdminWallet = new Wallet('0xfe1d528b7e204a5bdfb7668a1ed3adfee45b4b96960a175c9ef0ad16dd58d728', provider) // testrpc 5
     const wallet = new Wallet('0x957a8212980a9a39bf7c03dcbeea3c722d66f2b359c669feceb0e3ba8209a297', provider) // testrpc 4
     const wallet2 = new Wallet('0xd7609ae3a29375768fac8bc0f8c2f6ac81c5f2ffca2b981e6cf15460f01efe14', provider) // testrpc 6
     let vault: Vault
     let token: DATAv2
-    it('detects DU deployments (DUCreated)', async function () {
+    it('detects Vault deployments (VaultCreated)', async function () {
         // this.timeout(100000)
 
         log('Deploying token from %s...', tokenAdminWallet.address)
@@ -48,10 +47,10 @@ describe('DU subgraph', () => {
             chain: 'dev1',
             tokenAddress: token.address,
         })
-        log('Deploying DU from %s...', wallet.address)
+        log('Deploying Vault from %s...', wallet.address)
         vault = await client.deployVaultUsingToken(token.address, {})
         const vaultAddress = vault.getAddress()
-        log('DU deployed at %s, waiting for thegraph confirmation...', vaultAddress)
+        log('Vault deployed at %s, waiting for thegraph confirmation...', vaultAddress)
         await until(async () => (await query(`{ vault(id: "${vaultAddress.toLowerCase()}") { id } }`)).vault != null, 10000, 2000)
     })
 
@@ -101,7 +100,7 @@ describe('DU subgraph', () => {
 
     it('detects RevenueReceived events', async function () {
         // this.timeout(100000)
-        // revenue won't show up unless there are members in the DU
+        // revenue won't show up unless there are members in the Vault
         await vault.addMembers(['0x1234567890123456789012345678901234567892', '0x1234567890123456789012345678901234567893'])
 
         const vaultId = vault.getAddress().toLowerCase()

@@ -137,12 +137,6 @@ export async function authRequest(
         return response
     }
 
-    // no more sessions since DU3
-    // if ([400, 401].includes(response.status) && !requireNewToken) {
-    //     log('%d %s – revalidating session')
-    //     return authRequest<T>(url, options, true)
-    // }
-
     log('%s – failed', url)
     const errorBody = await response.json()
     throw new Error(errorBody.error?.message

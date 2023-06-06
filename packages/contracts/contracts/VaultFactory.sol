@@ -14,20 +14,20 @@ import "./Vault.sol";
 import "./Ownable.sol";
 
 contract VaultFactory is Initializable, OwnableUpgradeable, UUPSUpgradeable {
-    event DUCreated(address indexed du, address indexed owner, address template);
+    event VaultCreated(address indexed du, address indexed owner, address template);
 
     event NewVaultInitialEthUpdated(uint amount);
     event NewVaultOwnerInitialEthUpdated(uint amount);
     event DefaultNewMemberInitialEthUpdated(uint amount);
     event ProtocolFeeOracleUpdated(address newFeeOracleAddress);
 
-    event DUInitialEthSent(uint amountWei);
+    event VaultInitialEthSent(uint amountWei);
     event OwnerInitialEthSent(uint amountWei);
 
     address public vault;
     address public defaultToken;
 
-    // when the Vault is created, the factory sends a bit of ETH/MATIC/... to the DU and the owner, to get them started
+    // when the Vault is created, the factory sends a bit of ETH/MATIC/... to the Vault and the owner, to get them started
     uint public newVaultInitialEth;
     uint public newVaultOwnerInitialEth;
     uint public defaultNewMemberEth;
@@ -111,12 +111,12 @@ contract VaultFactory is Initializable, OwnableUpgradeable, UUPSUpgradeable {
             metadataJsonString
         );
 
-        emit DUCreated(du, owner, vault);
+        emit VaultCreated(du, owner, vault);
 
         // continue whether or not send succeeds
         if (newVaultInitialEth != 0 && address(this).balance >= newVaultInitialEth) {
             if (du.send(newVaultInitialEth)) {
-                emit DUInitialEthSent(newVaultInitialEth);
+                emit VaultInitialEthSent(newVaultInitialEth);
             }
         }
         if (newVaultOwnerInitialEth != 0 && address(this).balance >= newVaultOwnerInitialEth) {

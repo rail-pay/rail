@@ -23,8 +23,8 @@ dataSources:
         - name: VaultFactory
           file: ./abis/VaultFactory.json
       eventHandlers:
-        - event: DUCreated(indexed address,indexed address,address)
-          handler: handleDUCreated
+        - event: VaultCreated(indexed address,indexed address,address)
+          handler: handleVaultCreated
 
 templates:
   - name: Vault

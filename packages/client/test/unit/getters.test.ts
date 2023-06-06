@@ -46,12 +46,12 @@ describe('Simple Vault object getters', () => {
         expect(formatEther(balanceAfter)).toEqual('123.0')
     })
 
-    it('getVault fails for non-DU addresses', async () => {
+    it('getVault fails for non-Vault addresses', async () => {
         const client = new RailClient(clientOptions)
         await expect(async () => client.getVault('invalid-address')).rejects.toThrow(/invalid Ethereum address/)
         await expect(client.getVault('0x2222222222222222222222222222222222222222')).rejects.toThrow(/not an Ethereum contract/)
         await expect(client.getVault(user.address)).rejects.toThrow(/not an Ethereum contract/)
         await expect(client.getVault(dao.address)).rejects.toThrow(/not an Ethereum contract/)
-        await expect(client.getVault(token.address)).rejects.toThrow(/not a Data Union/)
+        await expect(client.getVault(token.address)).rejects.toThrow(/not a Vault/)
     })
 })

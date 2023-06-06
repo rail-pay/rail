@@ -1,18 +1,18 @@
-# Data Union Join Server
+# Vault Join Server
 
-This is a gatekeeper HTTP server for requiring Data Union members to fulfil certain requirements in order to join a Data Union. Example use cases are limiting members to users of a certain application by requiring an application secret to be passed along with the join request, or preventing bots by requiring users to complete a CAPTCHA.
+This is a gatekeeper HTTP server for requiring Vault members to fulfil certain requirements in order to join a Vault. Example use cases are limiting members to users of a certain application by requiring an application secret to be passed along with the join request, or preventing bots by requiring users to complete a CAPTCHA.
 
-The process of joining a Data Union is generally as follows:
-- At Data Union creation time, a `joinPartAgent` Ethereum address is configured on the Data Union smart contract. The `joinPartAgent` is able to add members to the Data Union.
-- This Data Union join server is configured with the private key for the `joinPartAgent` address.
-- When a member wants to join via the Data Union application, a HTTP request is sent to this join server.
-- The join server validates the join request (by validating app secret, captcha, or whatever is needed), and then makes a blockchain transaction to add the member to the Data Union.
+The process of joining a Vault is generally as follows:
+- At Vault creation time, a `joinPartAgent` Ethereum address is configured on the Vault smart contract. The `joinPartAgent` is able to add members to the Vault.
+- This Vault join server is configured with the private key for the `joinPartAgent` address.
+- When a member wants to join via the Vault application, a HTTP request is sent to this join server.
+- The join server validates the join request (by validating app secret, captcha, or whatever is needed), and then makes a blockchain transaction to add the member to the Vault.
 
-Data Union builder teams can easily [extend](#extending) the validation logic and run their own join server. Implementing any kind of join request validation logic is possible.
+Vault builder teams can easily [extend](#extending) the validation logic and run their own join server. Implementing any kind of join request validation logic is possible.
 
 As an alternative to running your own customized join server, the Rail Protocol hosts a [default join server](https://github.com/vaults/default-join-server), which also extends this base package and implements a validation logic based on application secrets stored in a database. Forking that as a starting point may be an easier way to get started on your own customizations, or you can follow the instructions in this readme to start the customizations from scratch.
 
-This package can also be [run as-is](#running-as-is), in which case the join server performs only signature validation and therefore allows anyone to join a Data Union.
+This package can also be [run as-is](#running-as-is), in which case the join server performs only signature validation and therefore allows anyone to join a Vault.
 
 ## Usage
 
@@ -42,9 +42,9 @@ srv.listen()
 
 That's exactly what's happening in the [default join server](https://github.com/vaults/default-join-server). Forking that may be a faster starting point for your own customizations, or you can study this readme to start your customizations from scratch.
 
-Note that this base join server does not grant the joining member permissions to any data backend, it just adds the member to the smart contract. In your join server, you should grant the joining member the ability to share their data via whatever data backend/protocol your Data Union is using via using the `onMemberJoin` hook (see [Options](#options)).
+Note that this base join server does not grant the joining member permissions to any data backend, it just adds the member to the smart contract. In your join server, you should grant the joining member the ability to share their data via whatever data backend/protocol your Vault is using via using the `onMemberJoin` hook (see [Options](#options)).
 
-The [default join server](https://github.com/vaults/default-join-server) hosted by the Rail Protocol is [Streamr](https://streamr.network)-aware, meaning that it grants new members publish permission to Streamr streams associated with that Data Union. If you're using a different data protocol/backend, you need to grant access to your data backend to your new DU members (unless of course your backend accepts data from anyone, not just DU members).
+The [default join server](https://github.com/vaults/default-join-server) hosted by the Rail Protocol is [Streamr](https://streamr.network)-aware, meaning that it grants new members publish permission to Streamr streams associated with that Vault. If you're using a different data protocol/backend, you need to grant access to your data backend to your new Vault members (unless of course your backend accepts data from anyone, not just Vault members).
 
 ### Options
 
@@ -67,7 +67,7 @@ new JoinServer({
     // Used to add custom routes to the HTTP server. The default function does nothing.
     customRoutes: (expressApp) => {},
 
-	// Gets called after a member is successfully joined to the Data Union smart contract. The default function does nothing.
+	// Gets called after a member is successfully joined to the Vault smart contract. The default function does nothing.
 	onMemberJoin = async (/* member, vault, chain */) => {},
 
     // By default public RPCs are used for each chain, but you can pass this option to override
@@ -157,7 +157,7 @@ In the context of the signed message wrapper, the full request to this endpoint 
 
 ## Authentication
 
-All endpoints exposed by the join server expect requests to be signed with the requesting Ethereum wallet using a simple signature scheme. The details are below, however most users shouldn't need to implement the authentication from scratch, but instead simply use the [Data Union client](https://www.npmjs.com/package/@rail-protocol/client).
+All endpoints exposed by the join server expect requests to be signed with the requesting Ethereum wallet using a simple signature scheme. The details are below, however most users shouldn't need to implement the authentication from scratch, but instead simply use the [Vault client](https://www.npmjs.com/package/@rail-protocol/client).
 
 Requests to the join server look like this:
 
@@ -201,7 +201,7 @@ or in other words, the full signed HTTP request body would be:
 }
 ```
 
-Such a request would join `address` (`0xabcdef`) as member of the Data Union at smart contract address `0x12345`, to be found on the Polygon chain.
+Such a request would join `address` (`0xabcdef`) as member of the Vault at smart contract address `0x12345`, to be found on the Polygon chain.
 
 The join request can contain arbitrary additional fields, which are validated by passing to the server a `customJoinRequestValidator` function - see below for information about extending and customizing the server.
 

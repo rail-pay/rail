@@ -7,7 +7,7 @@ import "./VaultModule.sol";
 import "./IJoinListener.sol";
 
 /**
- * @title Data Union module that limits per-user withdraws to given amount per period
+ * @title Vault module that limits per-user withdraws to given amount per period
  * @dev Setup: vault.setJoinListener(this); vault.addJoinPartAgent(this);
  */
 contract BanModule is VaultModule, IJoinListener {

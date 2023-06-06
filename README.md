@@ -1,15 +1,16 @@
 # Rail monorepo
 
 `/packages`:
-* `contracts`: Smart contracts for Data Unions 2.0 and 3.0
-* `client`: Data Union client
-* `subgraph`: [TheGraph](https://thegraph.com/) subgraph for Data Union smart contracts
-* `join-server`: Base implementation of a HTTP server for requiring Data Union members to fulfil certain requirements in order to join a Data Union
-* `default-join-server`: Simple HTTP server that adds members who know a secret password, and gives them publish rights to the DU's streams. Hosted by the DU DAO at
+* `contracts`: Smart contracts for Rail Protocol
+* `client`: Rail client
+* `subgraph`: [TheGraph](https://thegraph.com/) subgraph for Rail smart contracts
+* `join-server`: Base implementation of a HTTP server for requiring Rail beneciaries to fulfil certain requirements in order to join the Rail contract
+* `default-join-server`: Simple HTTP server that adds members who know a secret password, and gives them publish rights to the Vault's streams. Hosted by the Vault DAO at
+  * TODO: does this play a role in Rail?
 
 ## Development
 
-Monorepo is managed using [npm workspaces](https://docs.npmjs.com/cli/v7/using-npm/workspaces). Integration tests are run in [Streamr docker dev environment](https://github.com/streamr-dev/streamr-docker-dev/) and its configs are found in the [@streamr/config NPM package](https://npmjs.com/package/@streamr/config).
+Monorepo is managed using [npm workspaces](https://docs.npmjs.com/cli/v7/using-npm/workspaces). Integration tests are run in [Docker dev environment](https://github.com/streamr-dev/streamr-docker-dev/) and the configs are found in the [@rail-protocol/config NPM package](https://npmjs.com/package/@rail-protocol/config).
 
 **Important:** Do not use `npm ci` or `npm install` directly in the sub-package directories, only in the root directory.
 

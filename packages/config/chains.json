@@ -1,5 +1,6 @@
 {
     "hardhat": {
+        "id": 31337,
         "rpcUrl": "http://localhost:8545",
         "vaultFactoryAddress": "0x",
         "vaultTemplateAddress": "0x",
@@ -7,6 +8,7 @@
         "tokenAddress": "0x"
     },
     "docker": {
+        "id": 8995,
         "rpcUrl": "http://localhost:8545",
         "vaultFactoryAddress": "0x",
         "vaultTemplateAddress": "0x",
@@ -14,6 +16,7 @@
         "tokenAddress": "0x"
     },
     "mumbai": {
+        "id": 80001,
         "rpcUrl": "https://rpc-mumbai.maticvigil.com",
         "vaultFactoryAddress": "0x",
         "vaultTemplateAddress": "0x",
@@ -21,6 +24,7 @@
         "tokenAddress": "0x"
     },
     "polygon": {
+        "id": 137,
         "rpcUrl": "https://polygon-rpc.com",
         "vaultFactoryAddress": "0x",
         "vaultTemplateAddress": "0x",
@@ -28,6 +32,7 @@
         "tokenAddress": "0x3a9A81d576d83FF21f26f325066054540720fC34"
     },
     "gnosis": {
+        "id": 100,
         "rpcUrl": "https://rpc.gnosischain.com",
         "vaultFactoryAddress": "0x",
         "vaultTemplateAddress": "0x",

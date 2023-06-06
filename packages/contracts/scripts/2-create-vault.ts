@@ -42,9 +42,9 @@ async function createVault() {
 
     const tx = await vaultFactory.deployNewVault(...args)
     const tr = await tx.wait()
-    const [createdEvent] = tr?.events?.filter((evt: any) => evt?.event === "DUCreated") ?? []
+    const [createdEvent] = tr?.events?.filter((evt: any) => evt?.event === "VaultCreated") ?? []
     if (!createdEvent || !createdEvent.args || !createdEvent.args.length) {
-        throw new Error("Missing DUCreated event")
+        throw new Error("Missing VaultCreated event")
     }
     const [newVaultAddress] = createdEvent?.args
     console.log(newVaultAddress)

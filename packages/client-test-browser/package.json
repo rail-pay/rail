@@ -1,7 +1,7 @@
 {
   "name": "@rail-protocol/client-test-browser",
   "version": "0.0.0",
-  "description": "Data Union Client Browser Tests",
+  "description": "Client Browser Tests",
   "author": "Rail Protocol <contact@rail.dev>",
   "license": "Apache-2.0",
   "private": false,

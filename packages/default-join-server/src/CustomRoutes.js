@@ -17,7 +17,7 @@ module.exports = (db) => {
 				res.status(404)
 				res.set('content-type', 'application/json')
 				res.send({
-					error: `Data Union ${req.validatedRequest.vault} on chain ${req.validatedRequest.chain} does not exist!`
+					error: `Vault ${req.validatedRequest.vault} on chain ${req.validatedRequest.chain} does not exist!`
 				})
 			} else {
 				const admin = await vault.getAdminAddress()
@@ -27,7 +27,7 @@ module.exports = (db) => {
 					res.status(403)
 					res.set('content-type', 'application/json')
 					res.send({
-						error: `This endpoint can only be called by the Data Union admin (${admin})`
+						error: `This endpoint can only be called by the Vault admin (${admin})`
 					})
 				}
 			}

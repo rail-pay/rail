@@ -92,7 +92,7 @@ contract Vault is Ownable, IERC677Receiver, IPurchaseListener {
     mapping(address => ActiveStatus) public joinPartAgents;
     mapping(address => uint) public memberWeight;
 
-    function version() public pure returns (uint256) { return 3; } // DU 3
+    function version() public pure returns (uint256) { return 400; } // Vault = 1, 2, 3
 
     // owner will be set by initialize()
     constructor() Ownable(address(0)) {}
@@ -124,7 +124,7 @@ contract Vault is Ownable, IERC677Receiver, IPurchaseListener {
     }
 
     /**
-     * Atomic getter to get all Data Union state variables in one call
+     * Atomic getter to get all Vault state variables in one call
      * This alleviates the fact that JSON RPC batch requests aren't available in ethers.js
      */
     function getStats() public view returns (uint256[9] memory) {
@@ -148,7 +148,7 @@ contract Vault is Ownable, IERC677Receiver, IPurchaseListener {
     /**
      * Admin fee as a fraction of revenue,
      *   using fixed-point decimal in the same way as ether: 50% === 0.5 ether === "500000000000000000"
-     * @param newAdminFee fee that goes to the DU owner
+     * @param newAdminFee fee that goes to the Vault owner
      */
     function setAdminFee(uint256 newAdminFee) public onlyOwner {
         uint protocolFeeFraction = protocolFeeOracle.protocolFeeFor(address(this));
@@ -207,7 +207,7 @@ contract Vault is Ownable, IERC677Receiver, IPurchaseListener {
 
         // newEarnings and totalWeight are ether-scale (10^18), so need to scale earnings to "per unit weight" to avoid division going below 1
         uint earningsPerUnitWeightScaled = newEarnings * 1 ether / totalWeight;
-        lifetimeMemberEarnings += earningsPerUnitWeightScaled; // this variable was repurposed to total "per unit weight" earnings during DU's existence
+        lifetimeMemberEarnings += earningsPerUnitWeightScaled; // this variable was repurposed to total "per unit weight" earnings during Vault's existence
         totalEarnings += newEarnings;
 
         emit NewEarnings(newTokens / activeMemberCount, activeMemberCount);
@@ -221,7 +221,7 @@ contract Vault is Ownable, IERC677Receiver, IPurchaseListener {
      * ERC677 callback function, see https://github.com/ethereum/EIPs/issues/677
      * Receives the tokens arriving through bridge
      * Only the token contract is authorized to call this function
-     * @param data if given an address, then these tokens are allocated to that member's address; otherwise they are added as DU revenue
+     * @param data if given an address, then these tokens are allocated to that member's address; otherwise they are added as Vault revenue
      */
     function onTokenTransfer(address, uint256 amount, bytes calldata data) override external {
         require(msg.sender == address(token), "error_onlyTokenContract");
@@ -286,7 +286,7 @@ contract Vault is Ownable, IERC677Receiver, IPurchaseListener {
         return maxWithdraw;
     }
 
-    // this includes the fees paid to admins and the DU beneficiary
+    // this includes the fees paid to admins and the Vault beneficiary
     function totalWithdrawable() public view returns (uint256) {
         return totalRevenue - totalWithdrawn;
     }
@@ -457,7 +457,7 @@ contract Vault is Ownable, IERC677Receiver, IPurchaseListener {
     //------------------------------------------------------------
 
     /**
-     * Transfer tokens from outside contract, add to a recipient's in-contract balance. Skip admin and DU fees etc.
+     * Transfer tokens from outside contract, add to a recipient's in-contract balance. Skip admin and Vault fees etc.
      */
     function transferToMemberInContract(address recipient, uint amount) public {
         // this is done first, so that in case token implementation calls the onTokenTransfer in its transferFrom (which by ERC677 it should NOT),
@@ -686,7 +686,7 @@ contract Vault is Ownable, IERC677Receiver, IPurchaseListener {
     }
 
     /**
-     * Default DU 2.1 withdraw functionality, can be overridden with a withdrawModule.
+     * Default Vault 2.1 withdraw functionality, can be overridden with a withdrawModule.
      * @param sendToMainnet Deprecated
      */
     function _defaultWithdraw(address from, address to, uint amount, bool sendToMainnet)
@@ -696,7 +696,7 @@ contract Vault is Ownable, IERC677Receiver, IPurchaseListener {
         // transferAndCall also enables transfers over another token bridge
         //   in this case to=another bridge's tokenMediator, and from=recipient on the other chain
         // this follows the tokenMediator API: data will contain the recipient address, which is the same as sender but on the other chain
-        // in case transferAndCall recipient is not a tokenMediator, the data can be ignored (it contains the DU member's address)
+        // in case transferAndCall recipient is not a tokenMediator, the data can be ignored (it contains the Vault member's address)
         require(token.transferAndCall(to, amount, abi.encodePacked(from)), "error_transfer");
     }
 

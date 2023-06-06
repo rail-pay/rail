@@ -47,7 +47,7 @@ describe('Vault fees', () => {
         const client = new RailClient(clientOptions)
         const vault = await client.deployVault()
         const oldFee = await vault.getAdminFee()
-        log(`DU admin: ${await vault.getAdminAddress()}`)
+        log(`Vault admin: ${await vault.getAdminAddress()}`)
         log(`Sending tx from ${await client.getAddress()}`)
         const tr = await vault.setAdminFee(0.1)
         log(`Transaction events: ${JSON.stringify(tr.events!.map((e) => e.event))}`)
@@ -65,11 +65,11 @@ describe('Vault fees', () => {
         expect(formatEther(await vault.getWithdrawableEarnings(user.address))).toEqual('0.1')
     })
 
-    // it('admin can set DU fee', async () => {
+    // it('admin can set Vault fee', async () => {
     //     const client = new RailClient(clientOptions)
     //     const vault = await client.deployVault()
     //     const oldFee = await vault.getAdminFee()
-    //     log(`DU admin: ${await vault.getAdminAddress()}`)
+    //     log(`Vault admin: ${await vault.getAdminAddress()}`)
     //     log(`Sending tx from ${await client.getAddress()}`)
     //     const tr = await vault.setAdminFee(0.1)
     //     log(`Transaction events: ${JSON.stringify(tr.events!.map((e) => e.event))}`)
@@ -78,7 +78,7 @@ describe('Vault fees', () => {
     //     expect(newFee).toEqual(0.1)
     // })
 
-    it('DU DAO receives DU fees', async () => {
+    it('Vault DAO receives Vault fees', async () => {
         const client = new RailClient(clientOptions)
         const vault = await client.deployVault()
         await vault.addMembers(["0x0000000000000000000000000000000000000001"])

@@ -1,14 +1,14 @@
 import { log, BigInt, BigDecimal, Address } from '@graphprotocol/graph-ts'
 
-import { DUCreated } from '../generated/VaultFactory/VaultFactory'
+import { VaultCreated } from '../generated/VaultFactory/VaultFactory'
 import { Vault as VaultDatabaseObject } from '../generated/schema'
 import { Vault } from '../generated/templates'
 
-// event DUCreated(address indexed du, address indexed owner, address template);
-export function handleDUCreated(event: DUCreated): void {
+// event VaultCreated(address indexed du, address indexed owner, address template);
+export function handleVaultCreated(event: VaultCreated): void {
     let vaultAddress = event.params.du
     let initialOwner = event.params.owner
-    log.warning('handleDUCreated: address={} blockNumber={}', [vaultAddress.toHexString(), event.block.number.toString()])
+    log.warning('handleVaultCreated: address={} blockNumber={}', [vaultAddress.toHexString(), event.block.number.toString()])
     createVault(vaultAddress, initialOwner, event.block.timestamp)
 }
 
@@ -21,6 +21,6 @@ export function createVault(vaultAddress: Address, initialOwner: Address, creati
     vault.totalWeight = BigDecimal.zero()
     vault.save()
 
-    // Instantiate a template: start listening to the new DU contract, trigger src/vault.ts on events
+    // Instantiate a template: start listening to the new Contract, trigger src/vault.ts on events
     Vault.create(vaultAddress)
 }

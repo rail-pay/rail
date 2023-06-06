@@ -67,7 +67,7 @@ describe('CustomRoutes', () => {
 			expect(db.listSecrets.called).to.be.false
 		})
 
-		it('fails if the DU is not found', async () => {
+		it('fails if the Vault is not found', async () => {
 			db.listSecrets = sinon.stub().rejects(new Error('db.listSecrets should not be called!'))
 
 			await runTest('/secrets/list', 404, {
@@ -83,7 +83,7 @@ describe('CustomRoutes', () => {
 			expect(db.listSecrets.called).to.be.false
 		})
 
-		it('list the secrets for a DU', async () => {
+		it('list the secrets for a Vault', async () => {
 			const results = [{
 				foo: 'bar'
 			}]
@@ -120,7 +120,7 @@ describe('CustomRoutes', () => {
 			expect(db.createAppSecret.called).to.be.false
 		})
 
-		it('fails if the DU is not found', async () => {
+		it('fails if the Vault is not found', async () => {
 			db.createAppSecret = sinon.stub().rejects(new Error('db.createAppSecret should not be called!'))
 
 			await runTest('/secrets/create', 404, {
@@ -176,7 +176,7 @@ describe('CustomRoutes', () => {
 			expect(db.deleteAppSecret.called).to.be.false
 		})
 
-		it('fails if the DU is not found', async () => {
+		it('fails if the Vault is not found', async () => {
 			db.getAppSecret = sinon.stub().rejects(new Error('db.getAppSecret should not be called!'))
 			db.deleteAppSecret = sinon.stub().rejects(new Error('db.deleteAppSecret should not be called!'))
 

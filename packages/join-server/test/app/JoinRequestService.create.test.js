@@ -36,7 +36,7 @@ describe('JoinRequestService', () => {
 	})
 
 	describe('create', () => {
-		it('adds members using the DU client', async () => {
+		it('adds members using the Vault client', async () => {
 			const response = await joinRequestService.create(MEMBER_ADDRESS, VAULT_ADDRESS, CHAIN)
 			assert.isTrue(vaultObject.addMembers.calledWith([MEMBER_ADDRESS]))
 			assert.equal(response.member, MEMBER_ADDRESS)

@@ -1,12 +1,12 @@
 # default-join-server
 
-A Data Union join server that imports the [base join server](https://github.com/vaults/data-union-join-server) and extends it by adding app join request validation based on app secrets stored in MySQL. The join server also supports granting access to [Streamr](https://streamr.network) streams when a member joins a Data Union that uses Streamr on the data transport layer.
+A Vault join server that imports the [base join server](https://github.com/vaults/data-union-join-server) and extends it by adding app join request validation based on app secrets stored in MySQL. The join server also supports granting access to [Streamr](https://streamr.network) streams when a member joins a Vault that uses Streamr on the data transport layer.
 
-An instance of this join server is run by the Rail Protocol to make it easier for Data Union builders to get started and control access to the Data Unions. Note that you can fork this join server and customize it to your needs, for example to implement additional validation for join requests or take some different action when after members join.
+An instance of this join server is run by the Rail Protocol to make it easier for Vault builders to get started and control access to the Vaults. Note that you can fork this join server and customize it to your needs, for example to implement additional validation for join requests or take some different action when after members join.
 
 ## Running
 
-- Create a `.env` file containing database configs and the private key of a permitted `joinPartAgent` for your Data Union (see `.env.template` in the repo)
+- Create a `.env` file containing database configs and the private key of a permitted `joinPartAgent` for your Vault (see `.env.template` in the repo)
 - Install: `npm install -g @rail-protocol/default-join-server`
 - Start: `default-join-server`
 
@@ -39,11 +39,11 @@ For more information about the signature authentication, refer to the readme in 
 
 ## Secret management
 
-The server adds three HTTP endpoints, callable by the DU admin only, to manage the app secrets. All requests are wrapped in the signature wrapper, but for clarity only the (non-stringified) `request` are illustrated here.
+The server adds three HTTP endpoints, callable by the Vault admin only, to manage the app secrets. All requests are wrapped in the signature wrapper, but for clarity only the (non-stringified) `request` are illustrated here.
 
 ### `POST /secrets/create`
 
-Creates a new secret for a given Data Union. Example `request` payload:
+Creates a new secret for a given Vault. Example `request` payload:
 
 ```
 {
@@ -66,7 +66,7 @@ The response contains the generated `secret`:
 
 ### `POST /secrets/list`
 
-Lists the secrets attached to the given Data Union. Example `request` payload:
+Lists the secrets attached to the given Vault. Example `request` payload:
 
 ```
 {
@@ -88,7 +88,7 @@ The response contains an array of secrets:
 
 ### `POST /secrets/delete`
 
-Deletes a secret attached to the given Data Union. Example `request` payload:
+Deletes a secret attached to the given Vault. Example `request` payload:
 
 ```
 {
@@ -115,6 +115,6 @@ See [create_tables.sql](create_tables.sql) for the SQL to create the database ta
 
 ## Streamr-awareness
 
-After successfully adding a new member to the Data Union smart contract, this join server checks whether there are any [Streamr](https://streamr.network) streams associated with the Data Union, and grants the new member publish permission on those streams.
+After successfully adding a new member to the Vault smart contract, this join server checks whether there are any [Streamr](https://streamr.network) streams associated with the Vault, and grants the new member publish permission on those streams.
 
-If you're using a different data protocol/backend, you should customize this behavior and grant access to your specific data backend to your new DU members (unless of course your backend accepts data from anyone, not just DU members).
+If you're using a different data protocol/backend, you should customize this behavior and grant access to your specific data backend to your new Vault members (unless of course your backend accepts data from anyone, not just Vault members).

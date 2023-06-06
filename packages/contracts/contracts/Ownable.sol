@@ -8,8 +8,8 @@ pragma solidity 0.8.6;
  * functions, this simplifies the implementation of "user permissions".
  *
  * Open Zeppelin's ownable doesn't quite work with factory pattern because _owner has private access.
- * When you create a DU, open-zeppelin _owner would be 0x0 (no state from template). Then no address could change _owner to the DU owner.
- * With this custom Ownable, the first person to call initialiaze() can set owner.
+ * When you create a contract, open-zeppelin _owner would be 0x0 (no state from template). Then no address could change _owner to the contract owner.
+ * With this custom Ownable, the first person to call initialize() can set the owner.
  */
 contract Ownable {
     address public owner;

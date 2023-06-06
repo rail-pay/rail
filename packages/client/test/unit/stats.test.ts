@@ -90,7 +90,7 @@ describe('Vault stats getters', () => {
         expect(vault.getMemberStats('invalid-address')).rejects.toThrow(/invalid address/)
     })
 
-    it('gives DU admin address correctly', async () => {
+    it('gives Vault admin address correctly', async () => {
         const adminAddress = await vault.getAdminAddress()
         expect(adminAddress).toEqual(admin.address)
     })

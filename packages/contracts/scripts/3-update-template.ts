@@ -12,18 +12,18 @@ async function main() {
     const vaultCF = await ethers.getContractFactory("Vault")
     const vault = await vaultCF.deploy()
     await vault.deployed() as Vault
-    console.log("DU template deployed at %s", vault.address)
+    console.log("Vault template deployed at %s", vault.address)
 
     const vaultFactoryCF = await ethers.getContractFactory("VaultFactory") as ContractFactory
     const vaultFactory = vaultFactoryCF.attach(vaultFactoryAddress) as VaultFactory
-    console.log("DU factory deployed at %s", vaultFactory.address)
+    console.log("Vault factory deployed at %s", vaultFactory.address)
 
     const oldTemplateAddress = await vaultFactory.vault()
-    console.log("Old DU template at %s", oldTemplateAddress)
+    console.log("Old Vault template at %s", oldTemplateAddress)
 
     const tx = await vaultFactory.setTemplate(vault.address)
     await tx.wait()
-    console.log("DU template updated")
+    console.log("Vault template updated")
 }
 
 main()

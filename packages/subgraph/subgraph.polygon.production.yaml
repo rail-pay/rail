@@ -1,11 +1,11 @@
 ---
 specVersion: 0.0.2
-description: Subgraph definitions for data unions
+description: Subgraph definitions for Vaults in production
 repository: ""
 schema:
   file: ./schema.graphql
 dataSources:
-  # New DU polygon/matic >>
+  # New Vault polygon/matic >>
   - kind: ethereum/contract
     name: VaultFactory
     network: matic
@@ -24,12 +24,12 @@ dataSources:
         - name: VaultFactory
           file: ./abis/VaultFactory.json
       eventHandlers:
-        - event: DUCreated(indexed address,indexed address,address)
-          handler: handleDUCreated
-  # New DU polygon/matic <<
+        - event: VaultCreated(indexed address,indexed address,address)
+          handler: handleVaultCreated
+  # New Vault polygon/matic <<
 
 templates:
-  # New DU polygon/matic >>
+  # New Vault polygon/matic >>
   - name: Vault
     kind: ethereum/contract
     network: matic
@@ -58,4 +58,4 @@ templates:
           handler: handleOwnershipTransferred
         - event: MemberWeightChanged(indexed address,uint256,uint256)
           handler: handleMemberWeightChanged
-  # New DU polygon/matic <<
+  # New Vault polygon/matic <<

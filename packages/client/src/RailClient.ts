@@ -8,7 +8,7 @@ import type { Overrides as EthersOverrides } from '@ethersproject/contracts'
 import type { Signer } from '@ethersproject/abstract-signer'
 import type { Provider } from '@ethersproject/providers'
 
-import chainConfig from '@rail-protocol/config'
+import * as chainConfig from '@rail-protocol/config'
 import { tokenAbi, vaultFactoryAbi, vaultAbi } from '@rail-protocol/contracts'
 import type { VaultFactory, Vault as VaultContract, IERC677 } from '@rail-protocol/contracts'
 
@@ -48,7 +48,7 @@ export class RailClient {
         if (!clientOptions.auth) { throw new Error("Must include auth in the config!") }
         const options: RailClientConfig = { ...RAIL_CLIENT_DEFAULTS, ...clientOptions }
 
-        // get defaults for networks from @streamr/config
+        // get defaults for networks from @rail-protocol/config
         const chain = (chainConfig as any)[options.chain] as {[key: string]: string}
 
         this.chainName = options.chain
@@ -91,7 +91,7 @@ export class RailClient {
             throw new Error("Must include auth.ethereum or auth.privateKey in the config!")
         }
 
-        // TODO: either tokenAddress -> defaultTokenAddress or delete completely; DUs can have different tokens
+        // TODO: either tokenAddress -> defaultTokenAddress or delete completely; Vaults can have different tokens
         this.tokenAddress = getAddress(options.tokenAddress ?? chain.tokenAddress ?? "Must include tokenAddress or chain in the config!")
         this.factoryAddress = getAddress(options.factoryAddress ?? chain.vaultFactoryAddress
                                             ?? "Must include factoryAddress or chain in the config!")
@@ -168,7 +168,7 @@ export class RailClient {
 
     /**
      * Get token balance in "wei" (10^-18 parts) for given address
-     * @param address to query, or this DU client's address if omitted
+     * @param address to query, or this client's address if omitted
      */
     async getTokenBalance(address?: EthereumAddress): Promise<BigNumber> {
         const a = address ? getAddress(address) : await this.wallet.getAddress()
@@ -243,9 +243,9 @@ export class RailClient {
         )
         const receipt = await tx.wait(confirmations)
 
-        const createdEvent = receipt.events?.find((e) => e.event === 'DUCreated')
+        const createdEvent = receipt.events?.find((e) => e.event === 'VaultCreated')
         if (createdEvent == null) {
-            throw new Error('Factory did not emit a DUCreated event!')
+            throw new Error('Factory did not emit a VaultCreated event!')
         }
 
         const contractAddress = createdEvent.args!.du as string
@@ -257,7 +257,6 @@ export class RailClient {
 
     /**
      * Create a new Vault contract using the Ethereum provider given in the constructor
-     * @return Promise<Vault> that resolves when the new DU is deployed over the bridge to side-chain
      */
     async deployVault(options: VaultDeployOptions = {}): Promise<Vault> {
         const {
@@ -296,9 +295,9 @@ export class RailClient {
         )
         const receipt = await tx.wait(confirmations)
 
-        const createdEvent = receipt.events?.find((e) => e.event === 'DUCreated')
+        const createdEvent = receipt.events?.find((e) => e.event === 'VaultCreated')
         if (createdEvent == null) {
-            throw new Error('Factory did not emit a DUCreated event!')
+            throw new Error('Factory did not emit a VaultCreated event!')
         }
 
         const contractAddress = createdEvent.args!.du as string

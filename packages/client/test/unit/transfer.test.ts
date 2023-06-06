@@ -48,7 +48,7 @@ describe('Vault earnings transfer methods', () => {
             network: { rpcs: [{ url: ethereumUrl, timeout: 30 * 1000 }] }
         }
 
-        // deploy a DU with admin fee 9% + DU fee 1% = total 10% fees
+        // deploy a Vault with admin fee 9% + Vault fee 1% = total 10% fees
         const adminClient = new RailClient({ ...clientOptions, auth: { privateKey: admin.privateKey } })
         const adminVault = await adminClient.deployVault({ adminFee: 0.09 })
         await adminVault.addMembers([member.address, otherMember.address])
@@ -63,7 +63,7 @@ describe('Vault earnings transfer methods', () => {
     async function fundVault(vaultAddress: string, amountWei: BigNumberish) {
         await (await token.mint(await token.signer.getAddress(), amountWei)).wait()
         await (await token.transferAndCall(vaultAddress, amountWei, '0x')).wait()
-        // log("DU stats: %o", await vault.getStats())
+        // log("Vault stats: %o", await vault.getStats())
     }
 
     it('can refresh Vault earnings after ERC20 token transfer', async () => {
@@ -123,7 +123,7 @@ describe('Vault earnings transfer methods', () => {
         if (approveFirst) {
             await (await token.connect(outsider).approve(vault.getAddress(), parseEther('1'))).wait()
             // await (await token.connect(member).approve(vault.getAddress(), parseEther('1'))).wait()
-            // log(`Approved DU ${vault.getAddress()} to spend 1 token from ${outsider.address}`)
+            // log(`Approved Vault ${vault.getAddress()} to spend 1 token from ${outsider.address}`)
         }
 
         log(`Transfer 1 token with transferToMemberInContract to ${member.address}`)

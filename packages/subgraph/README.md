@@ -6,7 +6,7 @@ The json files in abis describe the contracts that are deployed in Polygon, not 
 
 # Development
 
-Run `streamr-docker-dev start graph-deploy-vault-subgraph` to start the graph-node locally and deploy the `main` version of DU subgraph.
+Run `streamr-docker-dev start graph-deploy-vault-subgraph` to start the graph-node locally and deploy the `main` version of Subgraph.
 
 Wait until `docker logs -f streamr-dev-graph-deploy-vault-subgraph` shows the deployment is complete. You should now be able to see and query the subgraph: http://localhost:8000/subgraphs/name/streamr-dev/vault/graphql (though initially it's empty so there's not much to query...). Top-left corner has "Explorer >" button that opens the list of object available in the subgraph.
 
@@ -54,7 +54,7 @@ Delete old image:
 docker rmi streamr/graph-deploy-vault-subgraph:dev
 ```
 
-Re-create the docker image that deploys the DU subgraph:
+Re-create the docker image that deploys the Subgraph:
 ```
 docker build -t streamr/graph-deploy-vault-subgraph:dev .
 ```

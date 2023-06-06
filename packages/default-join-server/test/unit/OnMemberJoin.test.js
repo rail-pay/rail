@@ -32,7 +32,7 @@ describe('StreamrAwareJoinHook', () => {
 		onMemberJoin = createStreamrAwareJoinHook(streamrDB, /* privateKey */ null, streamrClient)
 	})
 
-	it('grants PUBLISH permissions to streams in the given Data Union', async () => {
+	it('grants PUBLISH permissions to streams in the given Vault', async () => {
 		await onMemberJoin('member', 'vault', 'chain')
 		expect(streamrDB.getStreamsForVault.calledOnceWith('vault', 'chain')).to.be.true
 		expect(streamrClient.setPermissions.calledOnceWith([

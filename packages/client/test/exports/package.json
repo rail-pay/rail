@@ -1,7 +1,7 @@
 {
     "name": "@rail-protocol/test-exports",
     "version": "1.0.0",
-    "description": "Test DU client packaging",
+    "description": "Test client packaging",
     "author": "Rail Protocol <contact@rail.dev>",
     "license": "Apache-2.0",
     "private": true,

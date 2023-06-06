@@ -93,12 +93,12 @@ describe("VaultFactory", (): void => {
 
         const tx = await factory.deployNewVault(...args)
         const tr = await tx.wait()
-        const [createdEvent] = tr?.events?.filter((evt) => evt?.event === "DUCreated") ?? []
+        const [createdEvent] = tr?.events?.filter((evt) => evt?.event === "VaultCreated") ?? []
         if (!createdEvent || !createdEvent.args || !createdEvent.args.length) {
-            throw new Error("Missing DUCreated event")
+            throw new Error("Missing VaultCreated event")
         }
         const [ newVaultAddress ] = createdEvent.args
-        expect(tr?.events?.filter((evt) => evt?.event === "DUCreated") ?? []).to.have.length(1)
+        expect(tr?.events?.filter((evt) => evt?.event === "VaultCreated") ?? []).to.have.length(1)
 
         log("%s code: %s", newVaultAddress, await provider.getCode(newVaultAddress))
         expect(await provider.getCode(newVaultAddress)).not.equal("0x")
@@ -110,7 +110,7 @@ describe("VaultFactory", (): void => {
 
         // TODO: move asserts to the end
 
-        // check created DU Eth
+        // check created Vault Eth
         expect(newVaultBalance).to.equal(newVaultEth)
 
         // check owner eth increased (can't assert exact change because creator also pays gas fees)
@@ -123,7 +123,7 @@ describe("VaultFactory", (): void => {
         const balanceChange1 = (await provider.getBalance(m1.address)).sub(balanceBefore1)
         expect(balanceChange1).to.equal(newMemberEth)
 
-        // change the setting from within DU. check member Eth
+        // change the setting from within Vault. check member Eth
         const newMemberEth2 = parseEther("0.2")
         await expect(newVault.connect(o1).setNewMemberEth(newMemberEth2)).to.be.reverted
         await expect(newVault.connect(creator).setNewMemberEth(newMemberEth2)).to.emit(newVault.connect(creator), "NewMemberEthChanged")

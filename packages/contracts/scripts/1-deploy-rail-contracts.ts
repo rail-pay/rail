@@ -23,7 +23,7 @@ async function deployContracts() {
     const vaultFactory = await ethers.getContractFactory("Vault", { signer })
     const vault = await vaultFactory.deploy()
     await vault.deployed()
-    console.log("DU template deployed at %s", vault.address)
+    console.log("Vault template deployed at %s", vault.address)
 
     const feeOracleFactory = await ethers.getContractFactory("DefaultFeeOracle", { signer })
     const feeOracle = await upgrades.deployProxy(feeOracleFactory, [
@@ -39,7 +39,7 @@ async function deployContracts() {
         tokenAddress,
         feeOracle.address,
     ], { kind: "uups" }) as VaultFactory
-    console.log("DU factory deployed at %s", factory.address)
+    console.log("Vault factory deployed at %s", factory.address)
 }
 
 deployContracts()

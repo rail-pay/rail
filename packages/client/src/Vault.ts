@@ -176,7 +176,7 @@ export class Vault {
     /**
     * The default stipend is 0 and can be set by setNewMemberStipend()
     * The stipend exists to enable members not to pay a transaction fee when withdrawing earnings
-    * @returns the amount of ETH/native tokens every member gets when they first join the DU
+    * @returns the amount of ETH/native tokens every member gets when they first join
     */
     async getNewMemberStipend(): Promise<BigNumber> {
         return this.contract.newMemberEth()
@@ -253,7 +253,7 @@ export class Vault {
         const withdrawable = totalEarnings.gt(withdrawnEarnings) ? totalEarnings.sub(withdrawnEarnings) : parseEther("0")
         const statusStrings = [MemberStatus.NONE, MemberStatus.ACTIVE, MemberStatus.INACTIVE]
 
-        // add weight to the MemberStats if member is active (non-zero weight), set to 1 if the DU contract doesn't have the weights feature
+        // add weight to the MemberStats if member is active (non-zero weight), set to 1 if the contract doesn't have the weights feature
         const maybeWeight: { weight?: number } = statusCode === 1 ? { weight: Number(formatEther(weightBN)) } : {}
         return {
             status: statusStrings[statusCode],
@@ -404,7 +404,7 @@ export class Vault {
      * Admin: Add a new data union secret to enable members to join without specific approval using this secret.
      * For data unions that use the default-join-server
      */
-    async createSecret(name: string = 'Untitled Data Union Secret'): Promise<SecretsResponse> {
+    async createSecret(name: string = 'Untitled Secret'): Promise<SecretsResponse> {
         return this.post<SecretsResponse>(['secrets', 'create'], { name })
     }
 
@@ -432,7 +432,7 @@ export class Vault {
 
     /**
      * JoinPartAgents: Add given Ethereum addresses as data union members with weights (instead of the default 1.0)
-     * @param memberAddressList - list of Ethereum addresses to add as members, may NOT be already in the Data Union
+     * @param memberAddressList - list of Ethereum addresses to add as members, may NOT be already in the Vault
      * @param weights - list of (non-zero) weights to assign to the new members (will be converted same way as ETH or tokens, multiplied by 10^18)
      */
     async addMembersWithWeights(memberAddressList: EthereumAddress[], weights: number[]): Promise<ContractReceipt> {

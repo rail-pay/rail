@@ -6,7 +6,7 @@ import type { GasPriceStrategy } from './gasPriceStrategies'
 
 /**
  * @category Important
- * Top-level DU client config
+ * Top-level client config
  */
 export type RailClientConfig = {
     /** Custom human-readable debug id for client. Used in logging. Unique id will be generated regardless. TODO: delete probably */

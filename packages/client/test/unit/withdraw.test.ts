@@ -46,7 +46,7 @@ describe('Vault withdrawX functions', () => {
             network: { rpcs: [{ url: ethereumUrl, timeout: 30 * 1000 }] }
         }
 
-        // deploy a DU with admin fee 9% + DU fee 1% = total 10% fees
+        // deploy a Vault with admin fee 9% + Vault fee 1% = total 10% fees
         const adminClient = new RailClient({ ...clientOptions, auth: { privateKey: admin.privateKey } })
         const adminVault = await adminClient.deployVault({ adminFee: 0.09 })
         await adminVault.addMembers([member.address, otherMember.address])

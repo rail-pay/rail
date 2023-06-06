@@ -24,7 +24,7 @@ const wallet = new Wallet(process.env.PRIVATE_KEY || "missing PRIVATE_KEY env va
 // Logger.setLogLevel(Logger.levels.DEBUG)
 
 describe('Client on Polygon on default settings', () => {
-    it.skip('Can deploy DUs', async () => {
+    it.skip('Can deploy Vaults', async () => {
         const client = new RailClient({
             auth: { privateKey: wallet.privateKey }
         })

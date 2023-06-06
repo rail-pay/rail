@@ -10,7 +10,7 @@ import "./IJoinListener.sol";
 import "./IPartListener.sol";
 
 /**
- * @title Data Union module that limits per-user withdraws to given amount per period
+ * @title Vault module that limits per-user withdraws to given amount per period
  * @dev Setup: vault.setWithdrawModule(this); vault.addJoinListener(this); vault.addPartListener(this)
  */
 contract LimitWithdrawModule is VaultModule, IWithdrawModule, IJoinListener, IPartListener {
@@ -88,7 +88,7 @@ contract LimitWithdrawModule is VaultModule, IWithdrawModule, IJoinListener, IPa
     }
 
     /**
-     * When a withdraw happens in the DU, tokens are transferred to the withdrawModule, then this function is called.
+     * When a withdraw happens in the Vault, tokens are transferred to the withdrawModule, then this function is called.
      * When we revert here, the whole withdraw transaction is reverted.
      */
     function onWithdraw(address member, address to, IERC677 token, uint amountWei) override external onlyVault {
@@ -107,7 +107,7 @@ contract LimitWithdrawModule is VaultModule, IWithdrawModule, IJoinListener, IPa
         // transferAndCall also enables transfers over another token bridge
         //   in this case to=another bridge's tokenMediator, and from=recipient on the other chain
         // this follows the tokenMediator API: data will contain the recipient address, which is the same as sender but on the other chain
-        // in case transferAndCall recipient is not a tokenMediator, the data can be ignored (it contains the DU member's address)
+        // in case transferAndCall recipient is not a tokenMediator, the data can be ignored (it contains the Vault member's address)
         require(token.transferAndCall(to, amountWei, abi.encodePacked(member)), "error_transfer");
     }
 }
