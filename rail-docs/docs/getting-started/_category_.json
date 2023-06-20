@@ -3,6 +3,7 @@
   "position": 1,
   "link": {
     "type": "generated-index",
+    "slug": "/getting-started",
     "description": "A quickstart guide for Rail"
   }
 }

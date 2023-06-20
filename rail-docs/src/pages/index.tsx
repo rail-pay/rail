@@ -3,6 +3,7 @@ import clsx from 'clsx';
 import Link from '@docusaurus/Link';
 import useDocusaurusContext from '@docusaurus/useDocusaurusContext';
 import Layout from '@theme/Layout';
+import { Redirect } from '@docusaurus/router';
 
 function HomepageHeader() {
   const { siteConfig } = useDocusaurusContext();
@@ -16,15 +17,6 @@ function HomepageHeader() {
   );
 }
 
-export default function Home(): JSX.Element {
-  const { siteConfig } = useDocusaurusContext();
-  return (
-    <Layout
-      title={`Hello from ${siteConfig.title}`}
-      description="Description will go into a meta tag in <head />"
-    >
-      <HomepageHeader />
-      <main></main>
-    </Layout>
-  );
+export default function Home() {
+  return <Redirect to="/getting-started" />;
 }

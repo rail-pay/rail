@@ -1,0 +1,9 @@
+{
+  "label": "Main concepts",
+  "position": 2,
+  "link": {
+    "type": "generated-index",
+    "slug": "/main-concepts",
+    "description": "The main concepts of Rail"
+  }
+}
