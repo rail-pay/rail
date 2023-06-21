@@ -13,6 +13,20 @@ sidebar_position: 3
 
 :::
 
+## Send deposit
+
+```ts title=manage-vault.ts
+const tx = await vault.sendDeposit(amount);
+
+// or
+
+const tx = await rail.sendDeposit(vaultAddress, amount);
+```
+
+:::info
+Alternatively you can send an ERC20 transaction to the vault contract address.
+:::
+
 ## Deposit distribution
 
 The deposit distribution is, by default, defined by two variables in the smart contract:

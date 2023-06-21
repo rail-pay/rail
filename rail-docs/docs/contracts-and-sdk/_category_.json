@@ -1,9 +1,0 @@
-{
-  "label": "Contracts & SDKs",
-  "position": 3,
-  "link": {
-    "type": "generated-index",
-    "slug": "/contracts-and-sdk",
-    "description": "Information about the SDK and smart contracts that are available for Rail."
-  }
-}

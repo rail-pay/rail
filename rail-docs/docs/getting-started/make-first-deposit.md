@@ -64,3 +64,7 @@ const tx = await vault.sendDeposit(amount);
 
 const tx = await rail.sendDeposit(vaultAddress, amount);
 ```
+
+:::info
+Alternatively you can send an ERC20 transaction to the vault contract address.
+:::

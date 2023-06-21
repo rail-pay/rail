@@ -41,7 +41,7 @@ Once you have added an address as a beneficiary, they will be eligible for incom
 :::
 
 ```ts
-const tx = await vault.addMembers([ADDRESS_1, ADDRESS_2, ADDRESS_3]);
+const tx = await vault.addBeneficiaries([ADDRESS_1, ADDRESS_2, ADDRESS_3]);
 ```
 
 ### Remove/inactivate beneficiaries
@@ -51,7 +51,7 @@ Once you have removed an address as a beneficiary, they won't be eligible for in
 :::
 
 ```ts
-const tx = await vault.removeMembers([ADDRESS_1, ADDRESS_2, ADDRESS_3]);
+const tx = await vault.removeBeneficiaries([ADDRESS_1, ADDRESS_2, ADDRESS_3]);
 ```
 
 ### Automate joins in your vault
